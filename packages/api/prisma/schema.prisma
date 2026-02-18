@@ -1,0 +1,449 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgcrypto]
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum Role {
+  SUPER_ADMIN
+  PROJECT_MANAGER
+  SUPERINTENDENT
+  FOREMAN
+  FIELD_WORKER
+  OWNER_REP
+  SAFETY_OFFICER
+}
+
+enum DailyLogStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  AMENDED
+}
+
+enum WeatherCondition {
+  CLEAR
+  PARTLY_CLOUDY
+  OVERCAST
+  RAIN
+  HEAVY_RAIN
+  SNOW
+  SLEET
+  FOG
+  WIND
+  THUNDERSTORM
+  EXTREME_HEAT
+  EXTREME_COLD
+}
+
+enum DelayCause {
+  WEATHER
+  MATERIAL_SHORTAGE
+  EQUIPMENT_FAILURE
+  LABOR_SHORTAGE
+  DESIGN_CHANGE
+  OWNER_DIRECTED
+  PERMIT_ISSUE
+  INSPECTION_HOLD
+  UTILITY_CONFLICT
+  SUBCONTRACTOR
+  SAFETY_STOP
+  OTHER
+}
+
+enum EquipmentCondition {
+  OPERATIONAL
+  NEEDS_MAINTENANCE
+  DOWN_FOR_REPAIR
+  IDLE
+}
+
+enum MaterialCondition {
+  GOOD
+  DAMAGED
+  PARTIAL_DELIVERY
+  REJECTED
+}
+
+enum VoiceNoteStatus {
+  UPLOADING
+  TRANSCRIBING
+  EXTRACTING
+  REVIEW_READY
+  PROCESSED
+  FAILED
+}
+
+enum ReviewAction {
+  APPROVED
+  REJECTED
+  MODIFIED
+}
+
+// ─────────────────────────────────────────────
+// CORE ENTITIES
+// ─────────────────────────────────────────────
+
+model Organization {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users    User[]
+  projects Project[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email          String   @unique
+  passwordHash   String   @map("password_hash")
+  firstName      String   @map("first_name")
+  lastName       String   @map("last_name")
+  role           Role
+  isActive       Boolean  @default(true) @map("is_active")
+  organizationId String   @map("organization_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  projectMembers ProjectMember[]
+  refreshTokens  RefreshToken[]
+  dailyLogs      DailyLog[]      @relation("CreatedByUser")
+  voiceNotes     VoiceNote[]
+  signatures     Signature[]
+  reviewActions  ReviewEntry[]
+
+  @@index([organizationId])
+  @@index([email])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token     String    @unique
+  userId    String    @map("user_id") @db.Uuid
+  family    String
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@index([family])
+  @@map("refresh_tokens")
+}
+
+model Project {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String
+  code           String
+  address        String?
+  city           String?
+  state          String?
+  zipCode        String?   @map("zip_code")
+  organizationId String    @map("organization_id") @db.Uuid
+  isActive       Boolean   @default(true) @map("is_active")
+  startDate      DateTime? @map("start_date") @db.Date
+  endDate        DateTime? @map("end_date") @db.Date
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization Organization    @relation(fields: [organizationId], references: [id])
+  members      ProjectMember[]
+  dailyLogs    DailyLog[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  role      Role
+  createdAt DateTime @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId])
+  @@map("project_members")
+}
+
+// ─────────────────────────────────────────────
+// DAILY LOG
+// ─────────────────────────────────────────────
+
+model DailyLog {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId    String         @map("project_id") @db.Uuid
+  logDate      DateTime       @map("log_date") @db.Date
+  status       DailyLogStatus @default(DRAFT)
+  createdById  String         @map("created_by_id") @db.Uuid
+  reportNumber Int?           @map("report_number")
+  notes        String?
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  project       Project              @relation(fields: [projectId], references: [id])
+  createdBy     User                 @relation("CreatedByUser", fields: [createdById], references: [id])
+  weather       WeatherEntry?
+  workforce     WorkforceEntry[]
+  equipment     EquipmentEntry[]
+  workCompleted WorkCompletedEntry[]
+  materials     MaterialEntry[]
+  safety        SafetyEntry?
+  delays        DelayEntry[]
+  voiceNotes    VoiceNote[]
+  signatures    Signature[]
+  reviewEntries ReviewEntry[]
+
+  @@unique([projectId, logDate])
+  @@index([projectId, status])
+  @@index([createdById])
+  @@index([logDate])
+  @@map("daily_logs")
+}
+
+// ─── Weather Block ───
+
+model WeatherEntry {
+  id            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dailyLogId    String             @unique @map("daily_log_id") @db.Uuid
+  conditions    WeatherCondition[]
+  tempHigh      Float?             @map("temp_high")
+  tempLow       Float?             @map("temp_low")
+  precipitation String?
+  windSpeed     Float?             @map("wind_speed")
+  windDirection String?            @map("wind_direction")
+  humidity      Float?
+  delayMinutes  Int                @default(0) @map("delay_minutes")
+  aiGenerated   Boolean            @default(false) @map("ai_generated")
+  aiConfidence  Float?             @map("ai_confidence")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+
+  @@map("weather_entries")
+}
+
+// ─── Workforce Array ───
+
+model WorkforceEntry {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dailyLogId    String   @map("daily_log_id") @db.Uuid
+  trade         String
+  company       String
+  workerCount   Int      @map("worker_count")
+  hoursWorked   Float    @map("hours_worked")
+  overtimeHours Float    @default(0) @map("overtime_hours")
+  foreman       String?
+  aiGenerated   Boolean  @default(false) @map("ai_generated")
+  aiConfidence  Float?   @map("ai_confidence")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+
+  @@index([dailyLogId])
+  @@map("workforce_entries")
+}
+
+// ─── Equipment Array ───
+
+model EquipmentEntry {
+  id             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dailyLogId     String             @map("daily_log_id") @db.Uuid
+  equipmentType  String             @map("equipment_type")
+  equipmentId    String?            @map("equipment_id")
+  operatingHours Float              @map("operating_hours")
+  idleHours      Float              @default(0) @map("idle_hours")
+  condition      EquipmentCondition
+  notes          String?
+  aiGenerated    Boolean            @default(false) @map("ai_generated")
+  aiConfidence   Float?             @map("ai_confidence")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+
+  @@index([dailyLogId])
+  @@map("equipment_entries")
+}
+
+// ─── Work Completed Array ───
+
+model WorkCompletedEntry {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dailyLogId      String   @map("daily_log_id") @db.Uuid
+  location        String
+  csiCode         String?  @map("csi_code")
+  csiDescription  String?  @map("csi_description")
+  description     String
+  percentComplete Float?   @map("percent_complete")
+  quantity        Float?
+  unit            String?
+  aiGenerated     Boolean  @default(false) @map("ai_generated")
+  aiConfidence    Float?   @map("ai_confidence")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+
+  @@index([dailyLogId])
+  @@index([csiCode])
+  @@map("work_completed_entries")
+}
+
+// ─── Materials Delivered Array ───
+
+model MaterialEntry {
+  id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dailyLogId   String            @map("daily_log_id") @db.Uuid
+  material     String
+  quantity     Float
+  unit         String
+  supplier     String?
+  ticketNumber String?           @map("ticket_number")
+  condition    MaterialCondition @default(GOOD)
+  aiGenerated  Boolean           @default(false) @map("ai_generated")
+  aiConfidence Float?            @map("ai_confidence")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+
+  @@index([dailyLogId])
+  @@map("material_entries")
+}
+
+// ─── Safety Block ───
+
+model SafetyEntry {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dailyLogId     String   @unique @map("daily_log_id") @db.Uuid
+  toolboxTalks   String[] @map("toolbox_talks")
+  inspections    String[]
+  incidents      String[]
+  oshaRecordable Boolean  @default(false) @map("osha_recordable")
+  nearMisses     Int      @default(0) @map("near_misses")
+  firstAidCases  Int      @default(0) @map("first_aid_cases")
+  notes          String?
+  aiGenerated    Boolean  @default(false) @map("ai_generated")
+  aiConfidence   Float?   @map("ai_confidence")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+
+  @@map("safety_entries")
+}
+
+// ─── Delays Array ───
+
+model DelayEntry {
+  id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dailyLogId      String     @map("daily_log_id") @db.Uuid
+  cause           DelayCause
+  description     String
+  durationMinutes Int        @map("duration_minutes")
+  impactedTrades  String[]   @map("impacted_trades")
+  aiGenerated     Boolean    @default(false) @map("ai_generated")
+  aiConfidence    Float?     @map("ai_confidence")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+
+  @@index([dailyLogId])
+  @@map("delay_entries")
+}
+
+// ─── Voice Notes Array ───
+
+model VoiceNote {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dailyLogId      String          @map("daily_log_id") @db.Uuid
+  userId          String          @map("user_id") @db.Uuid
+  audioUrl        String          @map("audio_url")
+  audioSize       Int?            @map("audio_size")
+  durationSeconds Int?            @map("duration_seconds")
+  mimeType        String          @default("audio/webm") @map("mime_type")
+  transcript      String?
+  status          VoiceNoteStatus @default(UPLOADING)
+  aiProcessed     Boolean         @default(false) @map("ai_processed")
+  extractedData   Json?           @map("extracted_data")
+  processingError String?         @map("processing_error")
+  assemblyaiId    String?         @map("assemblyai_id")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@index([dailyLogId])
+  @@index([userId])
+  @@index([status])
+  @@map("voice_notes")
+}
+
+// ─── Signatures Array ───
+
+model Signature {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dailyLogId    String   @map("daily_log_id") @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  role          Role
+  signatureData String   @map("signature_data")
+  signedAt      DateTime @default(now()) @map("signed_at")
+
+  dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([dailyLogId, userId])
+  @@index([dailyLogId])
+  @@map("signatures")
+}
+
+// ─── HITL Review Entries ───
+
+model ReviewEntry {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dailyLogId    String       @map("daily_log_id") @db.Uuid
+  reviewerId    String       @map("reviewer_id") @db.Uuid
+  entityType    String       @map("entity_type")
+  entityId      String       @map("entity_id") @db.Uuid
+  fieldName     String?      @map("field_name")
+  action        ReviewAction
+  reasonCode    String?      @map("reason_code")
+  previousValue Json?        @map("previous_value")
+  newValue      Json?        @map("new_value")
+  comment       String?
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  reviewer User     @relation(fields: [reviewerId], references: [id])
+
+  @@index([dailyLogId])
+  @@index([reviewerId])
+  @@index([entityType, entityId])
+  @@map("review_entries")
+}

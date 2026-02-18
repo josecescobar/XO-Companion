@@ -1,0 +1,6 @@
+export enum DailyLogStatus {
+  DRAFT = 'DRAFT',
+  PENDING_REVIEW = 'PENDING_REVIEW',
+  APPROVED = 'APPROVED',
+  AMENDED = 'AMENDED',
+}

@@ -1,0 +1,16 @@
+{
+  "name": "xo-companion",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @xo/api dev",
+    "build": "pnpm --filter @xo/api build",
+    "db:generate": "pnpm --filter @xo/api db:generate",
+    "db:migrate": "pnpm --filter @xo/api db:migrate",
+    "db:seed": "pnpm --filter @xo/api db:seed",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}
