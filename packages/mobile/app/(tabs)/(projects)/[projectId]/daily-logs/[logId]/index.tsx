@@ -1,9 +1,12 @@
-import { ScrollView, View, Text, RefreshControl, StyleSheet } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { ScrollView, View, Text, Pressable, RefreshControl, StyleSheet } from 'react-native';
+import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useDailyLog } from '@/hooks/queries/useDailyLogs';
+import { useAuthStore } from '@/stores/auth.store';
+import { getStatusAction } from '@/lib/permissions';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { CollapsibleSection } from '@/components/daily-log/CollapsibleSection';
+import { StatusActionButton } from '@/components/daily-log/StatusActionButton';
 import { WeatherSection } from '@/components/daily-log/WeatherSection';
 import { WorkforceSection } from '@/components/daily-log/WorkforceSection';
 import { EquipmentSection } from '@/components/daily-log/EquipmentSection';
@@ -18,16 +21,20 @@ const statusColors: Record<string, { bg: string; text: string }> = {
   PENDING_REVIEW: { bg: '#dbeafe', text: '#2563eb' },
   APPROVED: { bg: '#dcfce7', text: '#16a34a' },
   REJECTED: { bg: '#fee2e2', text: '#dc2626' },
+  AMENDED: { bg: '#fef3c7', text: '#ca8a04' },
 };
 
 export default function DailyLogDetailScreen() {
   const { projectId, logId } = useLocalSearchParams<{ projectId: string; logId: string }>();
+  const router = useRouter();
   const { data: log, isLoading, error, refetch, isRefetching } = useDailyLog(projectId, logId);
+  const user = useAuthStore((s) => s.user);
 
   if (isLoading) return <LoadingState message="Loading daily log..." />;
   if (error || !log) return <ErrorState message="Failed to load daily log" onRetry={refetch} />;
 
   const sc = statusColors[log.status] ?? statusColors.DRAFT;
+  const statusAction = getStatusAction(log.status, user?.role);
 
   return (
     <View style={styles.container}>
@@ -57,20 +64,41 @@ export default function DailyLogDetailScreen() {
         {log.safety && <CollapsibleSection title="Safety"><SafetySection safety={log.safety} /></CollapsibleSection>}
         {log.delays.length > 0 && <CollapsibleSection title="Delays" count={log.delays.length}><DelaysSection entries={log.delays} /></CollapsibleSection>}
 
-        {log.voiceNotes.length > 0 && (
-          <CollapsibleSection title="Voice Notes" count={log.voiceNotes.length}>
-            <View style={{ gap: 8 }}>
-              {log.voiceNotes.map((note) => (
-                <View key={note.id} style={styles.voiceRow}>
-                  <Text style={styles.voiceDuration}>
-                    {note.durationSeconds ? `${Math.floor(note.durationSeconds / 60)}:${String(note.durationSeconds % 60).padStart(2, '0')}` : '--:--'}
-                  </Text>
-                  <Text style={styles.voiceStatus}>{note.status}</Text>
-                </View>
-              ))}
-            </View>
-          </CollapsibleSection>
+        {/* Status Action */}
+        {statusAction && (
+          <View style={styles.actionSection}>
+            <StatusActionButton
+              action={statusAction}
+              projectId={projectId}
+              logId={logId}
+            />
+          </View>
         )}
+
+        {/* Navigation to sub-screens */}
+        <View style={styles.navSection}>
+          <Pressable
+            onPress={() => router.push(`/(tabs)/(projects)/${projectId}/daily-logs/${logId}/voice`)}
+            style={styles.navButton}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={styles.navButtonTitle}>Voice Notes</Text>
+              <Text style={styles.navButtonSub}>{log.voiceNotes.length} note{log.voiceNotes.length !== 1 ? 's' : ''}</Text>
+            </View>
+            <Text style={styles.navArrow}>›</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push(`/(tabs)/(projects)/${projectId}/daily-logs/${logId}/review`)}
+            style={styles.navButton}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={styles.navButtonTitle}>AI Review</Text>
+              <Text style={styles.navButtonSub}>Review extracted data</Text>
+            </View>
+            <Text style={styles.navArrow}>›</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </View>
   );
@@ -86,7 +114,18 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
   notesBox: { backgroundColor: '#eff6ff', borderRadius: 8, padding: 12, marginBottom: 16 },
   notesText: { fontSize: 16, color: '#0f172a' },
-  voiceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', padding: 12 },
-  voiceDuration: { fontSize: 16, color: '#0f172a' },
-  voiceStatus: { fontSize: 13, color: '#64748b' },
+  actionSection: { marginTop: 16 },
+  navSection: { marginTop: 16, gap: 8 },
+  navButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 16,
+  },
+  navButtonTitle: { fontSize: 16, fontWeight: '600', color: '#0f172a' },
+  navButtonSub: { fontSize: 13, color: '#64748b', marginTop: 2 },
+  navArrow: { fontSize: 24, color: '#94a3b8', marginLeft: 8 },
 });

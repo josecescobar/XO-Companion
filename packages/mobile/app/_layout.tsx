@@ -1,5 +1,3 @@
-import '../global.css';
-
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { Slot, useRouter, useSegments, useRootNavigationState } from 'expo-router';

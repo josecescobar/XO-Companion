@@ -181,3 +181,52 @@ export function getDailyLog(
 ): Promise<DailyLogDetail> {
   return api<DailyLogDetail>(`/projects/${projectId}/daily-logs/${logId}`);
 }
+
+// --- Create ---
+
+export interface CreateDailyLogBody {
+  logDate: string;
+  notes?: string;
+}
+
+export function createDailyLog(
+  projectId: string,
+  body: CreateDailyLogBody,
+): Promise<DailyLogDetail> {
+  return api<DailyLogDetail>(`/projects/${projectId}/daily-logs`, {
+    method: 'POST',
+    body,
+  });
+}
+
+// --- Status Transitions ---
+
+export function submitDailyLog(
+  projectId: string,
+  logId: string,
+): Promise<DailyLogDetail> {
+  return api<DailyLogDetail>(
+    `/projects/${projectId}/daily-logs/${logId}/submit`,
+    { method: 'POST' },
+  );
+}
+
+export function approveDailyLog(
+  projectId: string,
+  logId: string,
+): Promise<DailyLogDetail> {
+  return api<DailyLogDetail>(
+    `/projects/${projectId}/daily-logs/${logId}/approve`,
+    { method: 'POST' },
+  );
+}
+
+export function amendDailyLog(
+  projectId: string,
+  logId: string,
+): Promise<DailyLogDetail> {
+  return api<DailyLogDetail>(
+    `/projects/${projectId}/daily-logs/${logId}/amend`,
+    { method: 'POST' },
+  );
+}

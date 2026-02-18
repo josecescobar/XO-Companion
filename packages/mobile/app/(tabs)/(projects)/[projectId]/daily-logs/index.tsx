@@ -33,11 +33,12 @@ export default function DailyLogsListScreen() {
       <Stack.Screen options={{ title: 'Daily Logs' }} />
 
       {/* Status Filter Chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
-      >
+      <View style={styles.filterContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterRow}
+        >
         {STATUS_FILTERS.map((filter) => (
           <Pressable
             key={filter.label}
@@ -57,7 +58,8 @@ export default function DailyLogsListScreen() {
             </Text>
           </Pressable>
         ))}
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       <FlatList
         data={logs}
@@ -116,12 +118,22 @@ export default function DailyLogsListScreen() {
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
       />
+      {/* FAB to create new log */}
+      <Pressable
+        onPress={() =>
+          router.push(`/(tabs)/(projects)/${projectId}/daily-logs/new`)
+        }
+        style={styles.fab}
+      >
+        <Text style={styles.fabText}>+</Text>
+      </Pressable>
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  filterRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  filterContainer: { flexShrink: 0, paddingHorizontal: 16, paddingVertical: 12 },
+  filterRow: { gap: 8 },
   filterChip: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   filterSelected: { backgroundColor: '#2563eb' },
   filterDefault: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0' },
@@ -145,4 +157,26 @@ const styles = StyleSheet.create({
   logAuthor: { fontSize: 13, color: '#64748b', marginTop: 2 },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 12 },
   stat: { fontSize: 13, color: '#64748b' },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#2563eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  fabText: {
+    fontSize: 28,
+    color: '#ffffff',
+    fontWeight: '600',
+    lineHeight: 30,
+  },
 });
