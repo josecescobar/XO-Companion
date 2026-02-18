@@ -9,7 +9,10 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
   constructor(configService: ConfigService) {
     super({
       jwtFromRequest: (req: Request) => {
-        return req?.cookies?.['xo_refresh_token'] || null;
+        // Cookie-first (web), body-fallback (mobile)
+        return req?.cookies?.['xo_refresh_token']
+          || req?.body?.refreshToken
+          || null;
       },
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_REFRESH_SECRET')!,
@@ -18,7 +21,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
   }
 
   validate(req: Request, payload: { sub: string; family: string }) {
-    const refreshToken = req.cookies?.['xo_refresh_token'];
+    const refreshToken = req.cookies?.['xo_refresh_token'] || req.body?.refreshToken;
     return { ...payload, refreshToken };
   }
 }

@@ -1,0 +1,130 @@
+import { useState } from 'react';
+import { View, Text, FlatList, Pressable, RefreshControl, ScrollView } from 'react-native';
+import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { useDailyLogs } from '@/hooks/queries/useDailyLogs';
+import { ScreenWrapper } from '@/components/common/ScreenWrapper';
+import { LoadingState } from '@/components/common/LoadingState';
+import { ErrorState } from '@/components/common/ErrorState';
+import { EmptyState } from '@/components/common/EmptyState';
+import { Card } from '@/components/ui/Card';
+import { StatusChip } from '@/components/ui/StatusChip';
+import { format } from 'date-fns';
+
+const STATUS_FILTERS = [
+  { label: 'All', value: undefined },
+  { label: 'Draft', value: 'DRAFT' },
+  { label: 'In Review', value: 'PENDING_REVIEW' },
+  { label: 'Approved', value: 'APPROVED' },
+] as const;
+
+export default function DailyLogsListScreen() {
+  const { projectId } = useLocalSearchParams<{ projectId: string }>();
+  const router = useRouter();
+  const [statusFilter, setStatusFilter] = useState<string | undefined>();
+  const { data: logs, isLoading, error, refetch, isRefetching } = useDailyLogs(
+    projectId,
+    statusFilter,
+  );
+
+  if (isLoading) return <LoadingState message="Loading daily logs..." />;
+  if (error) return <ErrorState message="Failed to load daily logs" onRetry={refetch} />;
+
+  return (
+    <ScreenWrapper>
+      <Stack.Screen options={{ title: 'Daily Logs' }} />
+
+      {/* Status Filter Chips */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}
+      >
+        {STATUS_FILTERS.map((filter) => (
+          <Pressable
+            key={filter.label}
+            onPress={() => setStatusFilter(filter.value)}
+            className={`rounded-full px-4 py-2 ${
+              statusFilter === filter.value
+                ? 'bg-brand-500'
+                : 'bg-field-card border border-field-border'
+            }`}
+          >
+            <Text
+              className={`text-field-sm font-medium ${
+                statusFilter === filter.value ? 'text-white' : 'text-field-muted'
+              }`}
+            >
+              {filter.label}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
+      <FlatList
+        data={logs}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <Pressable
+            onPress={() =>
+              router.push(
+                `/(tabs)/(projects)/${projectId}/daily-logs/${item.id}`,
+              )
+            }
+          >
+            <Card className="mb-2">
+              <View className="flex-row items-center justify-between">
+                <View>
+                  <Text className="text-field-base font-semibold text-field-text">
+                    {format(new Date(item.logDate), 'EEEE, MMM d, yyyy')}
+                  </Text>
+                  <Text className="mt-0.5 text-field-sm text-field-muted">
+                    by {item.createdBy.firstName} {item.createdBy.lastName}
+                  </Text>
+                </View>
+                <StatusChip status={item.status} />
+              </View>
+
+              <View className="mt-3 flex-row flex-wrap gap-3">
+                {item._count.workforce > 0 && (
+                  <Text className="text-field-sm text-field-muted">
+                    {item._count.workforce} crews
+                  </Text>
+                )}
+                {item._count.equipment > 0 && (
+                  <Text className="text-field-sm text-field-muted">
+                    {item._count.equipment} equipment
+                  </Text>
+                )}
+                {item._count.workCompleted > 0 && (
+                  <Text className="text-field-sm text-field-muted">
+                    {item._count.workCompleted} work items
+                  </Text>
+                )}
+                {item._count.voiceNotes > 0 && (
+                  <Text className="text-field-sm text-field-muted">
+                    {item._count.voiceNotes} voice notes
+                  </Text>
+                )}
+              </View>
+            </Card>
+          </Pressable>
+        )}
+        ListEmptyComponent={
+          <EmptyState
+            title="No Daily Logs"
+            message={
+              statusFilter
+                ? `No logs with status "${statusFilter}"`
+                : 'No daily logs have been created yet.'
+            }
+            icon="📋"
+          />
+        }
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        }
+      />
+    </ScreenWrapper>
+  );
+}

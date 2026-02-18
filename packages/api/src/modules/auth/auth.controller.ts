@@ -53,7 +53,7 @@ export class AuthController {
 
     this.setRefreshCookie(res, refreshToken);
 
-    return { accessToken, user };
+    return { accessToken, refreshToken, user };
   }
 
   @Public()
@@ -72,7 +72,7 @@ export class AuthController {
 
     this.setRefreshCookie(res, refreshToken);
 
-    return { accessToken, user };
+    return { accessToken, refreshToken, user };
   }
 
   @Post('logout')
@@ -81,7 +81,7 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshToken = req.cookies?.['xo_refresh_token'];
+    const refreshToken = req.cookies?.['xo_refresh_token'] || req.body?.refreshToken;
     if (refreshToken) {
       await this.authService.logout(refreshToken);
     }

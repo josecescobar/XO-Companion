@@ -35,5 +35,17 @@ uploads/
 # Testing
 coverage/
 
+# Expo / React Native
+.expo/
+web-build/
+ios/
+android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.metro-health-check*
+
 # Misc
 *.tsbuildinfo

@@ -7,6 +7,9 @@
     "db:generate": "pnpm --filter @xo/api db:generate",
     "db:migrate": "pnpm --filter @xo/api db:migrate",
     "db:seed": "pnpm --filter @xo/api db:seed",
+    "mobile": "pnpm --filter @xo/mobile start",
+    "mobile:ios": "pnpm --filter @xo/mobile ios",
+    "mobile:android": "pnpm --filter @xo/mobile android",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test"
   },
