@@ -51,33 +51,35 @@ function ReviewsList() {
   const isLoading = loadingLogs || loadingReviews;
 
   return (
-    <>
+    <View style={styles.container}>
       {/* Project tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabRow}
-      >
-        {projects.map((item, index) => (
-          <Pressable
-            key={item.id}
-            onPress={() => setSelectedProjectIdx(index)}
-            style={[
-              styles.tab,
-              index === selectedProjectIdx ? styles.tabSelected : styles.tabDefault,
-            ]}
-          >
-            <Text
+      <View style={styles.tabContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabRow}
+        >
+          {projects.map((item, index) => (
+            <Pressable
+              key={item.id}
+              onPress={() => setSelectedProjectIdx(index)}
               style={[
-                styles.tabText,
-                index === selectedProjectIdx ? styles.tabTextSelected : styles.tabTextDefault,
+                styles.tab,
+                index === selectedProjectIdx ? styles.tabSelected : styles.tabDefault,
               ]}
             >
-              {item.name}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+              <Text
+                style={[
+                  styles.tabText,
+                  index === selectedProjectIdx ? styles.tabTextSelected : styles.tabTextDefault,
+                ]}
+              >
+                {item.name}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
 
       {isLoading ? (
         <LoadingState message="Loading reviews..." />
@@ -126,7 +128,7 @@ function ReviewsList() {
           }
         />
       )}
-    </>
+    </View>
   );
 }
 
@@ -140,7 +142,9 @@ export default function ReviewsScreen() {
 }
 
 const styles = StyleSheet.create({
-  tabRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  container: { flex: 1 },
+  tabContainer: { flexShrink: 0, paddingHorizontal: 16, paddingVertical: 12 },
+  tabRow: { gap: 8 },
   tab: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   tabSelected: { backgroundColor: '#2563eb' },
   tabDefault: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0' },
