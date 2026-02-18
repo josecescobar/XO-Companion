@@ -7,6 +7,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { StatusChip } from '@/components/ui/StatusChip';
+import { useTheme } from '@/hooks/useTheme';
 import { format } from 'date-fns';
 
 const STATUS_FILTERS = [
@@ -24,6 +25,7 @@ export default function DailyLogsListScreen() {
     projectId,
     statusFilter,
   );
+  const { colors } = useTheme();
 
   if (isLoading) return <LoadingState message="Loading daily logs..." />;
   if (error) return <ErrorState message="Failed to load daily logs" onRetry={refetch} />;
@@ -45,13 +47,17 @@ export default function DailyLogsListScreen() {
             onPress={() => setStatusFilter(filter.value)}
             style={[
               styles.filterChip,
-              statusFilter === filter.value ? styles.filterSelected : styles.filterDefault,
+              statusFilter === filter.value
+                ? [styles.filterSelected, { backgroundColor: colors.primary }]
+                : [styles.filterDefault, { backgroundColor: colors.surface, borderColor: colors.border }],
             ]}
           >
             <Text
               style={[
                 styles.filterText,
-                statusFilter === filter.value ? styles.filterTextSelected : styles.filterTextDefault,
+                statusFilter === filter.value
+                  ? styles.filterTextSelected
+                  : [styles.filterTextDefault, { color: colors.textSecondary }],
               ]}
             >
               {filter.label}
@@ -72,13 +78,13 @@ export default function DailyLogsListScreen() {
               )
             }
           >
-            <View style={styles.logCard}>
+            <View style={[styles.logCard, { borderColor: colors.border, backgroundColor: colors.surface }]}>
               <View style={styles.logHeader}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.logDate}>
+                  <Text style={[styles.logDate, { color: colors.text }]}>
                     {format(new Date(item.logDate), 'EEEE, MMM d, yyyy')}
                   </Text>
-                  <Text style={styles.logAuthor}>
+                  <Text style={[styles.logAuthor, { color: colors.textSecondary }]}>
                     by {item.createdBy.firstName} {item.createdBy.lastName}
                   </Text>
                 </View>
@@ -87,16 +93,16 @@ export default function DailyLogsListScreen() {
 
               <View style={styles.statsRow}>
                 {item._count.workforce > 0 && (
-                  <Text style={styles.stat}>{item._count.workforce} crews</Text>
+                  <Text style={[styles.stat, { color: colors.textSecondary }]}>{item._count.workforce} crews</Text>
                 )}
                 {item._count.equipment > 0 && (
-                  <Text style={styles.stat}>{item._count.equipment} equipment</Text>
+                  <Text style={[styles.stat, { color: colors.textSecondary }]}>{item._count.equipment} equipment</Text>
                 )}
                 {item._count.workCompleted > 0 && (
-                  <Text style={styles.stat}>{item._count.workCompleted} work items</Text>
+                  <Text style={[styles.stat, { color: colors.textSecondary }]}>{item._count.workCompleted} work items</Text>
                 )}
                 {item._count.voiceNotes > 0 && (
-                  <Text style={styles.stat}>{item._count.voiceNotes} voice notes</Text>
+                  <Text style={[styles.stat, { color: colors.textSecondary }]}>{item._count.voiceNotes} voice notes</Text>
                 )}
               </View>
             </View>
@@ -123,7 +129,7 @@ export default function DailyLogsListScreen() {
         onPress={() =>
           router.push(`/(tabs)/(projects)/${projectId}/daily-logs/new`)
         }
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.primary }]}
       >
         <Text style={styles.fabText}>+</Text>
       </Pressable>
@@ -135,16 +141,14 @@ const styles = StyleSheet.create({
   filterContainer: { flexShrink: 0, paddingHorizontal: 16, paddingVertical: 12 },
   filterRow: { gap: 8 },
   filterChip: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
-  filterSelected: { backgroundColor: '#2563eb' },
-  filterDefault: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0' },
+  filterSelected: {},
+  filterDefault: { borderWidth: 1 },
   filterText: { fontSize: 14, fontWeight: '500' },
   filterTextSelected: { color: '#ffffff' },
-  filterTextDefault: { color: '#64748b' },
+  filterTextDefault: {},
   logCard: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#ffffff',
     padding: 16,
     marginBottom: 8,
   },
@@ -153,10 +157,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  logDate: { fontSize: 16, fontWeight: '600', color: '#0f172a' },
-  logAuthor: { fontSize: 13, color: '#64748b', marginTop: 2 },
+  logDate: { fontSize: 16, fontWeight: '600' },
+  logAuthor: { fontSize: 13, marginTop: 2 },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 12 },
-  stat: { fontSize: 13, color: '#64748b' },
+  stat: { fontSize: 13 },
   fab: {
     position: 'absolute',
     right: 20,
@@ -164,7 +168,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#2563eb',
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,

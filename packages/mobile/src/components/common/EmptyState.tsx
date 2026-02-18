@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '@/hooks/useTheme';
 
 interface EmptyStateProps {
   title: string;
@@ -7,11 +8,13 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ title, message, icon = '📭' }: EmptyStateProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
       <Text style={styles.icon}>{icon}</Text>
-      <Text style={styles.title}>{title}</Text>
-      {message && <Text style={styles.message}>{message}</Text>}
+      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      {message && <Text style={[styles.message, { color: colors.textSecondary }]}>{message}</Text>}
     </View>
   );
 }
@@ -19,6 +22,6 @@ export function EmptyState({ title, message, icon = '📭' }: EmptyStateProps) {
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
   icon: { fontSize: 40, marginBottom: 8 },
-  title: { fontSize: 18, fontWeight: '600', color: '#0f172a' },
-  message: { marginTop: 4, fontSize: 16, color: '#64748b', textAlign: 'center' },
+  title: { fontSize: 18, fontWeight: '600' },
+  message: { marginTop: 4, fontSize: 16, textAlign: 'center' },
 });

@@ -1,5 +1,6 @@
 import { Pressable, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import type { PressableProps } from 'react-native';
+import { useTheme } from '@/hooks/useTheme';
 
 interface ButtonProps extends PressableProps {
   title: string;
@@ -7,20 +8,6 @@ interface ButtonProps extends PressableProps {
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
 }
-
-const variantBg = {
-  primary: '#2563eb',
-  secondary: '#e2e8f0',
-  danger: '#dc2626',
-  ghost: 'transparent',
-} as const;
-
-const variantTextColor = {
-  primary: '#ffffff',
-  secondary: '#0f172a',
-  danger: '#ffffff',
-  ghost: '#2563eb',
-} as const;
 
 const sizePadding = {
   sm: { paddingHorizontal: 12, paddingVertical: 8 },
@@ -42,7 +29,22 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
+  const { colors } = useTheme();
   const isDisabled = disabled || loading;
+
+  const variantBg = {
+    primary: colors.primary,
+    secondary: colors.border,
+    danger: colors.error,
+    ghost: 'transparent',
+  } as const;
+
+  const variantTextColor = {
+    primary: colors.surface,
+    secondary: colors.text,
+    danger: colors.surface,
+    ghost: colors.primary,
+  } as const;
 
   return (
     <Pressable
@@ -58,7 +60,7 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'ghost' ? '#2563eb' : '#ffffff'}
+          color={variant === 'ghost' ? colors.primary : colors.surface}
           size="small"
         />
       ) : (

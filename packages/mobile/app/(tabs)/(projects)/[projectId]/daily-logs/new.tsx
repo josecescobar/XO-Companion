@@ -16,11 +16,13 @@ import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useCreateDailyLog } from '@/hooks/mutations/useCreateDailyLog';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function CreateDailyLogScreen() {
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
   const router = useRouter();
   const createMutation = useCreateDailyLog();
+  const { colors } = useTheme();
 
   const [logDate, setLogDate] = useState(new Date());
   const [notes, setNotes] = useState('');
@@ -60,13 +62,13 @@ export default function CreateDailyLogScreen() {
         <ScrollView contentContainerStyle={styles.content}>
           {/* Date field */}
           <View style={styles.field}>
-            <Text style={styles.label}>Log Date</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Log Date</Text>
             {Platform.OS === 'android' && (
               <Pressable
                 onPress={() => setShowDatePicker(true)}
-                style={styles.dateButton}
+                style={[styles.dateButton, { borderColor: colors.border, backgroundColor: colors.surface }]}
               >
-                <Text style={styles.dateText}>
+                <Text style={[styles.dateText, { color: colors.text }]}>
                   {format(logDate, 'EEEE, MMM d, yyyy')}
                 </Text>
               </Pressable>
@@ -113,15 +115,13 @@ export default function CreateDailyLogScreen() {
 const styles = StyleSheet.create({
   content: { padding: 16, gap: 24 },
   field: { gap: 4 },
-  label: { fontSize: 14, fontWeight: '500', color: '#64748b', marginBottom: 4 },
+  label: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
   dateButton: {
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#ffffff',
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  dateText: { fontSize: 16, color: '#0f172a' },
+  dateText: { fontSize: 16 },
   notesInput: { minHeight: 100 },
 });

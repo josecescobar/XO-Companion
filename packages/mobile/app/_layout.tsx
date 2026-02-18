@@ -3,6 +3,8 @@ import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { Slot, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth.store';
+import { useThemeStore } from '@/stores/theme.store';
+import { useTheme } from '@/hooks/useTheme';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,9 +23,12 @@ function AuthGate() {
   const router = useRouter();
   const navigationState = useRootNavigationState();
   const [hydrated, setHydrated] = useState(false);
+  const { colors } = useTheme();
 
   useEffect(() => {
-    hydrate().then(() => setHydrated(true));
+    Promise.all([hydrate(), useThemeStore.getState().hydrate()]).then(() =>
+      setHydrated(true),
+    );
   }, []);
 
   useEffect(() => {
@@ -41,8 +46,8 @@ function AuthGate() {
 
   if (isLoading || !hydrated) {
     return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#2563eb" />
+      <View style={[styles.loading, { backgroundColor: colors.header }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -63,6 +68,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1a1a2e',
   },
 });

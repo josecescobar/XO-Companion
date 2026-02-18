@@ -11,6 +11,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { RecordButton } from '@/components/recording/RecordButton';
 import { RecordingTimer } from '@/components/recording/RecordingTimer';
 import { Button } from '@/components/ui/Button';
+import { useTheme } from '@/hooks/useTheme';
 import { format } from 'date-fns';
 
 export default function RecordScreen() {
@@ -18,6 +19,7 @@ export default function RecordScreen() {
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
   const { state, duration, uri, start, stop, reset } = useRecorder();
   const { mutate: upload, isPending: uploading } = useUploadVoice();
+  const { colors } = useTheme();
 
   const { data: projects, isLoading: loadingProjects } = useProjects();
   const { data: logs, isLoading: loadingLogs } = useDailyLogs(
@@ -62,7 +64,7 @@ export default function RecordScreen() {
       <Stack.Screen options={{ title: 'Record Voice Note' }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Project Selector */}
-        <Text style={styles.label}>Select Project</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Select Project</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -77,13 +79,17 @@ export default function RecordScreen() {
               }}
               style={[
                 styles.chip,
-                selectedProjectId === p.id ? styles.chipSelected : styles.chipDefault,
+                selectedProjectId === p.id
+                  ? [styles.chipSelected, { backgroundColor: colors.primary }]
+                  : [styles.chipDefault, { backgroundColor: colors.surface, borderColor: colors.border }],
               ]}
             >
               <Text
                 style={[
                   styles.chipText,
-                  selectedProjectId === p.id ? styles.chipTextSelected : styles.chipTextDefault,
+                  selectedProjectId === p.id
+                    ? styles.chipTextSelected
+                    : [styles.chipTextDefault, { color: colors.text }],
                 ]}
               >
                 {p.name}
@@ -95,9 +101,9 @@ export default function RecordScreen() {
         {/* Daily Log Selector */}
         {selectedProjectId && (
           <>
-            <Text style={styles.label}>Select Daily Log</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Select Daily Log</Text>
             {loadingLogs ? (
-              <Text style={styles.loadingText}>Loading logs...</Text>
+              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading logs...</Text>
             ) : (
               <ScrollView
                 horizontal
@@ -110,13 +116,17 @@ export default function RecordScreen() {
                     onPress={() => setSelectedLogId(log.id)}
                     style={[
                       styles.chip,
-                      selectedLogId === log.id ? styles.chipSelected : styles.chipDefault,
+                      selectedLogId === log.id
+                        ? [styles.chipSelected, { backgroundColor: colors.primary }]
+                        : [styles.chipDefault, { backgroundColor: colors.surface, borderColor: colors.border }],
                     ]}
                   >
                     <Text
                       style={[
                         styles.chipText,
-                        selectedLogId === log.id ? styles.chipTextSelected : styles.chipTextDefault,
+                        selectedLogId === log.id
+                          ? styles.chipTextSelected
+                          : [styles.chipTextDefault, { color: colors.text }],
                       ]}
                     >
                       {format(new Date(log.logDate), 'MMM d')}
@@ -124,7 +134,7 @@ export default function RecordScreen() {
                   </Pressable>
                 ))}
                 {!logs?.length && (
-                  <Text style={styles.loadingText}>No daily logs in this project</Text>
+                  <Text style={[styles.loadingText, { color: colors.textSecondary }]}>No daily logs in this project</Text>
                 )}
               </ScrollView>
             )}
@@ -132,9 +142,9 @@ export default function RecordScreen() {
         )}
 
         {/* Recording Area */}
-        <View style={styles.recordingCard}>
+        <View style={[styles.recordingCard, { borderColor: colors.border, backgroundColor: colors.surface }]}>
           {!selectedProjectId || !selectedLogId ? (
-            <Text style={styles.placeholderText}>
+            <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>
               Select a project and daily log to start recording
             </Text>
           ) : (
@@ -175,26 +185,24 @@ export default function RecordScreen() {
 
 const styles = StyleSheet.create({
   scrollContent: { padding: 16 },
-  label: { fontSize: 14, fontWeight: '500', color: '#64748b', marginBottom: 8 },
+  label: { fontSize: 14, fontWeight: '500', marginBottom: 8 },
   chipRow: { gap: 8, marginBottom: 16 },
   chip: { borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12 },
-  chipSelected: { backgroundColor: '#2563eb' },
-  chipDefault: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0' },
+  chipSelected: {},
+  chipDefault: { borderWidth: 1 },
   chipText: { fontSize: 14, fontWeight: '500' },
   chipTextSelected: { color: '#ffffff' },
-  chipTextDefault: { color: '#0f172a' },
-  loadingText: { fontSize: 14, color: '#64748b', marginBottom: 16 },
+  chipTextDefault: {},
+  loadingText: { fontSize: 14, marginBottom: 16 },
   recordingCard: {
     marginTop: 16,
     alignItems: 'center',
     paddingVertical: 48,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#ffffff',
     padding: 16,
   },
-  placeholderText: { fontSize: 16, color: '#64748b' },
+  placeholderText: { fontSize: 16 },
   recordBtnWrapper: { marginTop: 32 },
   uploadArea: { marginTop: 32, width: '100%', paddingHorizontal: 16 },
 });

@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '@/hooks/useTheme';
 import { CollapsibleSection } from '@/components/daily-log/CollapsibleSection';
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge';
 
@@ -41,11 +42,12 @@ function formatValue(value: unknown): string {
 }
 
 function EntryCard({ entry }: { entry: Record<string, unknown> }) {
+  const { colors } = useTheme();
   const confidence =
     typeof entry.aiConfidence === 'number' ? entry.aiConfidence : null;
 
   return (
-    <View style={styles.entryCard}>
+    <View style={[styles.entryCard, { backgroundColor: colors.surfaceSecondary }]}>
       {confidence !== null && (
         <View style={styles.confidenceRow}>
           <ConfidenceBadge confidence={confidence} />
@@ -55,8 +57,8 @@ function EntryCard({ entry }: { entry: Record<string, unknown> }) {
         .filter(([key]) => !skipFields.has(key))
         .map(([key, val]) => (
           <View key={key} style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>{formatKey(key)}</Text>
-            <Text style={styles.fieldValue}>{formatValue(val)}</Text>
+            <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>{formatKey(key)}</Text>
+            <Text style={[styles.fieldValue, { color: colors.text }]}>{formatValue(val)}</Text>
           </View>
         ))}
     </View>
@@ -95,7 +97,6 @@ export function ExtractedDataSections({ extractedData }: ExtractedDataSectionsPr
 
 const styles = StyleSheet.create({
   entryCard: {
-    backgroundColor: '#f8fafc',
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
@@ -112,13 +113,11 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 13,
-    color: '#64748b',
     flex: 1,
   },
   fieldValue: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#0f172a',
     flex: 1,
     textAlign: 'right',
   },

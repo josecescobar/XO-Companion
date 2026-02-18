@@ -10,11 +10,13 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLogin } from '@/hooks/mutations/useLogin';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { mutate: login, isPending, error } = useLogin();
+  const { colors } = useTheme();
 
   const handleLogin = () => {
     if (!email.trim() || !password.trim()) return;
@@ -65,13 +67,13 @@ export default function LoginScreen() {
           </View>
 
           {error && (
-            <Text style={styles.error}>
+            <Text style={[styles.error, { color: colors.error }]}>
               Invalid email or password. Please try again.
             </Text>
           )}
 
           <Pressable
-            style={[styles.button, isPending && styles.buttonDisabled]}
+            style={[styles.button, { backgroundColor: colors.primary }, isPending && styles.buttonDisabled]}
             onPress={handleLogin}
             disabled={isPending}
           >
@@ -132,10 +134,8 @@ const styles = StyleSheet.create({
   },
   error: {
     fontSize: 14,
-    color: '#dc2626',
   },
   button: {
-    backgroundColor: '#2563eb',
     borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',

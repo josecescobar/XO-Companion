@@ -3,19 +3,21 @@ import { View, Text, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet
 import { Stack } from 'expo-router';
 import { useProjects } from '@/hooks/queries/useProjects';
 import { useDailyLogs } from '@/hooks/queries/useDailyLogs';
-import { usePendingReviews } from '@/hooks/queries/useReviews';
+import { usePendingReviews, useReviewStats } from '@/hooks/queries/useReviews';
 import { useSubmitReview } from '@/hooks/mutations/useSubmitReview';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { LoadingState } from '@/components/common/LoadingState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ReviewCard } from '@/components/review/ReviewCard';
 import { SectionHeader } from '@/components/common/SectionHeader';
+import { useTheme } from '@/hooks/useTheme';
 import type { PendingReviewItem } from '@/api/endpoints/reviews';
 
 function ReviewsList() {
   const { data: projects, isLoading: loadingProjects, refetch: refetchProjects } = useProjects();
   const { mutate: submit, isPending: submitting } = useSubmitReview();
   const [refreshing, setRefreshing] = useState(false);
+  const { colors } = useTheme();
 
   const [selectedProjectIdx, setSelectedProjectIdx] = useState(0);
   const selectedProject = projects?.[selectedProjectIdx];
@@ -35,6 +37,8 @@ function ReviewsList() {
     selectedProject?.id ?? '',
     recentLog?.id ?? '',
   );
+
+  const { data: reviewStats } = useReviewStats(selectedProject?.id ?? '');
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -65,13 +69,17 @@ function ReviewsList() {
               onPress={() => setSelectedProjectIdx(index)}
               style={[
                 styles.tab,
-                index === selectedProjectIdx ? styles.tabSelected : styles.tabDefault,
+                index === selectedProjectIdx
+                  ? [styles.tabSelected, { backgroundColor: colors.primary }]
+                  : [styles.tabDefault, { backgroundColor: colors.surface, borderColor: colors.border }],
               ]}
             >
               <Text
                 style={[
                   styles.tabText,
-                  index === selectedProjectIdx ? styles.tabTextSelected : styles.tabTextDefault,
+                  index === selectedProjectIdx
+                    ? styles.tabTextSelected
+                    : [styles.tabTextDefault, { color: colors.textSecondary }],
                 ]}
               >
                 {item.name}
@@ -80,6 +88,33 @@ function ReviewsList() {
           ))}
         </ScrollView>
       </View>
+
+      {reviewStats && reviewStats.totalReviewed > 0 && (
+        <View style={[styles.statsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: colors.text }]}>{reviewStats.totalReviewed}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Reviewed</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: colors.text }]}>
+              {Math.round((reviewStats.approved / reviewStats.totalReviewed) * 100)}%
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Approval</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: colors.success }]}>{reviewStats.approved}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Approved</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: colors.error }]}>{reviewStats.rejected}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Rejected</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: colors.warning }]}>{reviewStats.modified}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Modified</Text>
+          </View>
+        </View>
+      )}
 
       {isLoading ? (
         <LoadingState message="Loading reviews..." />
@@ -146,9 +181,32 @@ const styles = StyleSheet.create({
   tabContainer: { flexShrink: 0, paddingHorizontal: 16, paddingVertical: 12 },
   tabRow: { gap: 8 },
   tab: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
-  tabSelected: { backgroundColor: '#2563eb' },
-  tabDefault: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0' },
+  tabSelected: {},
+  tabDefault: { borderWidth: 1 },
   tabText: { fontSize: 14, fontWeight: '500' },
   tabTextSelected: { color: '#ffffff' },
-  tabTextDefault: { color: '#64748b' },
+  tabTextDefault: {},
+  statsCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 2,
+  },
 });

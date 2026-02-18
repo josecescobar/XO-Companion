@@ -230,3 +230,33 @@ export function amendDailyLog(
     { method: 'POST' },
   );
 }
+
+// --- Entry CRUD ---
+
+export type EntityType = 'workforce' | 'equipment' | 'workCompleted' | 'materials' | 'delays' | 'weather' | 'safety';
+
+const entityPaths: Record<EntityType, string> = {
+  workforce: 'workforce',
+  equipment: 'equipment',
+  workCompleted: 'work-completed',
+  materials: 'materials',
+  delays: 'delays',
+  weather: 'weather',
+  safety: 'safety',
+};
+
+export function createEntry(projectId: string, logId: string, entityType: EntityType, body: Record<string, unknown>) {
+  return api(`/projects/${projectId}/daily-logs/${logId}/${entityPaths[entityType]}`, { method: 'POST', body });
+}
+
+export function updateEntry(projectId: string, logId: string, entityType: EntityType, entryId: string, body: Record<string, unknown>) {
+  return api(`/projects/${projectId}/daily-logs/${logId}/${entityPaths[entityType]}/${entryId}`, { method: 'PATCH', body });
+}
+
+export function deleteEntry(projectId: string, logId: string, entityType: EntityType, entryId: string) {
+  return api(`/projects/${projectId}/daily-logs/${logId}/${entityPaths[entityType]}/${entryId}`, { method: 'DELETE' });
+}
+
+export function upsertSingleton(projectId: string, logId: string, entityType: 'weather' | 'safety', body: Record<string, unknown>) {
+  return api(`/projects/${projectId}/daily-logs/${logId}/${entityPaths[entityType]}`, { method: 'PUT', body });
+}

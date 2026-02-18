@@ -1,0 +1,43 @@
+export const lightColors = {
+  background: '#f8fafc',
+  surface: '#ffffff',
+  surfaceSecondary: '#f8fafc',
+  border: '#e2e8f0',
+  text: '#0f172a',
+  textSecondary: '#64748b',
+  textTertiary: '#94a3b8',
+  primary: '#2563eb',
+  primaryLight: '#dbeafe',
+  success: '#16a34a',
+  successLight: '#dcfce7',
+  error: '#dc2626',
+  errorLight: '#fee2e2',
+  warning: '#ca8a04',
+  warningLight: '#fef3c7',
+  orange: '#ea580c',
+  header: '#1a1a2e',
+  headerText: '#ffffff',
+};
+
+export const darkColors: typeof lightColors = {
+  background: '#0f172a',
+  surface: '#1e293b',
+  surfaceSecondary: '#334155',
+  border: '#334155',
+  text: '#f1f5f9',
+  textSecondary: '#94a3b8',
+  textTertiary: '#64748b',
+  primary: '#3b82f6',
+  primaryLight: '#1e3a5f',
+  success: '#22c55e',
+  successLight: '#14532d',
+  error: '#ef4444',
+  errorLight: '#450a0a',
+  warning: '#eab308',
+  warningLight: '#422006',
+  orange: '#f97316',
+  header: '#0f172a',
+  headerText: '#f1f5f9',
+};
+
+export type ThemeColors = typeof lightColors;

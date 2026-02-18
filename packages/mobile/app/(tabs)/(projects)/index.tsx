@@ -5,10 +5,12 @@ import { ProjectCard } from '@/components/project/ProjectCard';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function ProjectsScreen() {
   const router = useRouter();
   const { data: projects, isLoading, error, refetch, isRefetching } = useProjects();
+  const { colors } = useTheme();
 
   if (isLoading) return <LoadingState message="Loading projects..." />;
   if (error) return <ErrorState message="Failed to load projects" onRetry={refetch} />;
@@ -17,7 +19,7 @@ export default function ProjectsScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={projects}
         keyExtractor={(item) => item.id}
@@ -37,6 +39,6 @@ export default function ProjectsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
+  container: { flex: 1 },
   list: { padding: 16 },
 });

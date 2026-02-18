@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { CollapsibleSection } from '@/components/daily-log/CollapsibleSection';
 import { ExtractedDataSections } from '@/components/voice-note/ExtractedDataSections';
+import { useTheme } from '@/hooks/useTheme';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 
@@ -46,6 +47,7 @@ export default function VoiceNoteDetailScreen() {
   );
   const { mutate: apply, isPending: isApplying } = useApplyExtractedData();
   const { mutate: reprocess, isPending: isReprocessing } = useReprocessVoiceNote();
+  const { colors } = useTheme();
 
   if (isLoading) return <LoadingState message="Loading voice note..." />;
   if (error || !data) return <ErrorState message="Failed to load voice note" onRetry={refetch} />;
@@ -83,24 +85,24 @@ export default function VoiceNoteDetailScreen() {
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
         {/* Audio Info Header */}
-        <View style={styles.infoCard}>
+        <View style={[styles.infoCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.row}>
-            <Text style={styles.duration}>{formattedDuration}</Text>
+            <Text style={[styles.duration, { color: colors.text }]}>{formattedDuration}</Text>
             <Badge
               label={statusLabel[status] ?? status}
               variant={statusVariant[status] ?? 'default'}
             />
           </View>
-          <Text style={styles.timestamp}>
+          <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
             {format(new Date(data.createdAt), 'MMM d, yyyy h:mm a')}
           </Text>
         </View>
 
         {/* Processing Indicator */}
         {isProcessing && (
-          <View style={styles.processingCard}>
-            <ActivityIndicator size="small" color="#2563eb" />
-            <Text style={styles.processingText}>
+          <View style={[styles.processingCard, { backgroundColor: colors.primaryLight }]}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={[styles.processingText, { color: colors.primary }]}>
               {status === 'UPLOADING'
                 ? 'Uploading audio...'
                 : status === 'TRANSCRIBING'
@@ -112,10 +114,10 @@ export default function VoiceNoteDetailScreen() {
 
         {/* Failed State */}
         {status === 'FAILED' && (
-          <View style={styles.errorCard}>
-            <Text style={styles.errorTitle}>Processing Failed</Text>
+          <View style={[styles.errorCard, { backgroundColor: colors.errorLight }]}>
+            <Text style={[styles.errorTitle, { color: colors.error }]}>Processing Failed</Text>
             {data.processingError && (
-              <Text style={styles.errorMessage}>{data.processingError}</Text>
+              <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>{data.processingError}</Text>
             )}
             <Button
               title="Reprocess"
@@ -129,7 +131,7 @@ export default function VoiceNoteDetailScreen() {
         {/* Transcript */}
         {data.transcript && (
           <CollapsibleSection title="Transcript" defaultOpen>
-            <Text style={styles.transcriptText}>{data.transcript}</Text>
+            <Text style={[styles.transcriptText, { color: colors.text }]}>{data.transcript}</Text>
           </CollapsibleSection>
         )}
 
@@ -162,10 +164,8 @@ export default function VoiceNoteDetailScreen() {
 const styles = StyleSheet.create({
   content: { padding: 16 },
   infoCard: {
-    backgroundColor: '#ffffff',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     padding: 16,
     marginBottom: 12,
   },
@@ -174,28 +174,26 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  duration: { fontSize: 24, fontWeight: '700', color: '#0f172a' },
-  timestamp: { fontSize: 13, color: '#64748b', marginTop: 8 },
+  duration: { fontSize: 24, fontWeight: '700' },
+  timestamp: { fontSize: 13, marginTop: 8 },
   processingCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#eff6ff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
   },
-  processingText: { fontSize: 14, color: '#2563eb', fontWeight: '500' },
+  processingText: { fontSize: 14, fontWeight: '500' },
   errorCard: {
-    backgroundColor: '#fef2f2',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     gap: 8,
   },
-  errorTitle: { fontSize: 16, fontWeight: '600', color: '#dc2626' },
-  errorMessage: { fontSize: 14, color: '#64748b' },
-  transcriptText: { fontSize: 15, color: '#0f172a', lineHeight: 22 },
+  errorTitle: { fontSize: 16, fontWeight: '600' },
+  errorMessage: { fontSize: 14 },
+  transcriptText: { fontSize: 15, lineHeight: 22 },
   appliedBanner: {
     alignItems: 'center',
     paddingVertical: 16,

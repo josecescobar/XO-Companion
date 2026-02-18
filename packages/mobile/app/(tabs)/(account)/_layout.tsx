@@ -1,11 +1,14 @@
 import { Stack } from 'expo-router';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function AccountLayout() {
+  const { colors } = useTheme();
+
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: '#1a1a2e' },
-        headerTintColor: '#ffffff',
+        headerStyle: { backgroundColor: colors.header },
+        headerTintColor: colors.headerText,
       }}
     >
       <Stack.Screen name="index" options={{ title: 'Account' }} />

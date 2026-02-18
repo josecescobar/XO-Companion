@@ -1,13 +1,13 @@
 import { Badge } from './Badge';
 
-type LogStatus = 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED' | 'REVISION_REQUESTED';
+type LogStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'AMENDED';
 
 const statusVariants: Record<LogStatus, { label: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info' }> = {
   DRAFT: { label: 'Draft', variant: 'default' },
-  IN_REVIEW: { label: 'In Review', variant: 'info' },
+  PENDING_REVIEW: { label: 'In Review', variant: 'info' },
   APPROVED: { label: 'Approved', variant: 'success' },
   REJECTED: { label: 'Rejected', variant: 'error' },
-  REVISION_REQUESTED: { label: 'Revision', variant: 'warning' },
+  AMENDED: { label: 'Amended', variant: 'warning' },
 };
 
 interface StatusChipProps {

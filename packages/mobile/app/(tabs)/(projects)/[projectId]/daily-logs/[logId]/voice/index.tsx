@@ -5,6 +5,7 @@ import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { LoadingState } from '@/components/common/LoadingState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/ui/Badge';
+import { useTheme } from '@/hooks/useTheme';
 
 const statusVariant: Record<string, 'default' | 'info' | 'success' | 'warning' | 'error'> = {
   UPLOADING: 'info',
@@ -19,6 +20,7 @@ export default function VoiceNotesScreen() {
   const { projectId, logId } = useLocalSearchParams<{ projectId: string; logId: string }>();
   const router = useRouter();
   const { data, isLoading, refetch, isRefetching } = useVoiceNotes(projectId, logId, true);
+  const { colors } = useTheme();
 
   if (isLoading) return <LoadingState message="Loading voice notes..." />;
 
@@ -36,16 +38,16 @@ export default function VoiceNotesScreen() {
               )
             }
           >
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={styles.row}>
-                <Text style={styles.duration}>
+                <Text style={[styles.duration, { color: colors.text }]}>
                   {item.durationSeconds
                     ? `${Math.floor(item.durationSeconds / 60)}:${String(item.durationSeconds % 60).padStart(2, '0')}`
                     : '--:--'}
                 </Text>
                 <Badge label={item.status.replace(/_/g, ' ')} variant={statusVariant[item.status] ?? 'default'} />
               </View>
-              <Text style={styles.timestamp}>
+              <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
                 {new Date(item.createdAt).toLocaleString()}
               </Text>
             </View>
@@ -64,10 +66,8 @@ export default function VoiceNotesScreen() {
 const styles = StyleSheet.create({
   list: { padding: 16, flexGrow: 1 },
   card: {
-    backgroundColor: '#ffffff',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     padding: 16,
     marginBottom: 8,
   },
@@ -76,6 +76,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  duration: { fontSize: 20, fontWeight: '700', color: '#0f172a' },
-  timestamp: { fontSize: 13, color: '#64748b', marginTop: 8 },
+  duration: { fontSize: 20, fontWeight: '700' },
+  timestamp: { fontSize: 13, marginTop: 8 },
 });

@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '@/hooks/useTheme';
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
 
@@ -7,19 +8,22 @@ interface BadgeProps {
   variant?: BadgeVariant;
 }
 
-const variantColors: Record<BadgeVariant, { bg: string; text: string }> = {
-  default: { bg: '#e2e8f0', text: '#0f172a' },
-  success: { bg: '#dcfce7', text: '#16a34a' },
-  warning: { bg: '#fef9c3', text: '#ca8a04' },
-  error: { bg: '#fee2e2', text: '#dc2626' },
-  info: { bg: '#dbeafe', text: '#2563eb' },
-};
-
 export function Badge({ label, variant = 'default' }: BadgeProps) {
-  const colors = variantColors[variant];
+  const { colors } = useTheme();
+
+  const variantColors: Record<BadgeVariant, { bg: string; text: string }> = {
+    default: { bg: colors.border, text: colors.text },
+    success: { bg: colors.successLight, text: colors.success },
+    warning: { bg: colors.warningLight, text: colors.warning },
+    error: { bg: colors.errorLight, text: colors.error },
+    info: { bg: colors.primaryLight, text: colors.primary },
+  };
+
+  const badgeColors = variantColors[variant];
+
   return (
-    <View style={[styles.badge, { backgroundColor: colors.bg }]}>
-      <Text style={[styles.text, { color: colors.text }]}>{label}</Text>
+    <View style={[styles.badge, { backgroundColor: badgeColors.bg }]}>
+      <Text style={[styles.text, { color: badgeColors.text }]}>{label}</Text>
     </View>
   );
 }

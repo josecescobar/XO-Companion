@@ -1,4 +1,5 @@
 import { Pressable, View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '@/hooks/useTheme';
 import type { RecordingState } from '@/hooks/useRecorder';
 
 interface RecordButtonProps {
@@ -8,6 +9,7 @@ interface RecordButtonProps {
 }
 
 export function RecordButton({ state, onPress, disabled }: RecordButtonProps) {
+  const { colors } = useTheme();
   const isRecording = state === 'recording';
 
   return (
@@ -22,16 +24,18 @@ export function RecordButton({ state, onPress, disabled }: RecordButtonProps) {
         <View
           style={[
             styles.circle,
-            isRecording ? styles.circleRecording : styles.circleIdle,
+            isRecording
+              ? { borderColor: colors.error, backgroundColor: colors.errorLight }
+              : { borderColor: colors.primary, backgroundColor: colors.primaryLight },
           ]}
         >
           {isRecording ? (
-            <View style={styles.stopIcon} />
+            <View style={[styles.stopIcon, { backgroundColor: colors.error }]} />
           ) : (
-            <View style={styles.recordIcon} />
+            <View style={[styles.recordIcon, { backgroundColor: colors.primary }]} />
           )}
         </View>
-        <Text style={styles.label}>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>
           {isRecording
             ? 'Tap to stop'
             : state === 'stopped'
@@ -53,30 +57,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  circleRecording: {
-    borderColor: '#dc2626',
-    backgroundColor: '#fee2e2',
-  },
-  circleIdle: {
-    borderColor: '#2563eb',
-    backgroundColor: '#eff6ff',
-  },
   stopIcon: {
     height: 32,
     width: 32,
     borderRadius: 4,
-    backgroundColor: '#dc2626',
   },
   recordIcon: {
     height: 40,
     width: 40,
     borderRadius: 20,
-    backgroundColor: '#2563eb',
   },
   label: {
     marginTop: 12,
     fontSize: 16,
     fontWeight: '500',
-    color: '#64748b',
   },
 });
