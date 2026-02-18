@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useRecorder } from '@/hooks/useRecorder';
@@ -11,7 +11,6 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { RecordButton } from '@/components/recording/RecordButton';
 import { RecordingTimer } from '@/components/recording/RecordingTimer';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { format } from 'date-fns';
 
 export default function RecordScreen() {
@@ -61,15 +60,13 @@ export default function RecordScreen() {
   return (
     <ScreenWrapper>
       <Stack.Screen options={{ title: 'Record Voice Note' }} />
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Project Selector */}
-        <Text className="mb-2 text-field-sm font-medium text-field-muted">
-          Select Project
-        </Text>
+        <Text style={styles.label}>Select Project</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 8, marginBottom: 16 }}
+          contentContainerStyle={styles.chipRow}
         >
           {projects?.map((p) => (
             <Pressable
@@ -78,16 +75,16 @@ export default function RecordScreen() {
                 setSelectedProjectId(p.id);
                 setSelectedLogId(null);
               }}
-              className={`rounded-lg px-4 py-3 ${
-                selectedProjectId === p.id
-                  ? 'bg-brand-500'
-                  : 'bg-field-card border border-field-border'
-              }`}
+              style={[
+                styles.chip,
+                selectedProjectId === p.id ? styles.chipSelected : styles.chipDefault,
+              ]}
             >
               <Text
-                className={`text-field-sm font-medium ${
-                  selectedProjectId === p.id ? 'text-white' : 'text-field-text'
-                }`}
+                style={[
+                  styles.chipText,
+                  selectedProjectId === p.id ? styles.chipTextSelected : styles.chipTextDefault,
+                ]}
               >
                 {p.name}
               </Text>
@@ -98,42 +95,36 @@ export default function RecordScreen() {
         {/* Daily Log Selector */}
         {selectedProjectId && (
           <>
-            <Text className="mb-2 text-field-sm font-medium text-field-muted">
-              Select Daily Log
-            </Text>
+            <Text style={styles.label}>Select Daily Log</Text>
             {loadingLogs ? (
-              <Text className="mb-4 text-field-sm text-field-muted">
-                Loading logs...
-              </Text>
+              <Text style={styles.loadingText}>Loading logs...</Text>
             ) : (
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 8, marginBottom: 16 }}
+                contentContainerStyle={styles.chipRow}
               >
                 {logs?.map((log) => (
                   <Pressable
                     key={log.id}
                     onPress={() => setSelectedLogId(log.id)}
-                    className={`rounded-lg px-4 py-3 ${
-                      selectedLogId === log.id
-                        ? 'bg-brand-500'
-                        : 'bg-field-card border border-field-border'
-                    }`}
+                    style={[
+                      styles.chip,
+                      selectedLogId === log.id ? styles.chipSelected : styles.chipDefault,
+                    ]}
                   >
                     <Text
-                      className={`text-field-sm font-medium ${
-                        selectedLogId === log.id ? 'text-white' : 'text-field-text'
-                      }`}
+                      style={[
+                        styles.chipText,
+                        selectedLogId === log.id ? styles.chipTextSelected : styles.chipTextDefault,
+                      ]}
                     >
                       {format(new Date(log.logDate), 'MMM d')}
                     </Text>
                   </Pressable>
                 ))}
                 {!logs?.length && (
-                  <Text className="text-field-sm text-field-muted">
-                    No daily logs in this project
-                  </Text>
+                  <Text style={styles.loadingText}>No daily logs in this project</Text>
                 )}
               </ScrollView>
             )}
@@ -141,15 +132,15 @@ export default function RecordScreen() {
         )}
 
         {/* Recording Area */}
-        <Card className="mt-4 items-center py-12">
+        <View style={styles.recordingCard}>
           {!selectedProjectId || !selectedLogId ? (
-            <Text className="text-field-base text-field-muted">
+            <Text style={styles.placeholderText}>
               Select a project and daily log to start recording
             </Text>
           ) : (
             <>
               <RecordingTimer seconds={duration} />
-              <View className="mt-8">
+              <View style={styles.recordBtnWrapper}>
                 <RecordButton
                   state={state}
                   onPress={handleRecordToggle}
@@ -158,13 +149,14 @@ export default function RecordScreen() {
               </View>
 
               {state === 'stopped' && uri && (
-                <View className="mt-8 w-full gap-3 px-4">
+                <View style={styles.uploadArea}>
                   <Button
                     title={uploading ? 'Uploading...' : 'Upload Voice Note'}
                     onPress={handleUpload}
                     loading={uploading}
                     size="lg"
                   />
+                  <View style={{ height: 12 }} />
                   <Button
                     title="Discard & Record Again"
                     variant="ghost"
@@ -175,8 +167,34 @@ export default function RecordScreen() {
               )}
             </>
           )}
-        </Card>
+        </View>
       </ScrollView>
     </ScreenWrapper>
   );
 }
+
+const styles = StyleSheet.create({
+  scrollContent: { padding: 16 },
+  label: { fontSize: 14, fontWeight: '500', color: '#64748b', marginBottom: 8 },
+  chipRow: { gap: 8, marginBottom: 16 },
+  chip: { borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12 },
+  chipSelected: { backgroundColor: '#2563eb' },
+  chipDefault: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0' },
+  chipText: { fontSize: 14, fontWeight: '500' },
+  chipTextSelected: { color: '#ffffff' },
+  chipTextDefault: { color: '#0f172a' },
+  loadingText: { fontSize: 14, color: '#64748b', marginBottom: 16 },
+  recordingCard: {
+    marginTop: 16,
+    alignItems: 'center',
+    paddingVertical: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#ffffff',
+    padding: 16,
+  },
+  placeholderText: { fontSize: 16, color: '#64748b' },
+  recordBtnWrapper: { marginTop: 32 },
+  uploadArea: { marginTop: 32, width: '100%', paddingHorizontal: 16 },
+});

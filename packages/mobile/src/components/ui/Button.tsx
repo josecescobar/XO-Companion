@@ -1,4 +1,4 @@
-import { Pressable, Text, ActivityIndicator } from 'react-native';
+import { Pressable, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import type { PressableProps } from 'react-native';
 
 interface ButtonProps extends PressableProps {
@@ -8,30 +8,30 @@ interface ButtonProps extends PressableProps {
   loading?: boolean;
 }
 
-const variantStyles = {
-  primary: 'bg-brand-500',
-  secondary: 'bg-field-border',
-  danger: 'bg-safety-red',
-  ghost: 'bg-transparent',
+const variantBg = {
+  primary: '#2563eb',
+  secondary: '#e2e8f0',
+  danger: '#dc2626',
+  ghost: 'transparent',
 } as const;
 
-const variantText = {
-  primary: 'text-white',
-  secondary: 'text-field-text',
-  danger: 'text-white',
-  ghost: 'text-brand-500',
+const variantTextColor = {
+  primary: '#ffffff',
+  secondary: '#0f172a',
+  danger: '#ffffff',
+  ghost: '#2563eb',
 } as const;
 
-const sizeStyles = {
-  sm: 'px-3 py-2',
-  md: 'px-4 py-3',
-  lg: 'px-6 py-4',
+const sizePadding = {
+  sm: { paddingHorizontal: 12, paddingVertical: 8 },
+  md: { paddingHorizontal: 16, paddingVertical: 12 },
+  lg: { paddingHorizontal: 24, paddingVertical: 16 },
 } as const;
 
-const sizeText = {
-  sm: 'text-field-sm',
-  md: 'text-field-base',
-  lg: 'text-field-lg',
+const sizeFont = {
+  sm: 14,
+  md: 16,
+  lg: 18,
 } as const;
 
 export function Button({
@@ -42,11 +42,18 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
+  const isDisabled = disabled || loading;
+
   return (
     <Pressable
-      className={`items-center rounded-lg ${variantStyles[variant]} ${sizeStyles[size]} ${disabled || loading ? 'opacity-50' : ''}`}
-      disabled={disabled || loading}
-      style={({ pressed }) => ({ opacity: pressed && !disabled ? 0.8 : undefined })}
+      disabled={isDisabled}
+      style={({ pressed }) => [
+        styles.base,
+        { backgroundColor: variantBg[variant] },
+        sizePadding[size],
+        isDisabled && styles.disabled,
+        pressed && !isDisabled && styles.pressed,
+      ]}
       {...props}
     >
       {loading ? (
@@ -56,7 +63,10 @@ export function Button({
         />
       ) : (
         <Text
-          className={`font-semibold ${variantText[variant]} ${sizeText[size]}`}
+          style={[
+            styles.text,
+            { color: variantTextColor[variant], fontSize: sizeFont[size] },
+          ]}
         >
           {title}
         </Text>
@@ -64,3 +74,10 @@ export function Button({
     </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  base: { alignItems: 'center', borderRadius: 8 },
+  text: { fontWeight: '600' },
+  disabled: { opacity: 0.5 },
+  pressed: { opacity: 0.8 },
+});

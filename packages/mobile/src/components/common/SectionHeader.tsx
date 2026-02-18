@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 
 interface SectionHeaderProps {
   title: string;
@@ -7,15 +7,24 @@ interface SectionHeaderProps {
 
 export function SectionHeader({ title, action }: SectionHeaderProps) {
   return (
-    <View className="mb-3 flex-row items-center justify-between">
-      <Text className="text-field-lg font-bold text-field-text">{title}</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>{title}</Text>
       {action && (
         <Pressable onPress={action.onPress}>
-          <Text className="text-field-sm font-medium text-brand-500">
-            {action.label}
-          </Text>
+          <Text style={styles.action}>{action.label}</Text>
         </Pressable>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  title: { fontSize: 18, fontWeight: '700', color: '#0f172a' },
+  action: { fontSize: 14, fontWeight: '500', color: '#2563eb' },
+});

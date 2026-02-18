@@ -1,25 +1,26 @@
-import { View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { ViewProps } from 'react-native';
+import type { ViewProps, StyleProp, ViewStyle } from 'react-native';
 
 interface ScreenWrapperProps extends ViewProps {
   children: React.ReactNode;
   edges?: ('top' | 'bottom' | 'left' | 'right')[];
+  style?: StyleProp<ViewStyle>;
 }
 
 export function ScreenWrapper({
   children,
   edges = ['bottom'],
-  className = '',
+  style,
   ...props
 }: ScreenWrapperProps) {
   return (
-    <SafeAreaView
-      edges={edges}
-      className={`flex-1 bg-field-bg ${className}`}
-      {...props}
-    >
+    <SafeAreaView edges={edges} style={[styles.container, style]} {...props}>
       {children}
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f8fafc' },
+});

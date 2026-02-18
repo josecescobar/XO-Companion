@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { View, Text, FlatList, Pressable, RefreshControl, ScrollView } from 'react-native';
+import { View, Text, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useDailyLogs } from '@/hooks/queries/useDailyLogs';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
-import { Card } from '@/components/ui/Card';
 import { StatusChip } from '@/components/ui/StatusChip';
 import { format } from 'date-fns';
 
@@ -37,22 +36,22 @@ export default function DailyLogsListScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}
+        contentContainerStyle={styles.filterRow}
       >
         {STATUS_FILTERS.map((filter) => (
           <Pressable
             key={filter.label}
             onPress={() => setStatusFilter(filter.value)}
-            className={`rounded-full px-4 py-2 ${
-              statusFilter === filter.value
-                ? 'bg-brand-500'
-                : 'bg-field-card border border-field-border'
-            }`}
+            style={[
+              styles.filterChip,
+              statusFilter === filter.value ? styles.filterSelected : styles.filterDefault,
+            ]}
           >
             <Text
-              className={`text-field-sm font-medium ${
-                statusFilter === filter.value ? 'text-white' : 'text-field-muted'
-              }`}
+              style={[
+                styles.filterText,
+                statusFilter === filter.value ? styles.filterTextSelected : styles.filterTextDefault,
+              ]}
             >
               {filter.label}
             </Text>
@@ -71,42 +70,34 @@ export default function DailyLogsListScreen() {
               )
             }
           >
-            <Card className="mb-2">
-              <View className="flex-row items-center justify-between">
-                <View>
-                  <Text className="text-field-base font-semibold text-field-text">
+            <View style={styles.logCard}>
+              <View style={styles.logHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.logDate}>
                     {format(new Date(item.logDate), 'EEEE, MMM d, yyyy')}
                   </Text>
-                  <Text className="mt-0.5 text-field-sm text-field-muted">
+                  <Text style={styles.logAuthor}>
                     by {item.createdBy.firstName} {item.createdBy.lastName}
                   </Text>
                 </View>
                 <StatusChip status={item.status} />
               </View>
 
-              <View className="mt-3 flex-row flex-wrap gap-3">
+              <View style={styles.statsRow}>
                 {item._count.workforce > 0 && (
-                  <Text className="text-field-sm text-field-muted">
-                    {item._count.workforce} crews
-                  </Text>
+                  <Text style={styles.stat}>{item._count.workforce} crews</Text>
                 )}
                 {item._count.equipment > 0 && (
-                  <Text className="text-field-sm text-field-muted">
-                    {item._count.equipment} equipment
-                  </Text>
+                  <Text style={styles.stat}>{item._count.equipment} equipment</Text>
                 )}
                 {item._count.workCompleted > 0 && (
-                  <Text className="text-field-sm text-field-muted">
-                    {item._count.workCompleted} work items
-                  </Text>
+                  <Text style={styles.stat}>{item._count.workCompleted} work items</Text>
                 )}
                 {item._count.voiceNotes > 0 && (
-                  <Text className="text-field-sm text-field-muted">
-                    {item._count.voiceNotes} voice notes
-                  </Text>
+                  <Text style={styles.stat}>{item._count.voiceNotes} voice notes</Text>
                 )}
               </View>
-            </Card>
+            </View>
           </Pressable>
         )}
         ListEmptyComponent={
@@ -128,3 +119,30 @@ export default function DailyLogsListScreen() {
     </ScreenWrapper>
   );
 }
+
+const styles = StyleSheet.create({
+  filterRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  filterChip: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
+  filterSelected: { backgroundColor: '#2563eb' },
+  filterDefault: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0' },
+  filterText: { fontSize: 14, fontWeight: '500' },
+  filterTextSelected: { color: '#ffffff' },
+  filterTextDefault: { color: '#64748b' },
+  logCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#ffffff',
+    padding: 16,
+    marginBottom: 8,
+  },
+  logHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  logDate: { fontSize: 16, fontWeight: '600', color: '#0f172a' },
+  logAuthor: { fontSize: 13, color: '#64748b', marginTop: 2 },
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 12 },
+  stat: { fontSize: 13, color: '#64748b' },
+});

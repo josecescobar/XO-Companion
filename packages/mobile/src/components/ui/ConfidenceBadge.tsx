@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 interface ConfidenceBadgeProps {
   confidence: number; // 0.0 - 1.0
@@ -7,21 +7,24 @@ interface ConfidenceBadgeProps {
 export function ConfidenceBadge({ confidence }: ConfidenceBadgeProps) {
   const pct = Math.round(confidence * 100);
   const color =
-    confidence >= 0.85
-      ? 'text-safety-green'
-      : confidence >= 0.6
-        ? 'text-safety-yellow'
-        : 'text-safety-red';
+    confidence >= 0.85 ? '#16a34a' : confidence >= 0.6 ? '#ca8a04' : '#dc2626';
   const bg =
-    confidence >= 0.85
-      ? 'bg-green-100'
-      : confidence >= 0.6
-        ? 'bg-yellow-100'
-        : 'bg-red-100';
+    confidence >= 0.85 ? '#dcfce7' : confidence >= 0.6 ? '#fef9c3' : '#fee2e2';
 
   return (
-    <View className={`flex-row items-center rounded-full px-2 py-0.5 ${bg}`}>
-      <Text className={`text-xs font-semibold ${color}`}>{pct}%</Text>
+    <View style={[styles.badge, { backgroundColor: bg }]}>
+      <Text style={[styles.text, { color }]}>{pct}%</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  text: { fontSize: 12, fontWeight: '600' },
+});

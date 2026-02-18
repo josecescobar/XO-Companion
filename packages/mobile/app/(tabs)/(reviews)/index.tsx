@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, FlatList, RefreshControl } from 'react-native';
+import { View, Text, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
 import { useProjects } from '@/hooks/queries/useProjects';
 import { useDailyLogs } from '@/hooks/queries/useDailyLogs';
@@ -12,18 +12,11 @@ import { ReviewCard } from '@/components/review/ReviewCard';
 import { SectionHeader } from '@/components/common/SectionHeader';
 import type { PendingReviewItem } from '@/api/endpoints/reviews';
 
-// Review items augmented with project/log context
-interface ReviewItemWithContext extends PendingReviewItem {
-  projectId: string;
-  projectName: string;
-}
-
 function ReviewsList() {
   const { data: projects, isLoading: loadingProjects, refetch: refetchProjects } = useProjects();
   const { mutate: submit, isPending: submitting } = useSubmitReview();
   const [refreshing, setRefreshing] = useState(false);
 
-  // For now, show a simplified version that lets users select a project
   const [selectedProjectIdx, setSelectedProjectIdx] = useState(0);
   const selectedProject = projects?.[selectedProjectIdx];
 
@@ -32,7 +25,6 @@ function ReviewsList() {
     isLoading: loadingLogs,
   } = useDailyLogs(selectedProject?.id ?? '');
 
-  // Get the most recent log with pending reviews
   const recentLog = logs?.[0];
   const {
     data: pendingItems,
@@ -61,25 +53,31 @@ function ReviewsList() {
   return (
     <>
       {/* Project tabs */}
-      <FlatList
+      <ScrollView
         horizontal
-        data={projects}
-        keyExtractor={(p) => p.id}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}
-        renderItem={({ item, index }) => (
-          <Text
+        contentContainerStyle={styles.tabRow}
+      >
+        {projects.map((item, index) => (
+          <Pressable
+            key={item.id}
             onPress={() => setSelectedProjectIdx(index)}
-            className={`rounded-full px-4 py-2 text-field-sm font-medium ${
-              index === selectedProjectIdx
-                ? 'bg-brand-500 text-white'
-                : 'bg-field-card text-field-muted'
-            }`}
+            style={[
+              styles.tab,
+              index === selectedProjectIdx ? styles.tabSelected : styles.tabDefault,
+            ]}
           >
-            {item.name}
-          </Text>
-        )}
-      />
+            <Text
+              style={[
+                styles.tabText,
+                index === selectedProjectIdx ? styles.tabTextSelected : styles.tabTextDefault,
+              ]}
+            >
+              {item.name}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
 
       {isLoading ? (
         <LoadingState message="Loading reviews..." />
@@ -140,3 +138,13 @@ export default function ReviewsScreen() {
     </ScreenWrapper>
   );
 }
+
+const styles = StyleSheet.create({
+  tabRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  tab: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
+  tabSelected: { backgroundColor: '#2563eb' },
+  tabDefault: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0' },
+  tabText: { fontSize: 14, fontWeight: '500' },
+  tabTextSelected: { color: '#ffffff' },
+  tabTextDefault: { color: '#64748b' },
+});

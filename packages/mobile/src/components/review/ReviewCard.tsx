@@ -1,5 +1,4 @@
-import { View, Text, Pressable } from 'react-native';
-import { Card } from '../ui/Card';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { ConfidenceBadge } from '../ui/ConfidenceBadge';
 import { Badge } from '../ui/Badge';
 import * as Haptics from 'expo-haptics';
@@ -44,37 +43,84 @@ export function ReviewCard({
   };
 
   return (
-    <Card className="mb-3">
-      <View className="flex-row items-center justify-between">
+    <View style={styles.card}>
+      <View style={styles.headerRow}>
         <Badge label={formatEntityType(item.entityType)} variant="info" />
         <ConfidenceBadge confidence={item.aiConfidence} />
       </View>
 
-      <View className="mt-3 rounded-lg bg-field-bg p-3">
-        <Text className="text-field-sm text-field-text">
+      <View style={styles.valueBox}>
+        <Text style={styles.valueText}>
           {renderValue(item.currentValue)}
         </Text>
       </View>
 
-      <View className="mt-3 flex-row gap-3">
+      <View style={styles.actionsRow}>
         <Pressable
           onPress={handleApprove}
           disabled={disabled}
-          className={`flex-1 items-center rounded-lg bg-safety-green py-3 ${disabled ? 'opacity-50' : ''}`}
-          style={({ pressed }) => ({ opacity: pressed && !disabled ? 0.8 : undefined })}
+          style={({ pressed }) => [
+            styles.actionBtn,
+            styles.approveBtn,
+            disabled && styles.actionDisabled,
+            pressed && !disabled && styles.actionPressed,
+          ]}
         >
-          <Text className="font-semibold text-white">Approve</Text>
+          <Text style={styles.actionText}>Approve</Text>
         </Pressable>
 
         <Pressable
           onPress={handleReject}
           disabled={disabled}
-          className={`flex-1 items-center rounded-lg bg-safety-red py-3 ${disabled ? 'opacity-50' : ''}`}
-          style={({ pressed }) => ({ opacity: pressed && !disabled ? 0.8 : undefined })}
+          style={({ pressed }) => [
+            styles.actionBtn,
+            styles.rejectBtn,
+            disabled && styles.actionDisabled,
+            pressed && !disabled && styles.actionPressed,
+          ]}
         >
-          <Text className="font-semibold text-white">Reject</Text>
+          <Text style={styles.actionText}>Reject</Text>
         </Pressable>
       </View>
-    </Card>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#ffffff',
+    padding: 16,
+    marginBottom: 12,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  valueBox: {
+    marginTop: 12,
+    borderRadius: 8,
+    backgroundColor: '#f8fafc',
+    padding: 12,
+  },
+  valueText: { fontSize: 14, color: '#0f172a' },
+  actionsRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionBtn: {
+    flex: 1,
+    alignItems: 'center',
+    borderRadius: 8,
+    paddingVertical: 12,
+  },
+  approveBtn: { backgroundColor: '#16a34a' },
+  rejectBtn: { backgroundColor: '#dc2626' },
+  actionDisabled: { opacity: 0.5 },
+  actionPressed: { opacity: 0.8 },
+  actionText: { fontWeight: '600', color: '#ffffff', fontSize: 16 },
+});

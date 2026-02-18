@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
 
@@ -7,19 +7,24 @@ interface BadgeProps {
   variant?: BadgeVariant;
 }
 
-const variantStyles: Record<BadgeVariant, { bg: string; text: string }> = {
-  default: { bg: 'bg-field-border', text: 'text-field-text' },
-  success: { bg: 'bg-green-100', text: 'text-safety-green' },
-  warning: { bg: 'bg-yellow-100', text: 'text-safety-yellow' },
-  error: { bg: 'bg-red-100', text: 'text-safety-red' },
-  info: { bg: 'bg-blue-100', text: 'text-brand-500' },
+const variantColors: Record<BadgeVariant, { bg: string; text: string }> = {
+  default: { bg: '#e2e8f0', text: '#0f172a' },
+  success: { bg: '#dcfce7', text: '#16a34a' },
+  warning: { bg: '#fef9c3', text: '#ca8a04' },
+  error: { bg: '#fee2e2', text: '#dc2626' },
+  info: { bg: '#dbeafe', text: '#2563eb' },
 };
 
 export function Badge({ label, variant = 'default' }: BadgeProps) {
-  const styles = variantStyles[variant];
+  const colors = variantColors[variant];
   return (
-    <View className={`rounded-full px-3 py-1 ${styles.bg}`}>
-      <Text className={`text-xs font-semibold ${styles.text}`}>{label}</Text>
+    <View style={[styles.badge, { backgroundColor: colors.bg }]}>
+      <Text style={[styles.text, { color: colors.text }]}>{label}</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  badge: { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
+  text: { fontSize: 12, fontWeight: '600' },
+});
