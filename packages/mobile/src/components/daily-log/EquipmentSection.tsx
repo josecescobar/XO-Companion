@@ -1,47 +1,30 @@
-import { View, Text } from 'react-native';
-import { ConfidenceBadge } from '../ui/ConfidenceBadge';
-import { Badge } from '../ui/Badge';
+import { View, Text, StyleSheet } from 'react-native';
 import type { EquipmentEntry } from '@/api/endpoints/daily-logs';
 
-const conditionVariant: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
-  OPERATIONAL: 'success',
-  NEEDS_MAINTENANCE: 'warning',
-  DOWN_FOR_REPAIR: 'error',
-  IDLE: 'default',
-};
-
-interface EquipmentSectionProps {
-  entries: EquipmentEntry[];
-}
-
-export function EquipmentSection({ entries }: EquipmentSectionProps) {
+export function EquipmentSection({ entries }: { entries: EquipmentEntry[] }) {
   return (
-    <View className="gap-3">
-      {entries.map((entry) => (
-        <View
-          key={entry.id}
-          className="rounded-lg border border-field-border bg-field-bg p-3"
-        >
-          <View className="flex-row items-center justify-between">
-            <Text className="text-field-base font-medium text-field-text">
-              {entry.equipmentType}
-            </Text>
-            {entry.aiGenerated && entry.aiConfidence != null && (
-              <ConfidenceBadge confidence={entry.aiConfidence} />
+    <View style={styles.container}>
+      {entries.map((e) => (
+        <View key={e.id} style={styles.entry}>
+          <View style={styles.row}>
+            <Text style={styles.type}>{e.equipmentType}</Text>
+            {e.aiGenerated && e.aiConfidence != null && (
+              <Text style={{ fontSize: 12, fontWeight: '600', color: e.aiConfidence >= 0.85 ? '#16a34a' : '#ca8a04' }}>
+                {Math.round(e.aiConfidence * 100)}%
+              </Text>
             )}
           </View>
-          <View className="mt-1 flex-row items-center gap-2">
-            <Badge
-              label={entry.condition.replace(/_/g, ' ')}
-              variant={conditionVariant[entry.condition] ?? 'default'}
-            />
-            <Text className="text-field-sm text-field-muted">
-              {entry.operatingHours}h operating
-              {entry.idleHours > 0 ? `, ${entry.idleHours}h idle` : ''}
-            </Text>
-          </View>
+          <Text style={styles.details}>{e.condition.replace(/_/g, ' ')} · {e.operatingHours}h operating{e.idleHours > 0 ? `, ${e.idleHours}h idle` : ''}</Text>
         </View>
       ))}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { gap: 12 },
+  entry: { backgroundColor: '#f8fafc', borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', padding: 12 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  type: { fontSize: 16, fontWeight: '500', color: '#0f172a' },
+  details: { fontSize: 14, color: '#64748b', marginTop: 4 },
+});

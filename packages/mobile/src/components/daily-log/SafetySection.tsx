@@ -1,72 +1,40 @@
-import { View, Text } from 'react-native';
-import { ConfidenceBadge } from '../ui/ConfidenceBadge';
-import { Badge } from '../ui/Badge';
+import { View, Text, StyleSheet } from 'react-native';
 import type { SafetyEntry } from '@/api/endpoints/daily-logs';
 
-interface SafetySectionProps {
-  safety: SafetyEntry;
-}
-
-export function SafetySection({ safety }: SafetySectionProps) {
+export function SafetySection({ safety }: { safety: SafetyEntry }) {
   return (
-    <View className="gap-3">
-      <View className="flex-row items-center justify-between">
-        <Text className="text-field-sm font-medium text-field-muted">
-          Safety Summary
-        </Text>
-        {safety.aiGenerated && safety.aiConfidence != null && (
-          <ConfidenceBadge confidence={safety.aiConfidence} />
-        )}
-      </View>
-
+    <View style={styles.container}>
       {safety.oshaRecordable && (
-        <Badge label="OSHA Recordable" variant="error" />
+        <View style={styles.oshaBadge}><Text style={styles.oshaText}>OSHA Recordable</Text></View>
       )}
-
-      <View className="flex-row gap-6">
-        <View>
-          <Text className="text-field-sm text-field-muted">Near Misses</Text>
-          <Text className="text-field-lg font-bold text-field-text">
-            {safety.nearMisses}
-          </Text>
-        </View>
-        <View>
-          <Text className="text-field-sm text-field-muted">First Aid</Text>
-          <Text className="text-field-lg font-bold text-field-text">
-            {safety.firstAidCases}
-          </Text>
-        </View>
+      <View style={styles.statsRow}>
+        <View><Text style={styles.statLabel}>Near Misses</Text><Text style={styles.statValue}>{safety.nearMisses}</Text></View>
+        <View><Text style={styles.statLabel}>First Aid</Text><Text style={styles.statValue}>{safety.firstAidCases}</Text></View>
       </View>
-
       {safety.toolboxTalks.length > 0 && (
-        <View>
-          <Text className="mb-1 text-field-sm font-medium text-field-muted">
-            Toolbox Talks
-          </Text>
-          {safety.toolboxTalks.map((talk, i) => (
-            <Text key={i} className="text-field-base text-field-text">
-              • {talk}
-            </Text>
-          ))}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Toolbox Talks</Text>
+          {safety.toolboxTalks.map((t, i) => <Text key={i} style={styles.listItem}>• {t}</Text>)}
         </View>
       )}
-
       {safety.incidents.length > 0 && (
-        <View>
-          <Text className="mb-1 text-field-sm font-medium text-safety-red">
-            Incidents
-          </Text>
-          {safety.incidents.map((inc, i) => (
-            <Text key={i} className="text-field-base text-field-text">
-              • {inc}
-            </Text>
-          ))}
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: '#dc2626' }]}>Incidents</Text>
+          {safety.incidents.map((inc, i) => <Text key={i} style={styles.listItem}>• {inc}</Text>)}
         </View>
-      )}
-
-      {safety.notes && (
-        <Text className="text-field-sm text-field-muted">{safety.notes}</Text>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { gap: 12 },
+  oshaBadge: { backgroundColor: '#fee2e2', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, alignSelf: 'flex-start' },
+  oshaText: { fontSize: 12, fontWeight: '600', color: '#dc2626' },
+  statsRow: { flexDirection: 'row', gap: 32 },
+  statLabel: { fontSize: 12, color: '#64748b' },
+  statValue: { fontSize: 22, fontWeight: '700', color: '#0f172a' },
+  section: { marginTop: 4 },
+  sectionLabel: { fontSize: 14, fontWeight: '500', color: '#64748b', marginBottom: 4 },
+  listItem: { fontSize: 16, color: '#0f172a' },
+});

@@ -1,10 +1,9 @@
 import '../global.css';
 
-import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
-import { Slot, useRouter, useSegments } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { Slot, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/auth.store';
 
 const queryClient = new QueryClient({
@@ -17,16 +16,21 @@ const queryClient = new QueryClient({
 });
 
 function AuthGate() {
-  const { isAuthenticated, isLoading, hydrate } = useAuthStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const hydrate = useAuthStore((s) => s.hydrate);
   const segments = useSegments();
   const router = useRouter();
+  const navigationState = useRootNavigationState();
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    hydrate();
-  }, [hydrate]);
+    hydrate().then(() => setHydrated(true));
+  }, []);
 
   useEffect(() => {
-    if (isLoading) return;
+    // Wait for both auth hydration and navigation to be ready
+    if (!hydrated || !navigationState?.key) return;
 
     const inAuthGroup = segments[0] === '(auth)';
 
@@ -35,11 +39,11 @@ function AuthGate() {
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)/(projects)');
     }
-  }, [isAuthenticated, isLoading, segments, router]);
+  }, [isAuthenticated, hydrated, segments, navigationState?.key]);
 
-  if (isLoading) {
+  if (isLoading || !hydrated) {
     return (
-      <View className="flex-1 items-center justify-center bg-brand-900">
+      <View style={styles.loading}>
         <ActivityIndicator size="large" color="#2563eb" />
       </View>
     );
@@ -51,9 +55,16 @@ function AuthGate() {
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <AuthGate />
-      </SafeAreaProvider>
+      <AuthGate />
     </QueryClientProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1a1a2e',
+  },
+});

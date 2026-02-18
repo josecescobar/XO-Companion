@@ -1,4 +1,4 @@
-import { View, ActivityIndicator, Text } from 'react-native';
+import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 
 interface LoadingStateProps {
   message?: string;
@@ -6,11 +6,14 @@ interface LoadingStateProps {
 
 export function LoadingState({ message }: LoadingStateProps) {
   return (
-    <View className="flex-1 items-center justify-center py-16">
+    <View style={styles.container}>
       <ActivityIndicator size="large" color="#2563eb" />
-      {message && (
-        <Text className="mt-3 text-field-base text-field-muted">{message}</Text>
-      )}
+      {message && <Text style={styles.message}>{message}</Text>}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 64 },
+  message: { marginTop: 12, fontSize: 16, color: '#64748b' },
+});

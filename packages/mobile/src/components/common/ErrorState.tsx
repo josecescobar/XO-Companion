@@ -1,27 +1,30 @@
-import { View, Text } from 'react-native';
-import { Button } from '../ui/Button';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 
 interface ErrorStateProps {
   message?: string;
   onRetry?: () => void;
 }
 
-export function ErrorState({
-  message = 'Something went wrong',
-  onRetry,
-}: ErrorStateProps) {
+export function ErrorState({ message = 'Something went wrong', onRetry }: ErrorStateProps) {
   return (
-    <View className="flex-1 items-center justify-center px-8 py-16">
-      <Text className="mb-2 text-4xl">⚠️</Text>
-      <Text className="text-field-lg font-semibold text-field-text">Error</Text>
-      <Text className="mt-1 text-center text-field-base text-field-muted">
-        {message}
-      </Text>
+    <View style={styles.container}>
+      <Text style={styles.icon}>⚠️</Text>
+      <Text style={styles.title}>Error</Text>
+      <Text style={styles.message}>{message}</Text>
       {onRetry && (
-        <View className="mt-4">
-          <Button title="Retry" onPress={onRetry} size="sm" />
-        </View>
+        <Pressable style={styles.button} onPress={onRetry}>
+          <Text style={styles.buttonText}>Retry</Text>
+        </Pressable>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
+  icon: { fontSize: 40, marginBottom: 8 },
+  title: { fontSize: 18, fontWeight: '600', color: '#0f172a' },
+  message: { marginTop: 4, fontSize: 16, color: '#64748b', textAlign: 'center' },
+  button: { marginTop: 16, backgroundColor: '#2563eb', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10 },
+  buttonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+});

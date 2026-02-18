@@ -7,6 +7,8 @@ export default function AccountLayout() {
         headerStyle: { backgroundColor: '#1a1a2e' },
         headerTintColor: '#ffffff',
       }}
-    />
+    >
+      <Stack.Screen name="index" options={{ title: 'Account' }} />
+    </Stack>
   );
 }

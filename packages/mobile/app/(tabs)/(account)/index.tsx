@@ -1,17 +1,9 @@
-import { View, Text, Alert } from 'react-native';
-import { Stack } from 'expo-router';
+import { View, Text, Alert, StyleSheet, Pressable } from 'react-native';
 import { useAuthStore } from '@/stores/auth.store';
 import { useLogout } from '@/hooks/mutations/useLogout';
-import { ScreenWrapper } from '@/components/common/ScreenWrapper';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
 
 function formatRole(role: string): string {
-  return role
-    .split('_')
-    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
-    .join(' ');
+  return role.split('_').map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
 }
 
 export default function AccountScreen() {
@@ -26,60 +18,95 @@ export default function AccountScreen() {
   };
 
   return (
-    <ScreenWrapper>
-      <Stack.Screen options={{ title: 'Account' }} />
-      <View className="flex-1 px-4 pt-4">
-        <Card className="mb-4">
-          <View className="items-center py-4">
-            <View className="mb-3 h-20 w-20 items-center justify-center rounded-full bg-brand-100">
-              <Text className="text-3xl font-bold text-brand-500">
-                {user?.firstName?.charAt(0) ?? '?'}
-                {user?.lastName?.charAt(0) ?? ''}
-              </Text>
-            </View>
-            <Text className="text-field-xl font-bold text-field-text">
-              {user?.firstName} {user?.lastName}
-            </Text>
-            <Text className="mt-1 text-field-base text-field-muted">
-              {user?.email}
-            </Text>
-            {user?.role && (
-              <View className="mt-2">
-                <Badge label={formatRole(user.role)} variant="info" />
-              </View>
-            )}
+    <View style={styles.container}>
+      {/* Profile Card */}
+      <View style={styles.card}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {user?.firstName?.charAt(0) ?? '?'}{user?.lastName?.charAt(0) ?? ''}
+          </Text>
+        </View>
+        <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
+        <Text style={styles.email}>{user?.email}</Text>
+        {user?.role && (
+          <View style={styles.roleBadge}>
+            <Text style={styles.roleText}>{formatRole(user.role)}</Text>
           </View>
-        </Card>
+        )}
+      </View>
 
-        <Card className="mb-4">
-          <View className="gap-3">
-            <View className="flex-row justify-between">
-              <Text className="text-field-base text-field-muted">User ID</Text>
-              <Text className="text-field-sm font-mono text-field-text">
-                {user?.id?.slice(0, 8)}...
-              </Text>
-            </View>
-            <View className="flex-row justify-between">
-              <Text className="text-field-base text-field-muted">
-                Organization
-              </Text>
-              <Text className="text-field-sm font-mono text-field-text">
-                {user?.organizationId?.slice(0, 8)}...
-              </Text>
-            </View>
-          </View>
-        </Card>
-
-        <View className="mt-auto pb-8">
-          <Button
-            title="Log Out"
-            variant="danger"
-            size="lg"
-            onPress={handleLogout}
-            loading={isPending}
-          />
+      {/* Info Card */}
+      <View style={styles.card}>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>User ID</Text>
+          <Text style={styles.infoValue}>{user?.id?.slice(0, 8)}...</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Organization</Text>
+          <Text style={styles.infoValue}>{user?.organizationId?.slice(0, 8)}...</Text>
         </View>
       </View>
-    </ScreenWrapper>
+
+      <View style={styles.spacer} />
+
+      <Pressable
+        style={[styles.logoutButton, isPending && styles.disabled]}
+        onPress={handleLogout}
+        disabled={isPending}
+      >
+        <Text style={styles.logoutText}>{isPending ? 'Logging out...' : 'Log Out'}</Text>
+      </Pressable>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f8fafc', padding: 16 },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 20,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#dbeafe',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  avatarText: { fontSize: 28, fontWeight: '700', color: '#2563eb' },
+  name: { fontSize: 22, fontWeight: '700', color: '#0f172a' },
+  email: { fontSize: 16, color: '#64748b', marginTop: 4 },
+  roleBadge: {
+    marginTop: 8,
+    backgroundColor: '#dbeafe',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
+  },
+  roleText: { fontSize: 13, fontWeight: '600', color: '#2563eb' },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingVertical: 8,
+  },
+  infoLabel: { fontSize: 16, color: '#64748b' },
+  infoValue: { fontSize: 14, color: '#0f172a', fontFamily: 'Courier' },
+  spacer: { flex: 1 },
+  logoutButton: {
+    backgroundColor: '#dc2626',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  disabled: { opacity: 0.5 },
+  logoutText: { fontSize: 18, fontWeight: '700', color: '#ffffff' },
+});

@@ -1,8 +1,7 @@
-import { FlatList, RefreshControl } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useProjects } from '@/hooks/queries/useProjects';
 import { ProjectCard } from '@/components/project/ProjectCard';
-import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -18,7 +17,7 @@ export default function ProjectsScreen() {
   }
 
   return (
-    <ScreenWrapper>
+    <View style={styles.container}>
       <FlatList
         data={projects}
         keyExtractor={(item) => item.id}
@@ -28,11 +27,16 @@ export default function ProjectsScreen() {
             onPress={() => router.push(`/(tabs)/(projects)/${item.id}`)}
           />
         )}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={styles.list}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
       />
-    </ScreenWrapper>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f8fafc' },
+  list: { padding: 16 },
+});

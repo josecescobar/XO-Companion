@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 
 interface CollapsibleSectionProps {
   title: string;
@@ -8,33 +8,34 @@ interface CollapsibleSectionProps {
   defaultOpen?: boolean;
 }
 
-export function CollapsibleSection({
-  title,
-  count,
-  children,
-  defaultOpen = false,
-}: CollapsibleSectionProps) {
+export function CollapsibleSection({ title, count, children, defaultOpen = false }: CollapsibleSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <View className="mb-3 rounded-xl border border-field-border bg-field-card">
-      <Pressable
-        onPress={() => setOpen(!open)}
-        className="flex-row items-center justify-between p-4"
-      >
-        <View className="flex-row items-center gap-2">
-          <Text className="text-field-base font-semibold text-field-text">
-            {title}
-          </Text>
+    <View style={styles.container}>
+      <Pressable onPress={() => setOpen(!open)} style={styles.header}>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>{title}</Text>
           {count !== undefined && (
-            <View className="rounded-full bg-brand-100 px-2 py-0.5">
-              <Text className="text-xs font-medium text-brand-500">{count}</Text>
+            <View style={styles.countBadge}>
+              <Text style={styles.countText}>{count}</Text>
             </View>
           )}
         </View>
-        <Text className="text-field-muted">{open ? '▲' : '▼'}</Text>
+        <Text style={styles.chevron}>{open ? '▲' : '▼'}</Text>
       </Pressable>
-      {open && <View className="border-t border-field-border px-4 pb-4 pt-3">{children}</View>}
+      {open && <View style={styles.content}>{children}</View>}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 12, overflow: 'hidden' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  title: { fontSize: 16, fontWeight: '600', color: '#0f172a' },
+  countBadge: { backgroundColor: '#dbeafe', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 },
+  countText: { fontSize: 12, fontWeight: '600', color: '#2563eb' },
+  chevron: { fontSize: 12, color: '#64748b' },
+  content: { borderTopWidth: 1, borderTopColor: '#e2e8f0', padding: 16 },
+});
