@@ -14,12 +14,14 @@ async function bootstrap() {
   app.use(helmet());
   app.use(cookieParser());
 
-  // CORS — supports comma-separated origins for web + mobile
-  const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3001')
-    .split(',')
-    .map((o) => o.trim());
+  // CORS — supports comma-separated origins, or '*' to allow all
+  const rawOrigin = process.env.CORS_ORIGIN || 'http://localhost:3001';
+  const corsOrigin =
+    rawOrigin === '*'
+      ? true // reflect request origin (allows any)
+      : rawOrigin.split(',').map((o) => o.trim());
   app.enableCors({
-    origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins,
+    origin: Array.isArray(corsOrigin) && corsOrigin.length === 1 ? corsOrigin[0] : corsOrigin,
     credentials: true,
   });
 

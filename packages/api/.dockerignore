@@ -1,0 +1,13 @@
+node_modules
+dist
+.env
+.env.local
+*.log
+.git
+.gitignore
+test/
+*.sh
+!start.sh
+README.md
+DEPLOYMENT.md
+.expo
