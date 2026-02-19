@@ -111,6 +111,39 @@ enum ChunkSourceType {
   MANUAL_NOTE
 }
 
+// ─── Compliance Enums ───
+
+enum OshaCaseType {
+  DEATH
+  DAYS_AWAY
+  RESTRICTED
+  MEDICAL_TREATMENT
+  OTHER_RECORDABLE
+}
+
+enum ComplianceDocType {
+  CONTRACTOR_LICENSE
+  BUSINESS_LICENSE
+  GENERAL_LIABILITY
+  WORKERS_COMP
+  AUTO_INSURANCE
+  UMBRELLA_POLICY
+  PROFESSIONAL_LIABILITY
+  BOND
+  EPA_CERTIFICATION
+  OSHA_CERTIFICATION
+  TRADE_LICENSE
+  OTHER
+}
+
+enum ComplianceDocStatus {
+  ACTIVE
+  EXPIRING_SOON
+  EXPIRED
+  RENEWED
+  CANCELLED
+}
+
 // ─────────────────────────────────────────────
 // CORE ENTITIES
 // ─────────────────────────────────────────────
@@ -122,9 +155,12 @@ model Organization {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  users         User[]
-  projects      Project[]
-  glossaryTerms GlossaryTerm[]
+  users               User[]
+  projects            Project[]
+  glossaryTerms       GlossaryTerm[]
+  oshaIncidents       OshaIncident[]
+  complianceDocuments ComplianceDocument[]
+  trainingRecords     TrainingRecord[]
 
   @@map("organizations")
 }
@@ -190,6 +226,9 @@ model Project {
   members        ProjectMember[]
   dailyLogs      DailyLog[]
   documentChunks DocumentChunk[]
+  oshaIncidents       OshaIncident[]
+  complianceDocuments ComplianceDocument[]
+  trainingRecords     TrainingRecord[]
 
   @@unique([organizationId, code])
   @@index([organizationId])
@@ -546,4 +585,132 @@ model DocumentChunk {
   @@index([sourceDate])
   @@index([embedded])
   @@map("document_chunks")
+}
+
+// ─────────────────────────────────────────────
+// COMPLIANCE
+// ─────────────────────────────────────────────
+
+model OshaIncident {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId      String        @map("organization_id") @db.Uuid
+  projectId           String        @map("project_id") @db.Uuid
+
+  // Employee info
+  employeeName        String        @map("employee_name")
+  employeeJobTitle    String?       @map("employee_job_title")
+  employeeDateOfBirth DateTime?     @map("employee_date_of_birth")
+  employeeHireDate    DateTime?     @map("employee_hire_date")
+
+  // Incident details
+  incidentDate        DateTime      @map("incident_date")
+  incidentTime        String?       @map("incident_time")
+  location            String?
+  description         String
+  injuryType          String?       @map("injury_type")
+  bodyPart            String?       @map("body_part")
+  objectOrSubstance   String?       @map("object_or_substance")
+
+  // Outcome
+  deathDate           DateTime?     @map("death_date")
+  daysAwayFromWork    Int?          @map("days_away_from_work")
+  daysRestricted      Int?          @map("days_restricted")
+
+  // Classification
+  isRecordable        Boolean       @default(false) @map("is_recordable")
+  caseType            OshaCaseType? @map("case_type")
+
+  // Linking
+  dailyLogId          String?       @map("daily_log_id") @db.Uuid
+  safetyEntryId       String?       @map("safety_entry_id") @db.Uuid
+
+  // Status
+  status              String        @default("DRAFT")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  project      Project      @relation(fields: [projectId], references: [id])
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([incidentDate])
+  @@map("osha_incidents")
+}
+
+model ComplianceDocument {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId   String            @map("organization_id") @db.Uuid
+
+  documentType     ComplianceDocType @map("document_type")
+  name             String
+  description      String?
+
+  // Dates
+  issueDate        DateTime?         @map("issue_date")
+  expirationDate   DateTime?         @map("expiration_date")
+
+  // Status
+  status           ComplianceDocStatus @default(ACTIVE)
+
+  // Alerts
+  alertDays        Int[]             @default([90, 60, 30, 14]) @map("alert_days")
+  lastAlertSent    DateTime?         @map("last_alert_sent")
+
+  // Metadata
+  licenseNumber    String?           @map("license_number")
+  issuingAuthority String?           @map("issuing_authority")
+  state            String?
+
+  // File reference
+  fileUrl          String?           @map("file_url")
+
+  // Optional project link
+  projectId        String?           @map("project_id") @db.Uuid
+
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  project      Project?     @relation(fields: [projectId], references: [id])
+
+  @@index([organizationId])
+  @@index([expirationDate])
+  @@index([status])
+  @@map("compliance_documents")
+}
+
+model TrainingRecord {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+
+  employeeName    String   @map("employee_name")
+  employeeId      String?  @map("employee_id") @db.Uuid
+
+  trainingType    String   @map("training_type")
+  topic           String
+  description     String?
+
+  completedDate   DateTime @map("completed_date")
+  expirationDate  DateTime? @map("expiration_date")
+
+  trainer         String?
+  certificationId String?  @map("certification_id")
+
+  // Link to daily log toolbox talk
+  dailyLogId      String?  @map("daily_log_id") @db.Uuid
+
+  // Optional project link
+  projectId       String?  @map("project_id") @db.Uuid
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  project      Project?     @relation(fields: [projectId], references: [id])
+
+  @@index([organizationId])
+  @@index([employeeName])
+  @@index([expirationDate])
+  @@map("training_records")
 }

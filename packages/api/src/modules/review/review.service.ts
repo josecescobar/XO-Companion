@@ -7,6 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { ReviewAction } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { ComplianceService } from '../compliance/compliance.service';
 import { SubmitReviewDto } from './dto/submit-review.dto';
 import { BatchApproveDto } from './dto/batch-approve.dto';
 
@@ -29,6 +30,7 @@ export class ReviewService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private complianceService: ComplianceService,
   ) {
     this.confidenceThreshold =
       parseFloat(this.configService.get<string>('AI_CONFIDENCE_THRESHOLD') || '0.85');
@@ -152,6 +154,9 @@ export class ReviewService {
         });
         previousValue = { aiConfidence: entity.aiConfidence, reviewStatus: entity.reviewStatus };
         newValue = { aiConfidence: 1.0, reviewStatus: 'APPROVED' };
+        if (dto.entityType === 'safety') {
+          void this.complianceService.handleSafetyEntryApproved(dto.entityId);
+        }
         break;
 
       case ReviewAction.REJECTED:
@@ -179,6 +184,9 @@ export class ReviewService {
           where: { id: dto.entityId },
           data: { ...dto.newValue, aiConfidence: 1.0, reviewStatus: 'APPROVED' },
         });
+        if (dto.entityType === 'safety') {
+          void this.complianceService.handleSafetyEntryApproved(dto.entityId);
+        }
         break;
     }
 
@@ -294,6 +302,13 @@ export class ReviewService {
     this.logger.log(
       `Batch approved ${reviewEntries.length} entries by ${reviewerId} on log ${dailyLogId}`,
     );
+
+    // Fire compliance hooks for any approved safety entries
+    for (const { entityType, entityId } of entriesToApprove) {
+      if (entityType === 'safety') {
+        void this.complianceService.handleSafetyEntryApproved(entityId);
+      }
+    }
 
     return {
       approved: reviewEntries.length,
