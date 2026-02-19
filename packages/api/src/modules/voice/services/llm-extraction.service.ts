@@ -48,6 +48,14 @@ export class LlmExtractionService {
       return anthropic(modelId);
     }
 
+    if (modelId.startsWith('llama') || modelId.startsWith('groq/')) {
+      const groq = createOpenAI({
+        apiKey: this.configService.get<string>('GROQ_API_KEY'),
+        baseURL: 'https://api.groq.com/openai/v1',
+      });
+      return groq(modelId.replace('groq/', ''));
+    }
+
     const openai = createOpenAI({
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
     });

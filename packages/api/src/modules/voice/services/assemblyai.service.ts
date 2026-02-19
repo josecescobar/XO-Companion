@@ -7,7 +7,7 @@ export class AssemblyAiService {
   private client: AssemblyAI;
   private readonly logger = new Logger(AssemblyAiService.name);
 
-  private static readonly BASE_WORD_BOOST = [
+  private static readonly BASE_KEYTERMS = [
     'CMU', 'SOG', 'RFI', 'OSHA', 'GC', 'T&M',
     'rough in', 'trim out', 'top out', 'dry in',
     'rebar', 'conduit', 'drywall', 'framing',
@@ -27,17 +27,17 @@ export class AssemblyAiService {
   ): Promise<{ transcript: string; id: string; durationMs: number }> {
     this.logger.log(`Starting transcription for: ${audioPath}`);
 
-    // Merge base word boost with custom vocabulary (deduplicated)
-    const wordBoost = [...new Set([
-      ...AssemblyAiService.BASE_WORD_BOOST,
+    // Merge base keyterms with custom vocabulary (deduplicated)
+    const allTerms = [...new Set([
+      ...AssemblyAiService.BASE_KEYTERMS,
       ...(customVocabulary || []),
     ])];
 
     const transcript = await this.client.transcripts.transcribe({
       audio: audioPath,
+      speech_models: ['universal-3-pro'],
       language_detection: true,
-      word_boost: wordBoost,
-      boost_param: 'high',
+      keyterms_prompt: allTerms,
       speaker_labels: true,
     });
 

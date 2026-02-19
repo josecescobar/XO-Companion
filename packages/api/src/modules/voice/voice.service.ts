@@ -254,6 +254,12 @@ export class VoiceService {
       throw new BadRequestException('No transcript available for reprocessing');
     }
 
+    // Resolve organizationId via dailyLog → project
+    const dailyLog = await this.prisma.dailyLog.findUniqueOrThrow({
+      where: { id: note.dailyLogId },
+      select: { project: { select: { organizationId: true } } },
+    });
+
     await this.prisma.voiceNote.update({
       where: { id },
       data: { status: 'EXTRACTING', processingError: null },
@@ -262,6 +268,7 @@ export class VoiceService {
     await this.voiceQueue.add('process', {
       voiceNoteId: note.id,
       audioUrl: note.audioUrl,
+      organizationId: dailyLog.project.organizationId,
     });
 
     return { message: 'Reprocessing queued', voiceNoteId: id };
