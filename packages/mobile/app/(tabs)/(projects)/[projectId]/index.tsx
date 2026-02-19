@@ -81,6 +81,24 @@ export default function ProjectDetailScreen() {
               ))}
             </CollapsibleSection>
 
+            {/* Quick Actions */}
+            <View style={styles.quickActions}>
+              <Pressable
+                onPress={() => router.push(`/(tabs)/(projects)/${projectId}/analytics`)}
+                style={[styles.actionCard, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}
+              >
+                <Text style={styles.actionIcon}>📊</Text>
+                <Text style={[styles.actionLabel, { color: colors.primary }]}>Analytics</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.push(`/(tabs)/(projects)/${projectId}/daily-logs`)}
+                style={[styles.actionCard, { backgroundColor: colors.successLight, borderColor: colors.border }]}
+              >
+                <Text style={styles.actionIcon}>📋</Text>
+                <Text style={[styles.actionLabel, { color: colors.success }]}>All Logs</Text>
+              </Pressable>
+            </View>
+
             {/* Section Header */}
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Daily Logs</Text>
@@ -130,6 +148,10 @@ const styles = StyleSheet.create({
   stat: { fontSize: 14 },
   badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
   badgeText: { fontSize: 12, fontWeight: '600' },
+  quickActions: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+  actionCard: { flex: 1, borderRadius: 12, borderWidth: 1, padding: 14, alignItems: 'center', gap: 4 },
+  actionIcon: { fontSize: 24 },
+  actionLabel: { fontSize: 13, fontWeight: '600' },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 18, fontWeight: '700' },
   viewAll: { fontSize: 14, fontWeight: '500' },

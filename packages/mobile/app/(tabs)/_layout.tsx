@@ -40,6 +40,14 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="(compliance)"
+        options={{
+          title: 'Compliance',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🛡️</Text>,
+        }}
+      />
+      <Tabs.Screen
         name="(account)"
         options={{
           title: 'Account',

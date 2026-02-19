@@ -13,6 +13,7 @@ export default function ProjectDetailLayout() {
     >
       <Stack.Screen name="index" options={{ title: 'Project' }} />
       <Stack.Screen name="daily-logs" options={{ headerShown: false }} />
+      <Stack.Screen name="analytics" options={{ title: 'Analytics' }} />
     </Stack>
   );
 }
