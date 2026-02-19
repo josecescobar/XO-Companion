@@ -42,13 +42,16 @@ export class ProjectsService {
   }
 
   async findAll(userId: string, organizationId: string) {
+    const userRole = await this.getUserOrgRole(userId, organizationId);
+
+    const where: any = { organizationId };
+    // SUPER_ADMIN sees all org projects; others see only their memberships
+    if (userRole !== Role.SUPER_ADMIN) {
+      where.members = { some: { userId } };
+    }
+
     return this.prisma.project.findMany({
-      where: {
-        organizationId,
-        members: {
-          some: { userId },
-        },
-      },
+      where,
       include: {
         _count: { select: { members: true, dailyLogs: true } },
       },
