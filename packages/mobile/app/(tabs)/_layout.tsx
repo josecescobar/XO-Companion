@@ -16,11 +16,19 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
+        name="(home)"
+        options={{
+          title: 'Home',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏠</Text>,
+        }}
+      />
+      <Tabs.Screen
         name="(projects)"
         options={{
           title: 'Projects',
           headerShown: false,
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📋</Text>,
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📁</Text>,
         }}
       />
       <Tabs.Screen
@@ -40,19 +48,19 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="(compliance)"
-        options={{
-          title: 'Compliance',
-          headerShown: false,
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🛡️</Text>,
-        }}
-      />
-      <Tabs.Screen
         name="(account)"
         options={{
           title: 'Account',
           headerShown: false,
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👤</Text>,
+        }}
+      />
+      {/* Compliance accessible from Home screen, not a separate tab */}
+      <Tabs.Screen
+        name="(compliance)"
+        options={{
+          href: null,
+          headerShown: false,
         }}
       />
     </Tabs>

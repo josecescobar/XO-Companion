@@ -91,6 +91,13 @@ export default function ProjectDetailScreen() {
                 <Text style={[styles.actionLabel, { color: colors.primary }]}>Analytics</Text>
               </Pressable>
               <Pressable
+                onPress={() => router.push(`/(tabs)/(projects)/${projectId}/tasks`)}
+                style={[styles.actionCard, { backgroundColor: colors.errorLight, borderColor: colors.border }]}
+              >
+                <Text style={styles.actionIcon}>📋</Text>
+                <Text style={[styles.actionLabel, { color: colors.error }]}>Tasks</Text>
+              </Pressable>
+              <Pressable
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/team`)}
                 style={[styles.actionCard, { backgroundColor: colors.warningLight, borderColor: colors.border }]}
               >
@@ -101,7 +108,7 @@ export default function ProjectDetailScreen() {
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/daily-logs`)}
                 style={[styles.actionCard, { backgroundColor: colors.successLight, borderColor: colors.border }]}
               >
-                <Text style={styles.actionIcon}>📋</Text>
+                <Text style={styles.actionIcon}>📝</Text>
                 <Text style={[styles.actionLabel, { color: colors.success }]}>All Logs</Text>
               </Pressable>
             </View>
