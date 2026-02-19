@@ -15,6 +15,7 @@ import { MemoryModule } from './modules/memory/memory.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { SyncModule } from './modules/sync/sync.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { TasksModule } from './modules/tasks/tasks.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -75,6 +76,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     ComplianceModule,
     SyncModule,
     AnalyticsModule,
+    TasksModule,
     MemoryModule,
     HealthModule,
   ],

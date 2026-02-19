@@ -68,6 +68,43 @@ export class VoiceProcessor extends WorkerHost {
         },
       });
 
+      // Create tasks from extracted next actions
+      try {
+        if (extractedData.nextActions && extractedData.nextActions.length > 0) {
+          const voiceNote = await this.prisma.voiceNote.findUnique({
+            where: { id: voiceNoteId },
+            select: {
+              userId: true,
+              dailyLog: { select: { projectId: true, id: true } },
+            },
+          });
+
+          if (voiceNote?.dailyLog) {
+            for (const action of extractedData.nextActions) {
+              await this.prisma.task.create({
+                data: {
+                  projectId: voiceNote.dailyLog.projectId,
+                  dailyLogId: voiceNote.dailyLog.id,
+                  voiceNoteId,
+                  description: action.description,
+                  assignee: action.assignee || null,
+                  dueDate: action.dueDate ? this.parseRelativeDate(action.dueDate) : null,
+                  priority: action.priority as any,
+                  category: action.category as any,
+                  status: 'PENDING',
+                  aiGenerated: true,
+                  aiConfidence: action.confidence,
+                  createdById: voiceNote.userId,
+                },
+              });
+            }
+            this.logger.log(`Created ${extractedData.nextActions.length} tasks from voice note`);
+          }
+        }
+      } catch (err: any) {
+        this.logger.warn(`Failed to create tasks from voice note: ${err.message}`);
+      }
+
       // Enqueue memory ingestion for the voice transcript (non-blocking)
       try {
         const vn = await this.prisma.voiceNote.findUnique({
@@ -112,6 +149,47 @@ export class VoiceProcessor extends WorkerHost {
       this.logger.warn(`Could not load glossary terms: ${error}`);
       return [];
     }
+  }
+
+  private parseRelativeDate(dateStr: string): Date {
+    const lower = dateStr.toLowerCase().trim();
+    const now = new Date();
+
+    if (lower === 'today') return now;
+
+    if (lower === 'tomorrow') {
+      const d = new Date(now);
+      d.setDate(d.getDate() + 1);
+      return d;
+    }
+
+    if (lower === 'end of week' || lower === 'end of the week') {
+      const d = new Date(now);
+      const dayOfWeek = d.getDay();
+      d.setDate(d.getDate() + (5 - dayOfWeek + 7) % 7 || 7);
+      return d;
+    }
+
+    if (lower === 'next week') {
+      const d = new Date(now);
+      const dayOfWeek = d.getDay();
+      d.setDate(d.getDate() + (8 - dayOfWeek));
+      return d;
+    }
+
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayIndex = dayNames.findIndex((d) => lower.includes(d));
+    if (dayIndex >= 0) {
+      const d = new Date(now);
+      const currentDay = d.getDay();
+      let daysUntil = dayIndex - currentDay;
+      if (daysUntil <= 0) daysUntil += 7;
+      d.setDate(d.getDate() + daysUntil);
+      return d;
+    }
+
+    const parsed = new Date(dateStr);
+    return isNaN(parsed.getTime()) ? now : parsed;
   }
 
   private async updateStatus(voiceNoteId: string, status: VoiceNoteStatus) {

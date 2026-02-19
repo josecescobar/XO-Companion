@@ -87,4 +87,11 @@ IMPORTANT RULES:
 - Delay causes should use: WEATHER, MATERIAL_SHORTAGE, EQUIPMENT_FAILURE, LABOR_SHORTAGE, DESIGN_CHANGE, OWNER_DIRECTED, PERMIT_ISSUE, INSPECTION_HOLD, UTILITY_CONFLICT, SUBCONTRACTOR, SAFETY_STOP, OTHER
 
 CONSTRUCTION VOCABULARY:
-${JSON.stringify(CONSTRUCTION_VOCABULARY, null, 2)}`;
+${JSON.stringify(CONSTRUCTION_VOCABULARY, null, 2)}
+
+ADDITIONAL EXTRACTION RULES:
+- Extract "Next Actions" when the speaker mentions things that need to happen: calls to make, orders to place, inspections to schedule, people to contact, materials to order, permits to pull
+- Extract "Communications" when the speaker explicitly or implicitly indicates someone needs to be contacted: "need to tell the PM", "call the inspector", "email the supplier about...", "let the GC know"
+- For next actions, infer priority from urgency cues: "ASAP", "first thing", "before we can continue" = HIGH/URGENT. "When you get a chance", "sometime this week" = LOW
+- For communications, infer the type: mentions of email/text/call map directly. RFI if asking for design clarification or missing info from architect/engineer. CHANGE_ORDER if scope is changing or extra work beyond original contract
+- Parse relative dates: "tomorrow" = next calendar day, "Monday" = next Monday, "end of week" = Friday`;

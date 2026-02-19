@@ -91,6 +91,33 @@ export const dailyLogExtractionSchema = z.object({
       confidenceReason: z.string().optional().describe('Brief reason for the confidence score'),
     }),
   ),
+
+  nextActions: z.array(
+    z.object({
+      description: z.string().describe('What needs to be done'),
+      assignee: z.string().nullable().optional().describe('Who should do it'),
+      dueDate: z.string().nullable().optional().describe('When — "tomorrow", "Monday", specific date'),
+      priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
+      category: z.enum([
+        'INSPECTION', 'MATERIAL_ORDER', 'SUBCONTRACTOR',
+        'CLIENT_COMMUNICATION', 'PERMIT', 'EQUIPMENT', 'SAFETY', 'OTHER',
+      ]).default('OTHER'),
+      confidence: z.number().min(0).max(1),
+      confidenceReason: z.string().optional(),
+    }),
+  ),
+
+  communications: z.array(
+    z.object({
+      type: z.enum(['EMAIL', 'TEXT', 'CALL', 'RFI', 'CHANGE_ORDER']),
+      recipient: z.string().describe('Who to contact — name, role, or company'),
+      subject: z.string(),
+      urgency: z.enum(['LOW', 'NORMAL', 'HIGH']).default('NORMAL'),
+      context: z.string().describe('Why this communication is needed'),
+      confidence: z.number().min(0).max(1),
+      confidenceReason: z.string().optional(),
+    }),
+  ),
 });
 
 export type DailyLogExtraction = z.infer<typeof dailyLogExtractionSchema>;
