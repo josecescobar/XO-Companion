@@ -17,7 +17,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.xocompanion.app",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "XO Companion needs microphone access to record voice notes for daily logs."
+        "NSMicrophoneUsageDescription": "XO Companion needs microphone access to record voice notes for daily logs.",
+        "NSCameraUsageDescription": "XO Companion needs camera access to document jobsite conditions.",
+        "NSPhotoLibraryUsageDescription": "XO Companion needs photo library access to attach existing photos."
       }
     },
     "android": {
@@ -28,7 +30,8 @@
       "edgeToEdgeEnabled": true,
       "package": "com.xocompanion.app",
       "permissions": [
-        "RECORD_AUDIO"
+        "RECORD_AUDIO",
+        "CAMERA"
       ]
     },
     "web": {
@@ -38,7 +41,14 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-image-picker",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "XO Companion needs camera access to document jobsite conditions."
+        }
+      ]
     ]
   }
 }

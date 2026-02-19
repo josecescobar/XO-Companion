@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, View, Text, Pressable, RefreshControl, Alert, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, Image, Pressable, RefreshControl, Alert, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useDailyLog } from '@/hooks/queries/useDailyLogs';
 import { useAuthStore } from '@/stores/auth.store';
@@ -16,10 +16,13 @@ import { MaterialsSection } from '@/components/daily-log/MaterialsSection';
 import { SafetySection } from '@/components/daily-log/SafetySection';
 import { DelaysSection } from '@/components/daily-log/DelaysSection';
 import { EntryEditModal } from '@/components/daily-log/EntryEditModal';
+import { MediaAttachmentBar } from '@/components/media/MediaAttachmentBar';
+import { MediaPreviewModal } from '@/components/media/MediaPreviewModal';
 import { useTheme } from '@/hooks/useTheme';
 import { format } from 'date-fns';
 import { deleteEntry } from '@/api/endpoints/daily-logs';
 import type { EntityType } from '@/api/endpoints/daily-logs';
+import type { MediaAsset } from '@/hooks/useMediaCapture';
 
 export default function DailyLogDetailScreen() {
   const { projectId, logId } = useLocalSearchParams<{ projectId: string; logId: string }>();
@@ -33,6 +36,9 @@ export default function DailyLogDetailScreen() {
     entityType: EntityType;
     entry: Record<string, unknown> | null;
   }>({ visible: false, entityType: 'workforce', entry: null });
+
+  const [mediaAttachments, setMediaAttachments] = useState<MediaAsset[]>([]);
+  const [previewIndex, setPreviewIndex] = useState(-1);
 
   const statusColors: Record<string, { bg: string; text: string }> = {
     DRAFT: { bg: colors.border, text: colors.textSecondary },
@@ -172,6 +178,17 @@ export default function DailyLogDetailScreen() {
           </View>
         )}
 
+        {/* Media Attachments */}
+        <View style={styles.mediaSection}>
+          <Text style={[styles.mediaSectionTitle, { color: colors.text }]}>Photos & Video</Text>
+          <MediaAttachmentBar
+            attachments={mediaAttachments}
+            onAdd={(asset) => setMediaAttachments((prev) => [...prev, asset])}
+            onRemove={(i) => setMediaAttachments((prev) => prev.filter((_, idx) => idx !== i))}
+            onPreview={(i) => setPreviewIndex(i)}
+          />
+        </View>
+
         {/* Navigation to sub-screens */}
         <View style={styles.navSection}>
           <Pressable
@@ -208,6 +225,16 @@ export default function DailyLogDetailScreen() {
           </Pressable>
         </View>
       </ScrollView>
+      <MediaPreviewModal
+        visible={previewIndex >= 0}
+        items={mediaAttachments}
+        initialIndex={Math.max(0, previewIndex)}
+        onClose={() => setPreviewIndex(-1)}
+        onDelete={(i) => {
+          setMediaAttachments((prev) => prev.filter((_, idx) => idx !== i));
+          if (mediaAttachments.length <= 1) setPreviewIndex(-1);
+        }}
+      />
       <EntryEditModal
         visible={editModal.visible}
         entityType={editModal.entityType}
@@ -242,4 +269,6 @@ const styles = StyleSheet.create({
   navButtonTitle: { fontSize: 16, fontWeight: '600' },
   navButtonSub: { fontSize: 13, marginTop: 2 },
   navArrow: { fontSize: 24, marginLeft: 8 },
+  mediaSection: { marginTop: 16, gap: 8 },
+  mediaSectionTitle: { fontSize: 17, fontWeight: '700' },
 });

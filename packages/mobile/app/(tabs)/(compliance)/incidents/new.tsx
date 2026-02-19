@@ -18,6 +18,9 @@ import { Button } from '@/components/ui/Button';
 import { useCreateIncident } from '@/hooks/mutations/useCrudMutations';
 import { useProjects } from '@/hooks/queries/useProjects';
 import { useTheme } from '@/hooks/useTheme';
+import { MediaAttachmentBar } from '@/components/media/MediaAttachmentBar';
+import { MediaPreviewModal } from '@/components/media/MediaPreviewModal';
+import type { MediaAsset } from '@/hooks/useMediaCapture';
 import { Pressable } from 'react-native';
 
 export default function CreateIncidentScreen() {
@@ -38,6 +41,8 @@ export default function CreateIncidentScreen() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [incidentDate, setIncidentDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(Platform.OS === 'ios');
+  const [mediaAttachments, setMediaAttachments] = useState<MediaAsset[]>([]);
+  const [previewIndex, setPreviewIndex] = useState(-1);
 
   const handleCreate = async () => {
     if (!employeeName.trim() || !description.trim()) {
@@ -160,6 +165,17 @@ export default function CreateIncidentScreen() {
             style={{ minHeight: 100 }}
           />
 
+          {/* Photo/Video Evidence */}
+          <View style={styles.field}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Photo/Video Evidence</Text>
+            <MediaAttachmentBar
+              attachments={mediaAttachments}
+              onAdd={(asset) => setMediaAttachments((prev) => [...prev, asset])}
+              onRemove={(i) => setMediaAttachments((prev) => prev.filter((_, idx) => idx !== i))}
+              onPreview={(i) => setPreviewIndex(i)}
+            />
+          </View>
+
           <Input label="Body Part Affected" placeholder="e.g. Left hand" value={bodyPart} onChangeText={setBodyPart} />
           <Input label="Nature of Injury" placeholder="e.g. Laceration" value={natureOfInjury} onChangeText={setNatureOfInjury} />
 
@@ -219,6 +235,16 @@ export default function CreateIncidentScreen() {
           />
         </ScrollView>
       </KeyboardAvoidingView>
+      <MediaPreviewModal
+        visible={previewIndex >= 0}
+        items={mediaAttachments}
+        initialIndex={Math.max(0, previewIndex)}
+        onClose={() => setPreviewIndex(-1)}
+        onDelete={(i) => {
+          setMediaAttachments((prev) => prev.filter((_, idx) => idx !== i));
+          if (mediaAttachments.length <= 1) setPreviewIndex(-1);
+        }}
+      />
     </ScreenWrapper>
   );
 }
