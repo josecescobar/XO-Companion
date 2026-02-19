@@ -3,7 +3,10 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { DailyLogStatus, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDailyLogDto } from './dto/create-daily-log.dto';
@@ -35,7 +38,12 @@ const FULL_INCLUDE = {
 
 @Injectable()
 export class DailyLogsService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(DailyLogsService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    @InjectQueue('risk-analysis') private riskAnalysisQueue: Queue,
+  ) {}
 
   // ─── Core CRUD ───
 
@@ -136,11 +144,25 @@ export class DailyLogsService {
     if (log.status !== DailyLogStatus.PENDING_REVIEW) {
       throw new BadRequestException(`Cannot approve from ${log.status} status`);
     }
-    return this.prisma.dailyLog.update({
+    const approved = await this.prisma.dailyLog.update({
       where: { id },
       data: { status: DailyLogStatus.APPROVED },
       include: FULL_INCLUDE,
     });
+
+    // Queue risk analysis after approval (non-blocking)
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      select: { organizationId: true },
+    });
+    if (project) {
+      await this.riskAnalysisQueue.add('analyze', {
+        projectId,
+        organizationId: project.organizationId,
+      }).catch((err) => this.logger.warn(`Failed to queue risk analysis: ${err.message}`));
+    }
+
+    return approved;
   }
 
   async amend(id: string, projectId: string) {

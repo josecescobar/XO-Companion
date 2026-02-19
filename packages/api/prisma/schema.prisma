@@ -150,6 +150,32 @@ enum SyncStatus {
   UPLOAD_FAILED
 }
 
+// ─── Risk & Analytics Enums ───
+
+enum RiskAlertType {
+  DELAY_PATTERN
+  SAFETY_TREND
+  BUDGET_VARIANCE
+  WORKFORCE_SHORTAGE
+  EQUIPMENT_DOWNTIME
+  SCHEDULE_SLIP
+  WEATHER_RISK
+}
+
+enum RiskSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RiskAlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+  DISMISSED
+}
+
 // ─────────────────────────────────────────────
 // CORE ENTITIES
 // ─────────────────────────────────────────────
@@ -167,6 +193,7 @@ model Organization {
   oshaIncidents       OshaIncident[]
   complianceDocuments ComplianceDocument[]
   trainingRecords     TrainingRecord[]
+  riskAlerts          RiskAlert[]
 
   @@map("organizations")
 }
@@ -235,6 +262,7 @@ model Project {
   oshaIncidents       OshaIncident[]
   complianceDocuments ComplianceDocument[]
   trainingRecords     TrainingRecord[]
+  riskAlerts          RiskAlert[]
 
   @@unique([organizationId, code])
   @@index([organizationId])
@@ -742,4 +770,41 @@ model SyncConflictLog {
   @@index([organizationId])
   @@index([table, recordId])
   @@map("sync_conflict_logs")
+}
+
+// ─────────────────────────────────────────────
+// RISK ALERTS
+// ─────────────────────────────────────────────
+
+model RiskAlert {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId  String          @map("organization_id") @db.Uuid
+  projectId       String          @map("project_id") @db.Uuid
+
+  alertType       RiskAlertType   @map("alert_type")
+  severity        RiskSeverity
+  title           String
+  description     String
+
+  // Source data
+  sourceData      Json?           @map("source_data")
+
+  // Status
+  status          RiskAlertStatus @default(ACTIVE)
+  acknowledgedBy  String?         @map("acknowledged_by") @db.Uuid
+  acknowledgedAt  DateTime?       @map("acknowledged_at")
+  resolvedAt      DateTime?       @map("resolved_at")
+
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  project         Project         @relation(fields: [projectId], references: [id])
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([alertType])
+  @@index([status])
+  @@index([severity])
+  @@map("risk_alerts")
 }
