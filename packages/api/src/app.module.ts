@@ -11,6 +11,7 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { DailyLogsModule } from './modules/daily-logs/daily-logs.module';
 import { VoiceModule } from './modules/voice/voice.module';
 import { ReviewModule } from './modules/review/review.module';
+import { MemoryModule } from './modules/memory/memory.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -54,6 +55,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     DailyLogsModule,
     VoiceModule,
     ReviewModule,
+    MemoryModule,
     HealthModule,
   ],
   providers: [

@@ -1,6 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
-import { Job } from 'bullmq';
+import { Job, Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 import { AssemblyAiService } from './services/assemblyai.service';
 import { LlmExtractionService } from './services/llm-extraction.service';
@@ -20,6 +21,7 @@ export class VoiceProcessor extends WorkerHost {
     private prisma: PrismaService,
     private assemblyAiService: AssemblyAiService,
     private llmExtractionService: LlmExtractionService,
+    @InjectQueue('memory-ingestion') private memoryQueue: Queue,
   ) {
     super();
   }
@@ -65,6 +67,24 @@ export class VoiceProcessor extends WorkerHost {
           status: VoiceNoteStatus.REVIEW_READY,
         },
       });
+
+      // Enqueue memory ingestion for the voice transcript (non-blocking)
+      try {
+        const vn = await this.prisma.voiceNote.findUnique({
+          where: { id: voiceNoteId },
+          select: { dailyLog: { select: { projectId: true } } },
+        });
+        if (vn) {
+          await this.memoryQueue.add('ingest', {
+            type: 'voice-transcript',
+            sourceId: voiceNoteId,
+            projectId: vn.dailyLog.projectId,
+          });
+          this.logger.log(`Queued memory ingestion for voice note ${voiceNoteId}`);
+        }
+      } catch (err: any) {
+        this.logger.warn(`Failed to queue memory ingestion: ${err.message}`);
+      }
 
       this.logger.log(`Voice note ${voiceNoteId} processed successfully`);
       return { success: true, voiceNoteId };

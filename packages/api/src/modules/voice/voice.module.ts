@@ -10,18 +10,23 @@ import { DailyLogsModule } from '../daily-logs/daily-logs.module';
 
 @Module({
   imports: [
-    BullModule.registerQueue({
-      name: 'voice-processing',
-      defaultJobOptions: {
-        attempts: 3,
-        backoff: {
-          type: 'exponential',
-          delay: 5000,
+    BullModule.registerQueue(
+      {
+        name: 'voice-processing',
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 5000,
+          },
+          removeOnComplete: { age: 86400 },
+          removeOnFail: { age: 604800 },
         },
-        removeOnComplete: { age: 86400 },
-        removeOnFail: { age: 604800 },
       },
-    }),
+      {
+        name: 'memory-ingestion',
+      },
+    ),
     ProjectsModule,
     DailyLogsModule,
   ],
