@@ -11,12 +11,16 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
+import { mkdirSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiTags, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { VoiceService } from './voice.service';
 import { ProjectsService } from '../projects/projects.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+
+const UPLOAD_DIR = join(process.cwd(), 'uploads', 'voice');
+mkdirSync(UPLOAD_DIR, { recursive: true });
 
 @ApiTags('Voice Notes')
 @ApiBearerAuth()
@@ -32,7 +36,7 @@ export class VoiceController {
   @UseInterceptors(
     FileInterceptor('audio', {
       storage: diskStorage({
-        destination: './uploads',
+        destination: UPLOAD_DIR,
         filename: (_req, file, cb) => {
           const name = `${uuidv4()}${extname(file.originalname)}`;
           cb(null, name);

@@ -100,8 +100,9 @@ model Organization {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  users    User[]
-  projects Project[]
+  users         User[]
+  projects      Project[]
+  glossaryTerms GlossaryTerm[]
 
   @@map("organizations")
 }
@@ -446,4 +447,38 @@ model ReviewEntry {
   @@index([reviewerId])
   @@index([entityType, entityId])
   @@map("review_entries")
+}
+
+// ─────────────────────────────────────────────
+// GLOSSARY
+// ─────────────────────────────────────────────
+
+enum GlossaryCategory {
+  TRADE
+  EQUIPMENT
+  MATERIAL
+  ABBREVIATION
+  UNIT
+  OTHER
+}
+
+model GlossaryTerm {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  term           String
+  aliases        String[]
+  category       GlossaryCategory
+  csiCode        String?          @map("csi_code")
+  active         Boolean          @default(true)
+  source         String           @default("manual")
+  usageCount     Int              @default(0) @map("usage_count")
+  organizationId String           @map("organization_id") @db.Uuid
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([term, organizationId])
+  @@index([organizationId])
+  @@index([category])
+  @@map("glossary_terms")
 }

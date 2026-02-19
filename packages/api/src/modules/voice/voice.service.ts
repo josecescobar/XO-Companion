@@ -26,8 +26,12 @@ export class VoiceService {
     userId: string,
     file: { path: string; size: number; mimetype: string },
   ) {
-    // Verify the daily log exists
+    // Verify the daily log exists and resolve organizationId
     await this.dailyLogsService.findOne(dailyLogId, projectId);
+    const project = await this.prisma.project.findUniqueOrThrow({
+      where: { id: projectId },
+      select: { organizationId: true },
+    });
 
     const voiceNote = await this.prisma.voiceNote.create({
       data: {
@@ -44,6 +48,7 @@ export class VoiceService {
     await this.voiceQueue.add('process', {
       voiceNoteId: voiceNote.id,
       audioUrl: file.path,
+      organizationId: project.organizationId,
     });
 
     // Update status to indicate it's queued

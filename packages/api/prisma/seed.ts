@@ -5,6 +5,7 @@ import {
   WeatherCondition,
   EquipmentCondition,
   DelayCause,
+  GlossaryCategory,
 } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
@@ -441,6 +442,84 @@ async function main() {
   });
 
   console.log('Signatures: 2 on approved log');
+
+  // ─── Glossary Terms ───
+  const glossaryEntries: { term: string; aliases: string[]; category: GlossaryCategory }[] = [
+    // Trades (key = slang alias, value = standard term)
+    { term: 'Electrician', aliases: ['sparkies', 'sparky'], category: GlossaryCategory.TRADE },
+    { term: 'Sheet Metal Worker', aliases: ['tin knockers'], category: GlossaryCategory.TRADE },
+    { term: 'Drywall Finisher', aliases: ['mud men', 'tapers'], category: GlossaryCategory.TRADE },
+    { term: 'Ironworker (Rebar)', aliases: ['rod busters'], category: GlossaryCategory.TRADE },
+    { term: 'Plumber', aliases: ['pipe fitters'], category: GlossaryCategory.TRADE },
+    { term: 'Concrete Finisher', aliases: ['flatwork guys'], category: GlossaryCategory.TRADE },
+    { term: 'Carpenter', aliases: ['framers'], category: GlossaryCategory.TRADE },
+    { term: 'Roofer', aliases: ['roofers'], category: GlossaryCategory.TRADE },
+    { term: 'Painter', aliases: ['painters'], category: GlossaryCategory.TRADE },
+    { term: 'Mason', aliases: ['masons', 'block layers'], category: GlossaryCategory.TRADE },
+    { term: 'HVAC Technician', aliases: ['HVAC guys'], category: GlossaryCategory.TRADE },
+    { term: 'Insulation Worker', aliases: ['insulators'], category: GlossaryCategory.TRADE },
+    { term: 'Glazier', aliases: ['glaziers'], category: GlossaryCategory.TRADE },
+    { term: 'Ironworker', aliases: ['ironworkers'], category: GlossaryCategory.TRADE },
+    { term: 'Heavy Equipment Operator', aliases: ['operators'], category: GlossaryCategory.TRADE },
+    { term: 'General Laborer', aliases: ['laborers'], category: GlossaryCategory.TRADE },
+    // Equipment
+    { term: 'Excavator', aliases: ['track hoe', 'trackhoe'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Skid Steer Loader', aliases: ['bobcat', 'skid steer'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Front End Loader', aliases: ['loader'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Bulldozer', aliases: ['dozer'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Backhoe Loader', aliases: ['backhoe'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Aerial Lift', aliases: ['man lift'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Scissor Lift', aliases: ['scissor lift'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Boom Lift', aliases: ['boom lift'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Forklift', aliases: ['forklift'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Dump Truck', aliases: ['dump truck'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Concrete Pump', aliases: ['concrete pump'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Crane', aliases: ['crane'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Compactor', aliases: ['compactor'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Mini Excavator', aliases: ['mini ex'], category: GlossaryCategory.EQUIPMENT },
+    { term: 'Generator', aliases: ['generator'], category: GlossaryCategory.EQUIPMENT },
+    // Units
+    { term: 'LF', aliases: ['linear feet', 'lineal feet'], category: GlossaryCategory.UNIT },
+    { term: 'SF', aliases: ['square feet', 'square foot'], category: GlossaryCategory.UNIT },
+    { term: 'CY', aliases: ['cubic yards', 'cubic yard'], category: GlossaryCategory.UNIT },
+    { term: 'EA', aliases: ['each'], category: GlossaryCategory.UNIT },
+    { term: 'TON', aliases: ['tons'], category: GlossaryCategory.UNIT },
+    { term: 'LB', aliases: ['pounds'], category: GlossaryCategory.UNIT },
+    { term: 'GAL', aliases: ['gallons'], category: GlossaryCategory.UNIT },
+    { term: 'BAG', aliases: ['bags'], category: GlossaryCategory.UNIT },
+    { term: 'SHT', aliases: ['sheets'], category: GlossaryCategory.UNIT },
+    { term: 'ROLL', aliases: ['rolls'], category: GlossaryCategory.UNIT },
+    { term: 'PC', aliases: ['pieces'], category: GlossaryCategory.UNIT },
+    { term: 'BDL', aliases: ['bundles'], category: GlossaryCategory.UNIT },
+    // Abbreviations
+    { term: 'Concrete Masonry Unit', aliases: ['CMU'], category: GlossaryCategory.ABBREVIATION },
+    { term: 'Slab On Grade', aliases: ['SOG'], category: GlossaryCategory.ABBREVIATION },
+    { term: 'Time and Materials', aliases: ['T&M'], category: GlossaryCategory.ABBREVIATION },
+    { term: 'General Contractor', aliases: ['GC'], category: GlossaryCategory.ABBREVIATION },
+    { term: 'Subcontractor', aliases: ['Sub'], category: GlossaryCategory.ABBREVIATION },
+    { term: 'Request for Information', aliases: ['RFI'], category: GlossaryCategory.ABBREVIATION },
+    { term: 'Change Order', aliases: ['CO'], category: GlossaryCategory.ABBREVIATION },
+    { term: 'Punch List', aliases: ['punch list'], category: GlossaryCategory.ABBREVIATION },
+    { term: 'Rough-In (first fix)', aliases: ['rough in'], category: GlossaryCategory.ABBREVIATION },
+    { term: 'Trim-Out (second fix)', aliases: ['trim out'], category: GlossaryCategory.ABBREVIATION },
+    { term: 'Structural completion', aliases: ['top out'], category: GlossaryCategory.ABBREVIATION },
+    { term: 'Weather-tight enclosure', aliases: ['dry in'], category: GlossaryCategory.ABBREVIATION },
+  ];
+
+  for (const entry of glossaryEntries) {
+    await prisma.glossaryTerm.upsert({
+      where: { term_organizationId: { term: entry.term, organizationId: org.id } },
+      update: {},
+      create: {
+        term: entry.term,
+        aliases: entry.aliases,
+        category: entry.category,
+        source: 'seed',
+        organizationId: org.id,
+      },
+    });
+  }
+  console.log(`Glossary Terms: ${glossaryEntries.length} seeded`);
 
   // ─── Summary ───
   console.log('\n--- Seed Summary ---');

@@ -9,6 +9,7 @@ import { VoiceNoteStatus } from '@prisma/client';
 export interface VoiceProcessingJobData {
   voiceNoteId: string;
   audioUrl: string;
+  organizationId: string;
 }
 
 @Processor('voice-processing')
@@ -24,18 +25,26 @@ export class VoiceProcessor extends WorkerHost {
   }
 
   async process(job: Job<VoiceProcessingJobData>) {
-    const { voiceNoteId, audioUrl } = job.data;
+    const { voiceNoteId, audioUrl, organizationId } = job.data;
     this.logger.log(`Processing voice note: ${voiceNoteId}`);
 
     try {
+      // Load custom vocabulary from glossary
+      const customVocabulary = await this.loadGlossaryVocabulary(organizationId);
+
       // Stage 1: Transcription
       await this.updateStatus(voiceNoteId, VoiceNoteStatus.TRANSCRIBING);
 
-      const { transcript, id: assemblyaiId } = await this.assemblyAiService.transcribe(audioUrl);
+      const { transcript, id: assemblyaiId, durationMs } =
+        await this.assemblyAiService.transcribe(audioUrl, customVocabulary);
 
       await this.prisma.voiceNote.update({
         where: { id: voiceNoteId },
-        data: { transcript, assemblyaiId },
+        data: {
+          transcript,
+          assemblyaiId,
+          durationSeconds: Math.round(durationMs / 1000),
+        },
       });
 
       if (!transcript || transcript.trim().length === 0) {
@@ -69,6 +78,19 @@ export class VoiceProcessor extends WorkerHost {
         },
       });
       throw error;
+    }
+  }
+
+  private async loadGlossaryVocabulary(organizationId: string): Promise<string[]> {
+    try {
+      const terms = await this.prisma.glossaryTerm.findMany({
+        where: { organizationId, active: true },
+        select: { term: true, aliases: true },
+      });
+      return terms.flatMap((t) => [t.term, ...t.aliases]);
+    } catch (error) {
+      this.logger.warn(`Could not load glossary terms: ${error}`);
+      return [];
     }
   }
 
