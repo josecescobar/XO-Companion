@@ -109,6 +109,31 @@ enum ChunkSourceType {
   DAILY_LOG_SUMMARY
   VOICE_TRANSCRIPT
   MANUAL_NOTE
+  DOCUMENT
+}
+
+// ─── Document Enums ───
+
+enum DocumentCategory {
+  DRAWING
+  SPECIFICATION
+  SAFETY_MANUAL
+  CONTRACT
+  SUBMITTAL
+  RFI
+  CHANGE_ORDER
+  PERMIT
+  INSPECTION_REPORT
+  MEETING_MINUTES
+  SCHEDULE
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }
 
 // ─── Compliance Enums ───
@@ -229,6 +254,7 @@ model Organization {
   trainingRecords     TrainingRecord[]
   riskAlerts          RiskAlert[]
   media               Media[]
+  projectDocuments    ProjectDocument[]
 
   @@map("organizations")
 }
@@ -252,8 +278,9 @@ model User {
   voiceNotes     VoiceNote[]
   signatures     Signature[]
   reviewActions  ReviewEntry[]
-  createdTasks   Task[]          @relation("CreatedTasks")
-  uploadedMedia  Media[]         @relation("UploadedMedia")
+  createdTasks       Task[]          @relation("CreatedTasks")
+  uploadedMedia      Media[]         @relation("UploadedMedia")
+  uploadedDocuments  ProjectDocument[] @relation("UploadedDocuments")
 
   @@index([organizationId])
   @@index([email])
@@ -302,6 +329,7 @@ model Project {
   riskAlerts          RiskAlert[]
   tasks               Task[]
   media               Media[]
+  documents           ProjectDocument[]
 
   @@unique([organizationId, code])
   @@index([organizationId])
@@ -923,4 +951,41 @@ model Media {
   @@index([dailyLogId])
   @@index([incidentId])
   @@map("media")
+}
+
+// ─────────────────────────────────────────────
+// PROJECT DOCUMENTS
+// ─────────────────────────────────────────────
+
+model ProjectDocument {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId  String             @map("organization_id") @db.Uuid
+  projectId       String             @map("project_id") @db.Uuid
+  uploadedById    String             @map("uploaded_by_id") @db.Uuid
+
+  title           String
+  description     String?
+  fileName        String             @map("file_name")
+  filePath        String             @map("file_path")
+  mimeType        String             @map("mime_type")
+  fileSize        Int                @map("file_size")
+  pageCount       Int?               @map("page_count")
+  category        DocumentCategory
+  status          DocumentStatus     @default(PENDING)
+
+  chunksCreated   Int                @default(0) @map("chunks_created")
+  embedded        Boolean            @default(false)
+  processingError String?            @map("processing_error")
+  processedAt     DateTime?          @map("processed_at")
+
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  organization    Organization       @relation(fields: [organizationId], references: [id])
+  project         Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy      User               @relation("UploadedDocuments", fields: [uploadedById], references: [id])
+
+  @@index([projectId, category])
+  @@index([projectId, status])
+  @@map("project_documents")
 }

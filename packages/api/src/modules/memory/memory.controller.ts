@@ -17,6 +17,7 @@ import { ProjectsService } from '../projects/projects.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SearchMemoryDto } from './dto/search-memory.dto';
+import { AskMemoryDto } from './dto/ask-memory.dto';
 import { MemoryIngestionJobData } from './memory.processor';
 
 @ApiTags('Project Memory')
@@ -114,6 +115,25 @@ export class MemoryController {
       message: `Queued ${logs.length} daily logs for ingestion`,
       count: logs.length,
     };
+  }
+
+  @Post('ask')
+  @HttpCode(HttpStatus.OK)
+  async ask(
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Body() dto: AskMemoryDto,
+    @CurrentUser() user: { id: string; organizationId: string },
+  ) {
+    await this.projectsService.verifyMembership(
+      projectId,
+      user.id,
+      user.organizationId,
+    );
+    return this.memoryService.ask(
+      projectId,
+      dto.question,
+      dto.conversationHistory,
+    );
   }
 
   @Post('re-embed')

@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmbeddingsService } from './services/embeddings.service';
@@ -22,6 +23,7 @@ export class MemoryService {
 
   constructor(
     private prisma: PrismaService,
+    private configService: ConfigService,
     private embeddingsService: EmbeddingsService,
     private chunkingService: ChunkingService,
     private summaryService: SummaryService,
@@ -297,6 +299,155 @@ export class MemoryService {
     }
 
     return { processed: chunks.length, embedded: embeddedCount, failed };
+  }
+
+  // ─── Document Ingestion ───
+
+  async ingestDocument(
+    documentId: string,
+    projectId: string,
+  ): Promise<{ chunksCreated: number; embedded: boolean }> {
+    const doc = await this.prisma.projectDocument.findUnique({
+      where: { id: documentId },
+    });
+    if (!doc) throw new NotFoundException('Document not found');
+    if (doc.projectId !== projectId)
+      throw new NotFoundException('Document not found');
+
+    await this.deleteChunksForSource('DOCUMENT', documentId);
+
+    let text = '';
+    const filePath = doc.filePath;
+
+    if (doc.mimeType === 'application/pdf') {
+      const pdfParse = require('pdf-parse');
+      const fs = require('fs');
+      const dataBuffer = fs.readFileSync(filePath);
+      const pdfData = await pdfParse(dataBuffer);
+      text = pdfData.text;
+    } else if (doc.mimeType.startsWith('text/')) {
+      const fs = require('fs');
+      text = fs.readFileSync(filePath, 'utf-8');
+    } else {
+      text = `Document: ${doc.title}. Category: ${doc.category}. File: ${doc.fileName}.`;
+      if (doc.description) text += ` Description: ${doc.description}`;
+    }
+
+    if (!text || text.trim().length === 0) {
+      await this.prisma.projectDocument.update({
+        where: { id: documentId },
+        data: { status: 'FAILED', processingError: 'No text extracted' },
+      });
+      return { chunksCreated: 0, embedded: false };
+    }
+
+    const enrichedText = `[Document: ${doc.title} | Category: ${doc.category} | File: ${doc.fileName}]\n\n${text}`;
+    const chunks = this.chunkingService.chunk(enrichedText);
+    const embeddings = await this.embeddingsService.embedBatch(
+      chunks.map((c) => c.content),
+    );
+    const allEmbedded = embeddings.every((e) => e !== null);
+
+    const meta = JSON.stringify({
+      documentId,
+      title: doc.title,
+      category: doc.category,
+      fileName: doc.fileName,
+    });
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      const embedding = embeddings[i];
+
+      if (embedding) {
+        const vecStr = `[${embedding.join(',')}]`;
+        await this.prisma.$executeRaw`
+          INSERT INTO document_chunks (id, project_id, source_type, source_id, chunk_index, content, token_count, embedding, embedded, source_date, metadata, created_at, updated_at)
+          VALUES (gen_random_uuid(), ${projectId}::uuid, 'DOCUMENT'::"ChunkSourceType", ${documentId}::uuid, ${chunk.index}, ${chunk.content}, ${chunk.tokenCount}, ${vecStr}::vector, true, ${doc.createdAt}::date, ${meta}::jsonb, NOW(), NOW())
+        `;
+      } else {
+        await this.prisma.$executeRaw`
+          INSERT INTO document_chunks (id, project_id, source_type, source_id, chunk_index, content, token_count, embedded, source_date, metadata, created_at, updated_at)
+          VALUES (gen_random_uuid(), ${projectId}::uuid, 'DOCUMENT'::"ChunkSourceType", ${documentId}::uuid, ${chunk.index}, ${chunk.content}, ${chunk.tokenCount}, false, ${doc.createdAt}::date, ${meta}::jsonb, NOW(), NOW())
+        `;
+      }
+    }
+
+    await this.prisma.projectDocument.update({
+      where: { id: documentId },
+      data: {
+        status: 'COMPLETED',
+        chunksCreated: chunks.length,
+        embedded: allEmbedded,
+        processedAt: new Date(),
+      },
+    });
+
+    this.logger.log(
+      `Ingested document ${documentId}: ${chunks.length} chunks, embedded: ${allEmbedded}`,
+    );
+    return { chunksCreated: chunks.length, embedded: allEmbedded };
+  }
+
+  // ─── Ask XO ───
+
+  async ask(
+    projectId: string,
+    question: string,
+    conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>,
+  ): Promise<{ answer: string; sources: SearchResult[]; tokensUsed?: number }> {
+    const sources = await this.search(projectId, question, { limit: 8 });
+
+    const contextParts = sources.map((s, i) => {
+      const date = s.sourceDate
+        ? new Date(s.sourceDate).toLocaleDateString()
+        : 'unknown date';
+      return `[Source ${i + 1} | ${s.sourceType} | ${date} | Relevance: ${(s.timeWeightedScore * 100).toFixed(0)}%]\n${s.content}`;
+    });
+    const context = contextParts.join('\n\n---\n\n');
+
+    const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+    if (conversationHistory && conversationHistory.length > 0) {
+      const recent = conversationHistory.slice(-10);
+      messages.push(...recent);
+    }
+    messages.push({ role: 'user', content: question });
+
+    const { createAnthropic } = require('@ai-sdk/anthropic');
+    const { generateText } = require('ai');
+
+    const anthropic = createAnthropic({
+      apiKey: this.configService.get('ANTHROPIC_API_KEY'),
+    });
+
+    const result = await generateText({
+      model: anthropic('claude-sonnet-4-20250514'),
+      system: `You are XO, an AI assistant for a construction project. You answer questions using the project's documents, daily logs, voice transcripts, and other records.
+
+RULES:
+- Answer based ONLY on the provided context. If the context doesn't contain enough information to answer, say so clearly.
+- Reference specific dates, document names, and source types when relevant.
+- Use construction industry terminology naturally.
+- Be concise but thorough. Field workers are busy — get to the point.
+- If the question is about a decision or agreement, cite when it was recorded.
+- If multiple sources give conflicting information, note the discrepancy and cite the most recent source.
+- Format responses for mobile readability — short paragraphs, no dense walls of text.
+
+PROJECT CONTEXT:
+${context || 'No relevant documents found for this query.'}`,
+      messages,
+    });
+
+    return {
+      answer: result.text,
+      sources: sources.map((s) => ({
+        ...s,
+        content:
+          s.content.substring(0, 200) +
+          (s.content.length > 200 ? '...' : ''),
+      })),
+      tokensUsed: result.usage?.totalTokens,
+    };
   }
 
   // ─── Helpers ───
