@@ -1,0 +1,19 @@
+bucket_definitions:
+  # User's organization data
+  org_data:
+    parameters:
+      - SELECT org.id as org_id
+        FROM organizations org
+        JOIN users u ON u.organization_id = org.id
+        WHERE u.id = token_parameters.user_id
+    data:
+      - SELECT * FROM projects WHERE organization_id = bucket.org_id
+      - SELECT * FROM daily_logs WHERE project_id IN (SELECT id FROM projects WHERE organization_id = bucket.org_id)
+      - SELECT * FROM workforce_entries WHERE daily_log_id IN (SELECT dl.id FROM daily_logs dl JOIN projects p ON dl.project_id = p.id WHERE p.organization_id = bucket.org_id)
+      - SELECT * FROM equipment_entries WHERE daily_log_id IN (SELECT dl.id FROM daily_logs dl JOIN projects p ON dl.project_id = p.id WHERE p.organization_id = bucket.org_id)
+      - SELECT * FROM work_completed_entries WHERE daily_log_id IN (SELECT dl.id FROM daily_logs dl JOIN projects p ON dl.project_id = p.id WHERE p.organization_id = bucket.org_id)
+      - SELECT * FROM material_entries WHERE daily_log_id IN (SELECT dl.id FROM daily_logs dl JOIN projects p ON dl.project_id = p.id WHERE p.organization_id = bucket.org_id)
+      - SELECT * FROM safety_entries WHERE daily_log_id IN (SELECT dl.id FROM daily_logs dl JOIN projects p ON dl.project_id = p.id WHERE p.organization_id = bucket.org_id)
+      - SELECT * FROM delay_entries WHERE daily_log_id IN (SELECT dl.id FROM daily_logs dl JOIN projects p ON dl.project_id = p.id WHERE p.organization_id = bucket.org_id)
+      - SELECT * FROM weather_entries WHERE daily_log_id IN (SELECT dl.id FROM daily_logs dl JOIN projects p ON dl.project_id = p.id WHERE p.organization_id = bucket.org_id)
+      - SELECT * FROM voice_notes WHERE daily_log_id IN (SELECT dl.id FROM daily_logs dl JOIN projects p ON dl.project_id = p.id WHERE p.organization_id = bucket.org_id)

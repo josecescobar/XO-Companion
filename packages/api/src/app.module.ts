@@ -13,6 +13,7 @@ import { VoiceModule } from './modules/voice/voice.module';
 import { ReviewModule } from './modules/review/review.module';
 import { MemoryModule } from './modules/memory/memory.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
+import { SyncModule } from './modules/sync/sync.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -57,6 +58,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     VoiceModule,
     ReviewModule,
     ComplianceModule,
+    SyncModule,
     MemoryModule,
     HealthModule,
   ],

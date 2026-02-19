@@ -144,6 +144,12 @@ enum ComplianceDocStatus {
   CANCELLED
 }
 
+enum SyncStatus {
+  SYNCED
+  PENDING_UPLOAD
+  UPLOAD_FAILED
+}
+
 // ─────────────────────────────────────────────
 // CORE ENTITIES
 // ─────────────────────────────────────────────
@@ -470,6 +476,7 @@ model VoiceNote {
   extractedData   Json?           @map("extracted_data")
   processingError String?         @map("processing_error")
   assemblyaiId    String?         @map("assemblyai_id")
+  syncStatus      SyncStatus      @default(SYNCED) @map("sync_status")
   createdAt       DateTime        @default(now()) @map("created_at")
   updatedAt       DateTime        @updatedAt @map("updated_at")
 
@@ -479,6 +486,7 @@ model VoiceNote {
   @@index([dailyLogId])
   @@index([userId])
   @@index([status])
+  @@index([syncStatus])
   @@map("voice_notes")
 }
 
@@ -713,4 +721,25 @@ model TrainingRecord {
   @@index([employeeName])
   @@index([expirationDate])
   @@map("training_records")
+}
+
+// ─────────────────────────────────────────────
+// SYNC CONFLICT LOG
+// ─────────────────────────────────────────────
+
+model SyncConflictLog {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  table           String
+  recordId        String   @map("record_id") @db.Uuid
+  clientData      Json     @map("client_data")
+  serverData      Json     @map("server_data")
+  clientTimestamp  DateTime @map("client_timestamp")
+  serverTimestamp  DateTime @map("server_timestamp")
+  resolution      String   @default("SERVER_WINS")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([organizationId])
+  @@index([table, recordId])
+  @@map("sync_conflict_logs")
 }
