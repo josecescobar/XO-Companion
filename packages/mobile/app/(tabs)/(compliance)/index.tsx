@@ -1,5 +1,5 @@
-import { View, Text, FlatList, RefreshControl, StyleSheet } from 'react-native';
-import { Stack } from 'expo-router';
+import { View, Text, FlatList, Pressable, RefreshControl, StyleSheet } from 'react-native';
+import { useRouter, Stack } from 'expo-router';
 import { useComplianceDashboard } from '@/hooks/queries/useCompliance';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { LoadingState } from '@/components/common/LoadingState';
@@ -76,6 +76,7 @@ function DocumentRow({ doc, alertType, daysUntilExpiration, colors }: {
 }
 
 function ComplianceContent() {
+  const router = useRouter();
   const { data, isLoading, error, refetch, isRefetching } = useComplianceDashboard();
   const { colors } = useTheme();
 
@@ -87,13 +88,14 @@ function ComplianceContent() {
 
   type ListItem =
     | { type: 'summary' }
+    | { type: 'actions' }
     | { type: 'section'; title: string; count: number }
     | { type: 'expired'; doc: ComplianceDocument; daysUntilExpiration?: number }
     | { type: 'expiring'; doc: ComplianceDocument & { daysUntilExpiration: number } }
     | { type: 'upcoming'; doc: ComplianceDocument }
     | { type: 'empty'; message: string };
 
-  const items: ListItem[] = [{ type: 'summary' }];
+  const items: ListItem[] = [{ type: 'summary' }, { type: 'actions' }];
 
   if (expired.length > 0) {
     items.push({ type: 'section', title: 'Expired', count: expired.length });
@@ -128,6 +130,32 @@ function ComplianceContent() {
                 upcoming={summary.upcomingRenewals}
                 colors={colors}
               />
+            );
+          case 'actions':
+            return (
+              <View style={styles.actionsRow}>
+                <Pressable
+                  onPress={() => router.push('/(tabs)/(compliance)/add-document')}
+                  style={[styles.actionCard, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}
+                >
+                  <Text style={styles.actionIcon}>📄</Text>
+                  <Text style={[styles.actionLabel, { color: colors.primary }]}>+ Document</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => router.push('/(tabs)/(compliance)/training')}
+                  style={[styles.actionCard, { backgroundColor: colors.successLight, borderColor: colors.border }]}
+                >
+                  <Text style={styles.actionIcon}>📋</Text>
+                  <Text style={[styles.actionLabel, { color: colors.success }]}>Training</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => router.push('/(tabs)/(compliance)/incidents')}
+                  style={[styles.actionCard, { backgroundColor: colors.errorLight, borderColor: colors.border }]}
+                >
+                  <Text style={styles.actionIcon}>🛡️</Text>
+                  <Text style={[styles.actionLabel, { color: colors.error }]}>Incidents</Text>
+                </Pressable>
+              </View>
             );
           case 'section':
             return (
@@ -202,4 +230,8 @@ const styles = StyleSheet.create({
   docType: { fontSize: 12, fontWeight: '500', textTransform: 'capitalize' },
   docDate: { fontSize: 12 },
   docLicense: { fontSize: 11, marginTop: 2 },
+  actionsRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+  actionCard: { flex: 1, borderRadius: 12, borderWidth: 1, padding: 14, alignItems: 'center', gap: 4 },
+  actionIcon: { fontSize: 24 },
+  actionLabel: { fontSize: 12, fontWeight: '600' },
 });

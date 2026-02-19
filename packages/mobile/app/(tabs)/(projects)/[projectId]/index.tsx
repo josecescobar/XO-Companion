@@ -56,14 +56,14 @@ export default function ProjectDetailScreen() {
               )}
               <View style={styles.statsRow}>
                 <Text style={[styles.stat, { color: colors.textSecondary }]}>{project.members.length} members</Text>
-                <Text style={[styles.stat, { color: colors.textSecondary }]}>{project._count.dailyLogs} daily logs</Text>
+                <Text style={[styles.stat, { color: colors.textSecondary }]}>{project._count?.dailyLogs ?? 0} daily logs</Text>
               </View>
             </View>
 
             {/* Team Section */}
             <CollapsibleSection title="Team" count={project.members.length}>
               {project.members.map((member) => (
-                <View key={member.id} style={styles.memberRow}>
+                <View key={member.userId} style={styles.memberRow}>
                   <View style={[styles.memberAvatar, { backgroundColor: colors.primaryLight }]}>
                     <Text style={[styles.memberAvatarText, { color: colors.primary }]}>
                       {member.user.firstName?.charAt(0) ?? ''}{member.user.lastName?.charAt(0) ?? ''}
@@ -89,6 +89,13 @@ export default function ProjectDetailScreen() {
               >
                 <Text style={styles.actionIcon}>📊</Text>
                 <Text style={[styles.actionLabel, { color: colors.primary }]}>Analytics</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.push(`/(tabs)/(projects)/${projectId}/team`)}
+                style={[styles.actionCard, { backgroundColor: colors.warningLight, borderColor: colors.border }]}
+              >
+                <Text style={styles.actionIcon}>👥</Text>
+                <Text style={[styles.actionLabel, { color: colors.warning }]}>Team</Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/daily-logs`)}

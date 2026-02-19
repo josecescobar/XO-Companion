@@ -48,8 +48,8 @@ export function ProjectCard({ project, onPress }: ProjectCardProps) {
       )}
 
       <View style={styles.stats}>
-        <Text style={[styles.stat, { color: colors.textSecondary }]}>{project._count.members} members</Text>
-        <Text style={[styles.stat, { color: colors.textSecondary }]}>{project._count.dailyLogs} logs</Text>
+        <Text style={[styles.stat, { color: colors.textSecondary }]}>{project._count?.members ?? project.members.length} members</Text>
+        <Text style={[styles.stat, { color: colors.textSecondary }]}>{project._count?.dailyLogs ?? 0} logs</Text>
       </View>
     </Pressable>
   );

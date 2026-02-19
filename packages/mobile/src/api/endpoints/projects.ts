@@ -1,47 +1,102 @@
 import { api } from '../client';
 
-export interface ProjectSummary {
+// ─── Types ───────────────────────────────────────────────────────
+
+export interface ProjectMember {
+  userId: string;
+  role: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+  };
+}
+
+export interface Project {
   id: string;
+  organizationId: string;
   name: string;
   code: string;
   address: string | null;
   city: string | null;
   state: string | null;
-  isActive: boolean;
+  clientName: string | null;
+  contractType: string | null;
+  contractValue: number | null;
   startDate: string | null;
-  endDate: string | null;
+  estimatedEndDate: string | null;
+  isActive: boolean;
   createdAt: string;
-  _count: {
-    members: number;
-    dailyLogs: number;
-  };
-}
-
-export interface ProjectMember {
-  id: string;
-  role: string;
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
-}
-
-export interface ProjectDetail extends Omit<ProjectSummary, '_count'> {
-  zipCode: string | null;
-  organizationId: string;
   members: ProjectMember[];
-  _count: {
-    dailyLogs: number;
+  _count?: {
+    members?: number;
+    dailyLogs?: number;
   };
 }
 
-export function listProjects(): Promise<ProjectSummary[]> {
-  return api<ProjectSummary[]>('/projects');
+// Backward-compatible aliases used by existing screens
+export type ProjectSummary = Project;
+export type ProjectDetail = Project;
+
+export interface CreateProjectBody {
+  name: string;
+  code?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  clientName?: string;
+  contractType?: string;
+  contractValue?: number;
+  startDate?: string;
+  estimatedEndDate?: string;
 }
 
-export function getProject(id: string): Promise<ProjectDetail> {
-  return api<ProjectDetail>(`/projects/${id}`);
+export interface UpdateProjectBody {
+  name?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  clientName?: string;
+  contractType?: string;
+  contractValue?: number;
+  startDate?: string;
+  estimatedEndDate?: string;
+  isActive?: boolean;
+}
+
+export interface AddMemberBody {
+  userId: string;
+  role: string;
+}
+
+// ─── API Functions ───────────────────────────────────────────────
+
+export function listProjects(): Promise<Project[]> {
+  return api<Project[]>('/projects');
+}
+
+export function getProject(id: string): Promise<Project> {
+  return api<Project>(`/projects/${id}`);
+}
+
+export function createProject(body: CreateProjectBody): Promise<Project> {
+  return api<Project>('/projects', { method: 'POST', body });
+}
+
+export function updateProject(id: string, body: UpdateProjectBody): Promise<Project> {
+  return api<Project>(`/projects/${id}`, { method: 'PATCH', body });
+}
+
+export function getMembers(projectId: string): Promise<ProjectMember[]> {
+  return api<ProjectMember[]>(`/projects/${projectId}/members`);
+}
+
+export function addMember(projectId: string, body: AddMemberBody): Promise<ProjectMember> {
+  return api<ProjectMember>(`/projects/${projectId}/members`, { method: 'POST', body });
+}
+
+export function removeMember(projectId: string, userId: string): Promise<void> {
+  return api(`/projects/${projectId}/members/${userId}`, { method: 'DELETE' });
 }
