@@ -18,6 +18,8 @@ import { DelaysSection } from '@/components/daily-log/DelaysSection';
 import { EntryEditModal } from '@/components/daily-log/EntryEditModal';
 import { MediaAttachmentBar } from '@/components/media/MediaAttachmentBar';
 import { MediaPreviewModal } from '@/components/media/MediaPreviewModal';
+import { useLogMedia } from '@/hooks/queries/useMedia';
+import { useUploadMedia } from '@/hooks/mutations/useMediaMutations';
 import { useTheme } from '@/hooks/useTheme';
 import { format } from 'date-fns';
 import { deleteEntry } from '@/api/endpoints/daily-logs';
@@ -39,6 +41,27 @@ export default function DailyLogDetailScreen() {
 
   const [mediaAttachments, setMediaAttachments] = useState<MediaAsset[]>([]);
   const [previewIndex, setPreviewIndex] = useState(-1);
+  const { data: existingMedia } = useLogMedia(projectId, logId);
+  const uploadMutation = useUploadMedia(projectId);
+
+  const handleAddMedia = async (asset: MediaAsset) => {
+    setMediaAttachments((prev) => [...prev, asset]);
+    try {
+      await uploadMutation.mutateAsync({
+        file: {
+          uri: asset.uri,
+          type: asset.type === 'photo' ? 'image/jpeg' : 'video/mp4',
+          name: asset.fileName,
+        },
+        metadata: {
+          type: asset.type === 'photo' ? 'PHOTO' : 'VIDEO',
+          dailyLogId: logId,
+        },
+      });
+    } catch {
+      Alert.alert('Upload Failed', 'Could not upload media.');
+    }
+  };
 
   const statusColors: Record<string, { bg: string; text: string }> = {
     DRAFT: { bg: colors.border, text: colors.textSecondary },
@@ -180,13 +203,28 @@ export default function DailyLogDetailScreen() {
 
         {/* Media Attachments */}
         <View style={styles.mediaSection}>
-          <Text style={[styles.mediaSectionTitle, { color: colors.text }]}>Photos & Video</Text>
+          <View style={styles.mediaSectionHeader}>
+            <Text style={[styles.mediaSectionTitle, { color: colors.text }]}>Photos & Video</Text>
+            {(existingMedia?.length ?? 0) > 0 && (
+              <View style={[styles.mediaBadge, { backgroundColor: colors.primaryLight }]}>
+                <Text style={[styles.mediaBadgeText, { color: colors.primary }]}>{existingMedia!.length}</Text>
+              </View>
+            )}
+          </View>
           <MediaAttachmentBar
             attachments={mediaAttachments}
-            onAdd={(asset) => setMediaAttachments((prev) => [...prev, asset])}
+            onAdd={handleAddMedia}
             onRemove={(i) => setMediaAttachments((prev) => prev.filter((_, idx) => idx !== i))}
             onPreview={(i) => setPreviewIndex(i)}
           />
+          {uploadMutation.isPending && (
+            <Text style={[styles.uploadingText, { color: colors.primary }]}>Uploading...</Text>
+          )}
+          {(existingMedia?.length ?? 0) > 0 && (
+            <Text style={[styles.existingMediaText, { color: colors.textSecondary }]}>
+              {existingMedia!.filter((m) => m.type === 'PHOTO').length} photos, {existingMedia!.filter((m) => m.type === 'VIDEO').length} videos uploaded
+            </Text>
+          )}
         </View>
 
         {/* Navigation to sub-screens */}
@@ -270,5 +308,10 @@ const styles = StyleSheet.create({
   navButtonSub: { fontSize: 13, marginTop: 2 },
   navArrow: { fontSize: 24, marginLeft: 8 },
   mediaSection: { marginTop: 16, gap: 8 },
+  mediaSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   mediaSectionTitle: { fontSize: 17, fontWeight: '700' },
+  mediaBadge: { borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 },
+  mediaBadgeText: { fontSize: 12, fontWeight: '700' },
+  uploadingText: { fontSize: 13, fontWeight: '500' },
+  existingMediaText: { fontSize: 13 },
 });

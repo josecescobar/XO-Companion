@@ -20,6 +20,7 @@ import { useProjects } from '@/hooks/queries/useProjects';
 import { useTheme } from '@/hooks/useTheme';
 import { MediaAttachmentBar } from '@/components/media/MediaAttachmentBar';
 import { MediaPreviewModal } from '@/components/media/MediaPreviewModal';
+import { uploadMedia } from '@/api/endpoints/media';
 import type { MediaAsset } from '@/hooks/useMediaCapture';
 import { Pressable } from 'react-native';
 
@@ -44,6 +45,8 @@ export default function CreateIncidentScreen() {
   const [mediaAttachments, setMediaAttachments] = useState<MediaAsset[]>([]);
   const [previewIndex, setPreviewIndex] = useState(-1);
 
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+
   const handleCreate = async () => {
     if (!employeeName.trim() || !description.trim()) {
       Alert.alert('Required', 'Employee name and description are required.');
@@ -51,7 +54,7 @@ export default function CreateIncidentScreen() {
     }
 
     try {
-      await createMutation.mutateAsync({
+      const incident = await createMutation.mutateAsync({
         employeeName: employeeName.trim(),
         description: description.trim(),
         incidentDate: format(incidentDate, 'yyyy-MM-dd'),
@@ -64,6 +67,25 @@ export default function CreateIncidentScreen() {
         daysRestrictedDuty: parseInt(daysRestricted) || 0,
         correctiveActions: correctiveActions.trim() || undefined,
       });
+
+      // Upload attached media if project is selected
+      if (mediaAttachments.length > 0 && selectedProjectId) {
+        setUploadingMedia(true);
+        for (const asset of mediaAttachments) {
+          try {
+            await uploadMedia(selectedProjectId, {
+              uri: asset.uri,
+              type: asset.type === 'photo' ? 'image/jpeg' : 'video/mp4',
+              name: asset.fileName,
+            }, {
+              type: asset.type === 'photo' ? 'PHOTO' : 'VIDEO',
+              incidentId: incident.id,
+            });
+          } catch { /* continue uploading remaining */ }
+        }
+        setUploadingMedia(false);
+      }
+
       router.back();
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to report incident.');
@@ -227,10 +249,10 @@ export default function CreateIncidentScreen() {
           />
 
           <Button
-            title="Submit Incident Report"
+            title={uploadingMedia ? 'Uploading media...' : 'Submit Incident Report'}
             onPress={handleCreate}
-            loading={createMutation.isPending}
-            disabled={createMutation.isPending || !employeeName.trim() || !description.trim()}
+            loading={createMutation.isPending || uploadingMedia}
+            disabled={createMutation.isPending || uploadingMedia || !employeeName.trim() || !description.trim()}
             size="lg"
           />
         </ScrollView>

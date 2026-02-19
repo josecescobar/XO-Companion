@@ -11,6 +11,7 @@ import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { LoadingState } from '@/components/common/LoadingState';
 import { MediaAttachmentBar } from '@/components/media/MediaAttachmentBar';
 import { MediaPreviewModal } from '@/components/media/MediaPreviewModal';
+import { uploadMedia } from '@/api/endpoints/media';
 import { RecordButton } from '@/components/recording/RecordButton';
 import { RecordingTimer } from '@/components/recording/RecordingTimer';
 import { Button } from '@/components/ui/Button';
@@ -40,7 +41,7 @@ export default function RecordScreen() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
   const { state, duration, uri, start, stop, reset } = useRecorder();
-  const { mutate: upload, isPending: uploading } = useUploadVoice();
+  const { mutateAsync: uploadVoiceAsync, isPending: uploading } = useUploadVoice();
   const { colors } = useTheme();
 
   const [processingPhase, setProcessingPhase] = useState<ProcessingPhase>('idle');
@@ -82,24 +83,39 @@ export default function RecordScreen() {
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!uri || !selectedProjectId || !selectedLogId) return;
 
     setProcessingPhase('uploading');
-    upload(
-      { projectId: selectedProjectId, logId: selectedLogId, fileUri: uri },
-      {
-        onSuccess: (data) => {
-          setUploadedVoiceId(data.id);
-          setProcessingPhase('tracking');
-          reset();
-        },
-        onError: (err) => {
-          setProcessingPhase('idle');
-          Alert.alert('Upload Failed', err.message);
-        },
-      },
-    );
+    try {
+      const data = await uploadVoiceAsync({
+        projectId: selectedProjectId,
+        logId: selectedLogId,
+        fileUri: uri,
+      });
+      setUploadedVoiceId(data.id);
+      setProcessingPhase('tracking');
+
+      // Upload attached photos with voice note ID
+      for (const photo of mediaAttachments) {
+        try {
+          await uploadMedia(selectedProjectId, {
+            uri: photo.uri,
+            type: photo.type === 'photo' ? 'image/jpeg' : 'video/mp4',
+            name: photo.fileName,
+          }, {
+            type: photo.type === 'photo' ? 'PHOTO' : 'VIDEO',
+            dailyLogId: selectedLogId,
+            voiceNoteId: data.id,
+          });
+        } catch { /* continue uploading remaining photos */ }
+      }
+
+      reset();
+    } catch (err) {
+      setProcessingPhase('idle');
+      Alert.alert('Upload Failed', err instanceof Error ? err.message : 'Upload failed');
+    }
   };
 
   const handleNewRecording = () => {
