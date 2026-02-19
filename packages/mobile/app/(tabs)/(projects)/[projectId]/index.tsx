@@ -111,6 +111,13 @@ export default function ProjectDetailScreen() {
                 <Text style={styles.actionIcon}>📝</Text>
                 <Text style={[styles.actionLabel, { color: colors.success }]}>All Logs</Text>
               </Pressable>
+              <Pressable
+                onPress={() => router.push(`/(tabs)/(projects)/${projectId}/reports`)}
+                style={[styles.actionCard, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}
+              >
+                <Text style={styles.actionIcon}>📊</Text>
+                <Text style={[styles.actionLabel, { color: colors.primary }]}>Report</Text>
+              </Pressable>
             </View>
 
             {/* Section Header */}
@@ -162,8 +169,8 @@ const styles = StyleSheet.create({
   stat: { fontSize: 14 },
   badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
   badgeText: { fontSize: 12, fontWeight: '600' },
-  quickActions: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  actionCard: { flex: 1, borderRadius: 12, borderWidth: 1, padding: 14, alignItems: 'center', gap: 4 },
+  quickActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  actionCard: { flexBasis: '30%', flexGrow: 1, borderRadius: 12, borderWidth: 1, padding: 14, alignItems: 'center', gap: 4 },
   actionIcon: { fontSize: 24 },
   actionLabel: { fontSize: 13, fontWeight: '600' },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
