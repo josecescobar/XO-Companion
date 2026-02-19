@@ -78,6 +78,7 @@ IMPORTANT RULES:
 - Extract ONLY information explicitly mentioned in the transcript
 - Do NOT fabricate or assume data not present in the recording
 - Assign confidence scores: 1.0 for clearly stated facts, 0.7-0.9 for likely interpretations, below 0.7 for uncertain extractions
+- Provide a brief confidenceReason for scores below 1.0 (e.g., "Trade name unclear, could be plumber or pipe fitter")
 - Normalize trade names to standard forms (e.g., "sparkies" → "Electrician")
 - Normalize units to abbreviations (e.g., "linear feet" → "LF")
 - If a CSI MasterFormat code can be reasonably inferred from the work description, include it

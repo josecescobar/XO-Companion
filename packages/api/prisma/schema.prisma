@@ -89,6 +89,22 @@ enum ReviewAction {
   MODIFIED
 }
 
+enum ReviewStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum RejectionCode {
+  WRONG_COUNT
+  WRONG_TRADE
+  WRONG_DESCRIPTION
+  DUPLICATE
+  NOT_APPLICABLE
+  MISHEARD
+  OTHER
+}
+
 // ─────────────────────────────────────────────
 // CORE ENTITIES
 // ─────────────────────────────────────────────
@@ -236,10 +252,12 @@ model WeatherEntry {
   windDirection String?            @map("wind_direction")
   humidity      Float?
   delayMinutes  Int                @default(0) @map("delay_minutes")
-  aiGenerated   Boolean            @default(false) @map("ai_generated")
-  aiConfidence  Float?             @map("ai_confidence")
-  createdAt     DateTime           @default(now()) @map("created_at")
-  updatedAt     DateTime           @updatedAt @map("updated_at")
+  aiGenerated        Boolean            @default(false) @map("ai_generated")
+  aiConfidence       Float?             @map("ai_confidence")
+  aiConfidenceReason String?            @map("ai_confidence_reason")
+  reviewStatus       ReviewStatus?      @map("review_status")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
 
   dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
 
@@ -257,10 +275,12 @@ model WorkforceEntry {
   hoursWorked   Float    @map("hours_worked")
   overtimeHours Float    @default(0) @map("overtime_hours")
   foreman       String?
-  aiGenerated   Boolean  @default(false) @map("ai_generated")
-  aiConfidence  Float?   @map("ai_confidence")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  aiGenerated        Boolean       @default(false) @map("ai_generated")
+  aiConfidence       Float?        @map("ai_confidence")
+  aiConfidenceReason String?       @map("ai_confidence_reason")
+  reviewStatus       ReviewStatus? @map("review_status")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
 
   dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
 
@@ -279,10 +299,12 @@ model EquipmentEntry {
   idleHours      Float              @default(0) @map("idle_hours")
   condition      EquipmentCondition
   notes          String?
-  aiGenerated    Boolean            @default(false) @map("ai_generated")
-  aiConfidence   Float?             @map("ai_confidence")
-  createdAt      DateTime           @default(now()) @map("created_at")
-  updatedAt      DateTime           @updatedAt @map("updated_at")
+  aiGenerated        Boolean            @default(false) @map("ai_generated")
+  aiConfidence       Float?             @map("ai_confidence")
+  aiConfidenceReason String?            @map("ai_confidence_reason")
+  reviewStatus       ReviewStatus?      @map("review_status")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
 
   dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
 
@@ -302,10 +324,12 @@ model WorkCompletedEntry {
   percentComplete Float?   @map("percent_complete")
   quantity        Float?
   unit            String?
-  aiGenerated     Boolean  @default(false) @map("ai_generated")
-  aiConfidence    Float?   @map("ai_confidence")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  aiGenerated        Boolean       @default(false) @map("ai_generated")
+  aiConfidence       Float?        @map("ai_confidence")
+  aiConfidenceReason String?       @map("ai_confidence_reason")
+  reviewStatus       ReviewStatus? @map("review_status")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
 
   dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
 
@@ -320,15 +344,17 @@ model MaterialEntry {
   id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   dailyLogId   String            @map("daily_log_id") @db.Uuid
   material     String
-  quantity     Float
-  unit         String
+  quantity     Float?
+  unit         String?
   supplier     String?
   ticketNumber String?           @map("ticket_number")
   condition    MaterialCondition @default(GOOD)
-  aiGenerated  Boolean           @default(false) @map("ai_generated")
-  aiConfidence Float?            @map("ai_confidence")
-  createdAt    DateTime          @default(now()) @map("created_at")
-  updatedAt    DateTime          @updatedAt @map("updated_at")
+  aiGenerated        Boolean           @default(false) @map("ai_generated")
+  aiConfidence       Float?            @map("ai_confidence")
+  aiConfidenceReason String?           @map("ai_confidence_reason")
+  reviewStatus       ReviewStatus?     @map("review_status")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
 
   dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
 
@@ -348,10 +374,12 @@ model SafetyEntry {
   nearMisses     Int      @default(0) @map("near_misses")
   firstAidCases  Int      @default(0) @map("first_aid_cases")
   notes          String?
-  aiGenerated    Boolean  @default(false) @map("ai_generated")
-  aiConfidence   Float?   @map("ai_confidence")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  aiGenerated        Boolean       @default(false) @map("ai_generated")
+  aiConfidence       Float?        @map("ai_confidence")
+  aiConfidenceReason String?       @map("ai_confidence_reason")
+  reviewStatus       ReviewStatus? @map("review_status")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
 
   dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
 
@@ -367,10 +395,12 @@ model DelayEntry {
   description     String
   durationMinutes Int        @map("duration_minutes")
   impactedTrades  String[]   @map("impacted_trades")
-  aiGenerated     Boolean    @default(false) @map("ai_generated")
-  aiConfidence    Float?     @map("ai_confidence")
-  createdAt       DateTime   @default(now()) @map("created_at")
-  updatedAt       DateTime   @updatedAt @map("updated_at")
+  aiGenerated        Boolean       @default(false) @map("ai_generated")
+  aiConfidence       Float?        @map("ai_confidence")
+  aiConfidenceReason String?       @map("ai_confidence_reason")
+  reviewStatus       ReviewStatus? @map("review_status")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
 
   dailyLog DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
 
@@ -434,7 +464,7 @@ model ReviewEntry {
   entityId      String       @map("entity_id") @db.Uuid
   fieldName     String?      @map("field_name")
   action        ReviewAction
-  reasonCode    String?      @map("reason_code")
+  reasonCode    RejectionCode? @map("reason_code")
   previousValue Json?        @map("previous_value")
   newValue      Json?        @map("new_value")
   comment       String?

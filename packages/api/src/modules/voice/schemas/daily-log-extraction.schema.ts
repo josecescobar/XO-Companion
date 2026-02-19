@@ -4,12 +4,13 @@ export const dailyLogExtractionSchema = z.object({
   weather: z
     .object({
       conditions: z.array(z.string()).describe('Weather conditions: CLEAR, RAIN, SNOW, etc.'),
-      tempHigh: z.number().nullable().describe('High temperature in Fahrenheit'),
-      tempLow: z.number().nullable().describe('Low temperature in Fahrenheit'),
-      precipitation: z.string().nullable(),
-      windSpeed: z.number().nullable(),
+      tempHigh: z.number().nullable().optional().describe('High temperature in Fahrenheit'),
+      tempLow: z.number().nullable().optional().describe('Low temperature in Fahrenheit'),
+      precipitation: z.string().nullable().optional(),
+      windSpeed: z.number().nullable().optional(),
       delayMinutes: z.number().default(0),
       confidence: z.number().min(0).max(1),
+      confidenceReason: z.string().optional().describe('Brief reason for the confidence score'),
     })
     .nullable()
     .describe('Weather information from the transcript'),
@@ -21,8 +22,9 @@ export const dailyLogExtractionSchema = z.object({
       workerCount: z.number().int().positive(),
       hoursWorked: z.number().positive(),
       overtimeHours: z.number().default(0),
-      foreman: z.string().nullable(),
+      foreman: z.string().nullable().optional(),
       confidence: z.number().min(0).max(1),
+      confidenceReason: z.string().optional().describe('Brief reason for the confidence score'),
     }),
   ),
 
@@ -33,41 +35,45 @@ export const dailyLogExtractionSchema = z.object({
       idleHours: z.number().default(0),
       condition: z.enum(['OPERATIONAL', 'NEEDS_MAINTENANCE', 'DOWN_FOR_REPAIR', 'IDLE']),
       confidence: z.number().min(0).max(1),
+      confidenceReason: z.string().optional().describe('Brief reason for the confidence score'),
     }),
   ),
 
   workCompleted: z.array(
     z.object({
       location: z.string().describe('Location on site, e.g., Building A Floor 3'),
-      csiCode: z.string().nullable().describe('CSI MasterFormat 6-digit code if identifiable'),
+      csiCode: z.string().nullable().optional().describe('CSI MasterFormat 6-digit code if identifiable'),
       description: z.string(),
-      percentComplete: z.number().min(0).max(100).nullable(),
-      quantity: z.number().nullable(),
-      unit: z.string().nullable().describe('Unit of measure: LF, SF, CY, EA, etc.'),
+      percentComplete: z.number().min(0).max(100).nullable().optional(),
+      quantity: z.number().nullable().optional(),
+      unit: z.string().nullable().optional().describe('Unit of measure: LF, SF, CY, EA, etc.'),
       confidence: z.number().min(0).max(1),
+      confidenceReason: z.string().optional().describe('Brief reason for the confidence score'),
     }),
   ),
 
   materials: z.array(
     z.object({
       material: z.string(),
-      quantity: z.number(),
-      unit: z.string(),
-      supplier: z.string().nullable(),
-      ticketNumber: z.string().nullable(),
+      quantity: z.number().nullable().optional(),
+      unit: z.string().nullable().optional(),
+      supplier: z.string().nullable().optional(),
+      ticketNumber: z.string().nullable().optional(),
       condition: z.enum(['GOOD', 'DAMAGED', 'PARTIAL_DELIVERY', 'REJECTED']).default('GOOD'),
       confidence: z.number().min(0).max(1),
+      confidenceReason: z.string().optional().describe('Brief reason for the confidence score'),
     }),
   ),
 
   safety: z
     .object({
-      toolboxTalks: z.array(z.string()),
-      inspections: z.array(z.string()),
-      incidents: z.array(z.string()),
+      toolboxTalks: z.array(z.string()).default([]),
+      inspections: z.array(z.string()).default([]),
+      incidents: z.array(z.string()).default([]),
       oshaRecordable: z.boolean().default(false),
       nearMisses: z.number().int().default(0),
       confidence: z.number().min(0).max(1),
+      confidenceReason: z.string().optional().describe('Brief reason for the confidence score'),
     })
     .nullable(),
 
@@ -80,8 +86,9 @@ export const dailyLogExtractionSchema = z.object({
       ]),
       description: z.string(),
       durationMinutes: z.number().int().positive(),
-      impactedTrades: z.array(z.string()),
+      impactedTrades: z.array(z.string()).default([]),
       confidence: z.number().min(0).max(1),
+      confidenceReason: z.string().optional().describe('Brief reason for the confidence score'),
     }),
   ),
 });

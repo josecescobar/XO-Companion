@@ -118,6 +118,8 @@ export class VoiceService {
           delayMinutes: data.weather.delayMinutes,
           aiGenerated: true,
           aiConfidence: data.weather.confidence,
+          aiConfidenceReason: data.weather.confidenceReason,
+          reviewStatus: 'PENDING_REVIEW',
         },
         update: {
           conditions: data.weather.conditions as WeatherCondition[],
@@ -128,6 +130,8 @@ export class VoiceService {
           delayMinutes: data.weather.delayMinutes,
           aiGenerated: true,
           aiConfidence: data.weather.confidence,
+          aiConfidenceReason: data.weather.confidenceReason,
+          reviewStatus: 'PENDING_REVIEW',
         },
       });
     }
@@ -145,6 +149,8 @@ export class VoiceService {
           foreman: wf.foreman,
           aiGenerated: true,
           aiConfidence: wf.confidence,
+          aiConfidenceReason: wf.confidenceReason,
+          reviewStatus: 'PENDING_REVIEW',
         },
       });
     }
@@ -160,6 +166,8 @@ export class VoiceService {
           condition: eq.condition as EquipmentCondition,
           aiGenerated: true,
           aiConfidence: eq.confidence,
+          aiConfidenceReason: eq.confidenceReason,
+          reviewStatus: 'PENDING_REVIEW',
         },
       });
     }
@@ -177,6 +185,8 @@ export class VoiceService {
           unit: wc.unit,
           aiGenerated: true,
           aiConfidence: wc.confidence,
+          aiConfidenceReason: wc.confidenceReason,
+          reviewStatus: 'PENDING_REVIEW',
         },
       });
     }
@@ -194,6 +204,8 @@ export class VoiceService {
           condition: mat.condition as MaterialCondition,
           aiGenerated: true,
           aiConfidence: mat.confidence,
+          aiConfidenceReason: mat.confidenceReason,
+          reviewStatus: 'PENDING_REVIEW',
         },
       });
     }
@@ -211,6 +223,8 @@ export class VoiceService {
           nearMisses: data.safety.nearMisses,
           aiGenerated: true,
           aiConfidence: data.safety.confidence,
+          aiConfidenceReason: data.safety.confidenceReason,
+          reviewStatus: 'PENDING_REVIEW',
         },
         update: {
           toolboxTalks: data.safety.toolboxTalks,
@@ -220,6 +234,8 @@ export class VoiceService {
           nearMisses: data.safety.nearMisses,
           aiGenerated: true,
           aiConfidence: data.safety.confidence,
+          aiConfidenceReason: data.safety.confidenceReason,
+          reviewStatus: 'PENDING_REVIEW',
         },
       });
     }
@@ -235,6 +251,8 @@ export class VoiceService {
           impactedTrades: delay.impactedTrades,
           aiGenerated: true,
           aiConfidence: delay.confidence,
+          aiConfidenceReason: delay.confidenceReason,
+          reviewStatus: 'PENDING_REVIEW',
         },
       });
     }

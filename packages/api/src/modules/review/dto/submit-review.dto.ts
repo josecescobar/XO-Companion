@@ -5,7 +5,7 @@ import {
   IsUUID,
   IsObject,
 } from 'class-validator';
-import { ReviewAction } from '@prisma/client';
+import { ReviewAction, RejectionCode } from '@prisma/client';
 
 export class SubmitReviewDto {
   @IsUUID()
@@ -22,8 +22,8 @@ export class SubmitReviewDto {
   action: ReviewAction;
 
   @IsOptional()
-  @IsString()
-  reasonCode?: string;
+  @IsEnum(RejectionCode)
+  reasonCode?: RejectionCode;
 
   @IsOptional()
   @IsObject()

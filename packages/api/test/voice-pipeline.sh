@@ -267,6 +267,68 @@ if [[ "$STATUS" == "REVIEW_READY" || "$STATUS" == "PROCESSED" ]]; then
   echo -e "\n  ${CYAN}Daily log populated:${NC}"
   echo -e "    Workforce: $WF | Equipment: $EQ | Work Completed: $WC"
   echo -e "    Delays: $DL | Weather: $HW | Safety: $HS"
+
+  # ═════════════════════════════════════════════════════════════════
+  echo -e "\n${BOLD}6. Review Workflow${NC}"
+  # ═════════════════════════════════════════════════════════════════
+
+  REVIEW_BASE="/projects/$PROJECT_ID/daily-logs/$LOG_ID/reviews"
+
+  # 6a. Get pending reviews
+  do_get "$REVIEW_BASE/pending" "$TOKEN"
+  assert "GET pending reviews" "200" '.totalPending >= 1'
+  PENDING_COUNT=$(jq_extract '.totalPending')
+  FIRST_ENTRY_TYPE=$(echo "$BODY" | jq -r '.entries[0].entityType' 2>/dev/null || echo "null")
+  FIRST_ENTRY_ID=$(echo "$BODY" | jq -r '.entries[0].entityId' 2>/dev/null || echo "null")
+  echo -e "  ${CYAN}Pending entries: $PENDING_COUNT${NC}"
+
+  # 6b. Get stats with dailyLogId filter
+  do_get "/projects/$PROJECT_ID/reviews/stats?dailyLogId=$LOG_ID" "$TOKEN"
+  assert "GET review stats with confidence tiers" "200" \
+    '(.confidenceTiers != null) and (.pendingReviewCount >= 1)'
+  AVG_CONF=$(jq_extract '.avgConfidence')
+  BATCH_READY=$(jq_extract '.readyForBatchApprove')
+  TIER_G=$(echo "$BODY" | jq '.confidenceTiers.green' 2>/dev/null || echo 0)
+  TIER_Y=$(echo "$BODY" | jq '.confidenceTiers.yellow' 2>/dev/null || echo 0)
+  TIER_R=$(echo "$BODY" | jq '.confidenceTiers.red' 2>/dev/null || echo 0)
+  echo -e "  ${CYAN}Avg confidence: $AVG_CONF | Batch-ready: $BATCH_READY${NC}"
+  echo -e "  ${CYAN}Tiers — Green: $TIER_G | Yellow: $TIER_Y | Red: $TIER_R${NC}"
+
+  # 6c. Batch approve high-confidence entries
+  do_post "$REVIEW_BASE/batch-approve" '{"approveAllAboveConfidence": 0.85}' "$TOKEN"
+  assert "POST batch approve high-confidence" "201" '.approved >= 0'
+  BATCH_APPROVED=$(jq_extract '.approved')
+  echo -e "  ${CYAN}Batch approved: $BATCH_APPROVED entries${NC}"
+
+  # 6d. Reject one entry (if any remain pending)
+  do_get "$REVIEW_BASE/pending" "$TOKEN"
+  REMAINING=$(jq_extract '.totalPending')
+  if [[ "$REMAINING" -gt 0 ]]; then
+    REJECT_TYPE=$(echo "$BODY" | jq -r '.entries[0].entityType' 2>/dev/null)
+    REJECT_ID=$(echo "$BODY" | jq -r '.entries[0].entityId' 2>/dev/null)
+    do_post "$REVIEW_BASE" \
+      "{\"entityType\":\"$REJECT_TYPE\",\"entityId\":\"$REJECT_ID\",\"action\":\"REJECTED\",\"reasonCode\":\"WRONG_COUNT\",\"comment\":\"Test rejection\"}" \
+      "$TOKEN"
+    assert "POST reject entry with reason code" "201" '.action == "REJECTED"'
+  else
+    # If all were batch-approved, reject the first entry we know about
+    do_post "$REVIEW_BASE" \
+      "{\"entityType\":\"$FIRST_ENTRY_TYPE\",\"entityId\":\"$FIRST_ENTRY_ID\",\"action\":\"REJECTED\",\"reasonCode\":\"WRONG_COUNT\",\"comment\":\"Test rejection\"}" \
+      "$TOKEN"
+    assert "POST reject entry with reason code" "201" '.action == "REJECTED"'
+  fi
+
+  # 6e. Verify audit trail
+  do_get "$REVIEW_BASE" "$TOKEN"
+  assert "GET audit trail has review actions" "200" 'length >= 1'
+  AUDIT_COUNT=$(echo "$BODY" | jq 'length' 2>/dev/null || echo 0)
+  echo -e "  ${CYAN}Audit trail entries: $AUDIT_COUNT${NC}"
+
+  # 6f. Verify pending count decreased
+  do_get "$REVIEW_BASE/pending" "$TOKEN"
+  assert "Pending count decreased after reviews" "200" ".totalPending < $PENDING_COUNT"
+  FINAL_PENDING=$(jq_extract '.totalPending')
+  echo -e "  ${CYAN}Final pending: $FINAL_PENDING (was $PENDING_COUNT)${NC}"
 fi
 
 # ═════════════════════════════════════════════════════════════════════
