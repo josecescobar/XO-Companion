@@ -203,6 +203,13 @@ enum TaskStatus {
   CANCELLED
 }
 
+// ─── Media Enums ───
+
+enum MediaType {
+  PHOTO
+  VIDEO
+}
+
 // ─────────────────────────────────────────────
 // CORE ENTITIES
 // ─────────────────────────────────────────────
@@ -221,6 +228,7 @@ model Organization {
   complianceDocuments ComplianceDocument[]
   trainingRecords     TrainingRecord[]
   riskAlerts          RiskAlert[]
+  media               Media[]
 
   @@map("organizations")
 }
@@ -245,6 +253,7 @@ model User {
   signatures     Signature[]
   reviewActions  ReviewEntry[]
   createdTasks   Task[]          @relation("CreatedTasks")
+  uploadedMedia  Media[]         @relation("UploadedMedia")
 
   @@index([organizationId])
   @@index([email])
@@ -292,6 +301,7 @@ model Project {
   trainingRecords     TrainingRecord[]
   riskAlerts          RiskAlert[]
   tasks               Task[]
+  media               Media[]
 
   @@unique([organizationId, code])
   @@index([organizationId])
@@ -341,6 +351,7 @@ model DailyLog {
   signatures    Signature[]
   reviewEntries ReviewEntry[]
   tasks         Task[]
+  media         Media[]
 
   @@unique([projectId, logDate])
   @@index([projectId, status])
@@ -873,4 +884,43 @@ model Task {
   @@index([assignee])
   @@index([dueDate])
   @@map("tasks")
+}
+
+// ─────────────────────────────────────────────
+// MEDIA
+// ─────────────────────────────────────────────
+
+model Media {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  projectId      String    @map("project_id") @db.Uuid
+  dailyLogId     String?   @map("daily_log_id") @db.Uuid
+  voiceNoteId    String?   @map("voice_note_id") @db.Uuid
+  incidentId     String?   @map("incident_id") @db.Uuid
+
+  type           MediaType
+  fileName       String    @map("file_name")
+  filePath       String    @map("file_path")
+  mimeType       String    @map("mime_type")
+  fileSize       Int       @map("file_size")
+  width          Int?
+  height         Int?
+  durationMs     Int?      @map("duration_ms")
+  caption        String?
+  thumbnailPath  String?   @map("thumbnail_path")
+
+  uploadedById   String    @map("uploaded_by_id") @db.Uuid
+
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  dailyLog       DailyLog?    @relation(fields: [dailyLogId], references: [id], onDelete: SetNull)
+  uploadedBy     User         @relation("UploadedMedia", fields: [uploadedById], references: [id])
+
+  @@index([projectId])
+  @@index([dailyLogId])
+  @@index([incidentId])
+  @@map("media")
 }
