@@ -3,11 +3,13 @@ import type { User } from '@/lib/types';
 import {
   getAccessToken,
   getRefreshToken,
+  getPushToken,
   setAccessToken,
   setRefreshToken,
   clearTokens,
 } from '@/lib/secure-storage';
 import * as authApi from '@/api/endpoints/auth';
+import { unregisterPushToken } from '@/api/endpoints/notifications';
 
 interface AuthState {
   user: User | null;
@@ -92,6 +94,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
+    try {
+      const pushToken = await getPushToken();
+      if (pushToken) {
+        await unregisterPushToken(pushToken).catch(() => {});
+      }
+    } catch {
+      // Ignore push token unregister errors
+    }
     try {
       const refreshToken = await getRefreshToken();
       if (refreshToken) {

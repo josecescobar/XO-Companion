@@ -19,7 +19,8 @@
       "infoPlist": {
         "NSMicrophoneUsageDescription": "XO Companion needs microphone access to record voice notes for daily logs.",
         "NSCameraUsageDescription": "XO Companion needs camera access to document jobsite conditions.",
-        "NSPhotoLibraryUsageDescription": "XO Companion needs photo library access to attach existing photos."
+        "NSPhotoLibraryUsageDescription": "XO Companion needs photo library access to attach existing photos.",
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "android": {
@@ -31,7 +32,8 @@
       "package": "com.xocompanion.app",
       "permissions": [
         "RECORD_AUDIO",
-        "CAMERA"
+        "CAMERA",
+        "NOTIFICATIONS"
       ]
     },
     "web": {
@@ -47,6 +49,15 @@
         "expo-camera",
         {
           "cameraPermission": "XO Companion needs camera access to document jobsite conditions."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#1a1a2e",
+          "defaultChannel": "xo-companion",
+          "sounds": []
         }
       ]
     ]

@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 const KEYS = {
   ACCESS_TOKEN: 'xo_access_token',
   REFRESH_TOKEN: 'xo_refresh_token',
+  PUSH_TOKEN: 'xo_push_token',
 } as const;
 
 // Web fallback: SecureStore doesn't work on web
@@ -36,7 +37,16 @@ export async function setRefreshToken(token: string): Promise<void> {
   await storage.setItem(KEYS.REFRESH_TOKEN, token);
 }
 
+export async function getPushToken(): Promise<string | null> {
+  return storage.getItem(KEYS.PUSH_TOKEN);
+}
+
+export async function setPushToken(token: string): Promise<void> {
+  await storage.setItem(KEYS.PUSH_TOKEN, token);
+}
+
 export async function clearTokens(): Promise<void> {
   await storage.deleteItem(KEYS.ACCESS_TOKEN);
   await storage.deleteItem(KEYS.REFRESH_TOKEN);
+  await storage.deleteItem(KEYS.PUSH_TOKEN);
 }

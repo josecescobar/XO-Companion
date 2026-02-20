@@ -1,9 +1,11 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function TabsLayout() {
   const { colors } = useTheme();
+  useNotifications();
 
   return (
     <Tabs
