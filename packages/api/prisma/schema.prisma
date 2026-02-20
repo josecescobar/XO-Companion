@@ -235,6 +235,26 @@ enum MediaType {
   VIDEO
 }
 
+// ─── Inspection Enums ───
+
+enum InspectionType {
+  DRAWING_COMPARISON
+  SPEC_COMPLIANCE
+  SAFETY_CHECK
+  QUALITY_CHECK
+  PROGRESS_PHOTO
+  GENERAL
+}
+
+enum InspectionResult {
+  PENDING
+  PROCESSING
+  PASS
+  FAIL
+  NEEDS_ATTENTION
+  INCONCLUSIVE
+}
+
 // ─────────────────────────────────────────────
 // CORE ENTITIES
 // ─────────────────────────────────────────────
@@ -255,6 +275,7 @@ model Organization {
   riskAlerts          RiskAlert[]
   media               Media[]
   projectDocuments    ProjectDocument[]
+  inspections         Inspection[]
 
   @@map("organizations")
 }
@@ -281,6 +302,8 @@ model User {
   createdTasks       Task[]          @relation("CreatedTasks")
   uploadedMedia      Media[]         @relation("UploadedMedia")
   uploadedDocuments  ProjectDocument[] @relation("UploadedDocuments")
+  createdInspections  Inspection[]   @relation("CreatedInspections")
+  reviewedInspections Inspection[]   @relation("ReviewedInspections")
 
   @@index([organizationId])
   @@index([email])
@@ -330,6 +353,7 @@ model Project {
   tasks               Task[]
   media               Media[]
   documents           ProjectDocument[]
+  inspections         Inspection[]
 
   @@unique([organizationId, code])
   @@index([organizationId])
@@ -380,6 +404,7 @@ model DailyLog {
   reviewEntries ReviewEntry[]
   tasks         Task[]
   media         Media[]
+  inspections   Inspection[]
 
   @@unique([projectId, logDate])
   @@index([projectId, status])
@@ -946,6 +971,7 @@ model Media {
   project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   dailyLog       DailyLog?    @relation(fields: [dailyLogId], references: [id], onDelete: SetNull)
   uploadedBy     User         @relation("UploadedMedia", fields: [uploadedById], references: [id])
+  inspections    Inspection[]
 
   @@index([projectId])
   @@index([dailyLogId])
@@ -985,7 +1011,57 @@ model ProjectDocument {
   project         Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
   uploadedBy      User               @relation("UploadedDocuments", fields: [uploadedById], references: [id])
 
+  inspections     Inspection[]
+
   @@index([projectId, category])
   @@index([projectId, status])
   @@map("project_documents")
+}
+
+// ─────────────────────────────────────────────
+// INSPECTIONS
+// ─────────────────────────────────────────────
+
+model Inspection {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId  String             @map("organization_id") @db.Uuid
+  projectId       String             @map("project_id") @db.Uuid
+  dailyLogId      String?            @map("daily_log_id") @db.Uuid
+  mediaId         String             @map("media_id") @db.Uuid
+  documentId      String?            @map("document_id") @db.Uuid
+
+  title           String
+  description     String?
+  inspectionType  InspectionType     @map("inspection_type")
+  status          InspectionResult   @default(PENDING)
+
+  aiAnalysis      String?            @map("ai_analysis") @db.Text
+  aiFindings      Json?              @map("ai_findings")
+  aiOverallScore  Float?             @map("ai_overall_score")
+  aiProcessedAt   DateTime?          @map("ai_processed_at")
+  processingError String?            @map("processing_error")
+
+  ragContextUsed  Json?              @map("rag_context_used")
+  tokensUsed      Int?               @map("tokens_used")
+
+  reviewedById    String?            @map("reviewed_by_id") @db.Uuid
+  reviewedAt      DateTime?          @map("reviewed_at")
+  reviewNotes     String?            @map("review_notes")
+
+  createdById     String             @map("created_by_id") @db.Uuid
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  organization    Organization       @relation(fields: [organizationId], references: [id])
+  project         Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  dailyLog        DailyLog?          @relation(fields: [dailyLogId], references: [id], onDelete: SetNull)
+  media           Media              @relation(fields: [mediaId], references: [id])
+  document        ProjectDocument?   @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  createdBy       User               @relation("CreatedInspections", fields: [createdById], references: [id])
+  reviewedBy      User?              @relation("ReviewedInspections", fields: [reviewedById], references: [id])
+
+  @@index([projectId, status])
+  @@index([projectId, inspectionType])
+  @@index([mediaId])
+  @@map("inspections")
 }
