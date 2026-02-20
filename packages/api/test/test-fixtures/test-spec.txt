@@ -1,0 +1,24 @@
+SECTION 03 30 00 - CAST-IN-PLACE CONCRETE
+
+PART 1 - GENERAL
+1.01 SUMMARY
+A. Section includes: Normal-weight concrete for footings, foundations, slabs,
+   columns, beams, and walls.
+B. Design mix: 4,000 PSI at 28 days for structural elements.
+C. Slump: 4 inches ± 1 inch.
+
+1.02 SUBMITTALS
+A. Mix design per ACI 318.
+B. Test reports per ASTM C39 (compressive strength).
+
+PART 2 - PRODUCTS
+2.01 CONCRETE MATERIALS
+A. Cement: Portland Type I/II per ASTM C150.
+B. Aggregates: per ASTM C33, maximum size 3/4 inch.
+C. Water-cement ratio: 0.45 maximum.
+
+PART 3 - EXECUTION
+3.01 PLACEMENT
+A. Place within 90 minutes of batching.
+B. Vibrate to consolidate — avoid over-vibration.
+C. Minimum cover: 3 inches for footings, 1.5 inches for columns.
