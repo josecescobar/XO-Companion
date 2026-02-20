@@ -277,6 +277,19 @@ export default function RecordScreen() {
                 </View>
               )}
 
+              {/* Communications extracted indicator */}
+              {isProcessingDone && voiceNote?.extractedData && (voiceNote.extractedData as any).communications?.length > 0 && (
+                <Pressable
+                  onPress={() => selectedProjectId && router.push(`/(tabs)/(projects)/${selectedProjectId}/communications` as any)}
+                  style={[styles.commsIndicator, { backgroundColor: '#dbeafe', borderColor: '#93c5fd' }]}
+                >
+                  <Text style={styles.commsIndicatorText}>
+                    {'\u{2709}\u{FE0F}'} {(voiceNote.extractedData as any).communications.length} communication{(voiceNote.extractedData as any).communications.length !== 1 ? 's' : ''} queued for AI drafting
+                  </Text>
+                  <Text style={styles.commsIndicatorLink}>View Drafts {'\u{203A}'}</Text>
+                </Pressable>
+              )}
+
               <View style={styles.statusActions}>
                 {isProcessingDone && (
                   <Button
@@ -431,4 +444,14 @@ const styles = StyleSheet.create({
   inspectSuggestionIcon: { fontSize: 24 },
   inspectSuggestionTitle: { fontSize: 15, fontWeight: '700' },
   inspectSuggestionText: { fontSize: 13, marginTop: 2 },
+  // Communications indicator
+  commsIndicator: {
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 12,
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  commsIndicatorText: { fontSize: 14, fontWeight: '500', color: '#1e40af' },
+  commsIndicatorLink: { fontSize: 13, fontWeight: '600', color: '#2563eb', marginTop: 6 },
 });

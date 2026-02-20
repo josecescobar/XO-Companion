@@ -21,6 +21,7 @@ import { MediaPreviewModal } from '@/components/media/MediaPreviewModal';
 import { useLogMedia } from '@/hooks/queries/useMedia';
 import { useUploadMedia } from '@/hooks/mutations/useMediaMutations';
 import { useProjectInspections } from '@/hooks/queries/useInspections';
+import { useProjectCommunications } from '@/hooks/queries/useCommunications';
 import { useTheme } from '@/hooks/useTheme';
 import { format } from 'date-fns';
 import { deleteEntry } from '@/api/endpoints/daily-logs';
@@ -45,6 +46,8 @@ export default function DailyLogDetailScreen() {
   const { data: existingMedia } = useLogMedia(projectId, logId);
   const uploadMutation = useUploadMedia(projectId);
   const { data: logInspections } = useProjectInspections(projectId, { dailyLogId: logId });
+  const { data: allComms } = useProjectCommunications(projectId);
+  const logComms = allComms?.filter((c) => c.dailyLogId === logId) ?? [];
 
   const handleAddMedia = async (asset: MediaAsset) => {
     setMediaAttachments((prev) => [...prev, asset]);
@@ -265,6 +268,48 @@ export default function DailyLogDetailScreen() {
                   {insp.aiOverallScore != null && (
                     <Text style={[styles.inspectionCardScore, { color: colors.textSecondary }]}>{insp.aiOverallScore}/100</Text>
                   )}
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* Communications */}
+        <View style={styles.inspectionSection}>
+          <View style={styles.mediaSectionHeader}>
+            <Text style={[styles.mediaSectionTitle, { color: colors.text }]}>Communications</Text>
+            {logComms.length > 0 && (
+              <View style={[styles.mediaBadge, { backgroundColor: '#dbeafe' }]}>
+                <Text style={[styles.mediaBadgeText, { color: '#2563eb' }]}>{logComms.length}</Text>
+              </View>
+            )}
+          </View>
+          <Pressable
+            onPress={() => router.push(`/(tabs)/(projects)/${projectId}/communications/new` as any)}
+            style={[styles.inspectButton, { backgroundColor: '#2563eb' }]}
+          >
+            <Text style={styles.inspectButtonText}>Draft New Communication</Text>
+          </Pressable>
+          {logComms.map((comm) => {
+            const typeIcons: Record<string, string> = {
+              EMAIL: '\u{1F4E7}', TEXT: '\u{1F4AC}', CALL: '\u{1F4DE}', RFI: '\u{2753}', CHANGE_ORDER: '\u{1F504}',
+            };
+            const statusColors2: Record<string, string> = {
+              DRAFTING: '#2563eb', DRAFT: '#2563eb', APPROVED: '#16a34a', SENT: '#6b7280', CANCELLED: '#dc2626',
+            };
+            const sc2 = statusColors2[comm.status] || '#9CA3AF';
+            return (
+              <Pressable
+                key={comm.id}
+                onPress={() => router.push(`/(tabs)/(projects)/${projectId}/communications/${comm.id}` as any)}
+                style={[styles.inspectionCard, { backgroundColor: colors.surface, borderColor: colors.border, borderLeftColor: sc2 }]}
+              >
+                <Text style={[styles.inspectionCardTitle, { color: colors.text }]} numberOfLines={1}>
+                  {typeIcons[comm.type] ?? '\u{2709}\u{FE0F}'} {comm.subject}
+                </Text>
+                <View style={styles.inspectionCardMeta}>
+                  <Text style={[styles.inspectionCardStatus, { color: sc2 }]}>{comm.status}</Text>
+                  <Text style={[styles.inspectionCardScore, { color: colors.textSecondary }]}>To: {comm.recipient}</Text>
                 </View>
               </Pressable>
             );

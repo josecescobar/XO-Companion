@@ -15,10 +15,12 @@ import { useProjects } from '@/hooks/queries/useProjects';
 import { useTaskSummary, useProjectTasks } from '@/hooks/queries/useTasks';
 import { useInspectionSummary } from '@/hooks/queries/useInspections';
 import { useComplianceAlerts } from '@/hooks/queries/useCompliance';
+import { useCommunicationSummary, useProjectCommunications } from '@/hooks/queries/useCommunications';
 import { useUpdateTask } from '@/hooks/mutations/useTaskMutations';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { useTheme } from '@/hooks/useTheme';
 import type { Task } from '@/api/endpoints/tasks';
+import type { CommunicationDetail } from '@/api/endpoints/communications';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -38,6 +40,8 @@ export default function DashboardScreen() {
   const { data: allTasks, refetch: refetchTasks } = useProjectTasks(firstProjectId);
   const { data: inspectionSummary, refetch: refetchInspections } = useInspectionSummary(firstProjectId);
   const { data: complianceAlerts, refetch: refetchAlerts } = useComplianceAlerts();
+  const { data: commSummary, refetch: refetchComms } = useCommunicationSummary(firstProjectId);
+  const { data: draftComms, refetch: refetchDraftComms } = useProjectCommunications(firstProjectId, { status: 'DRAFT' });
   const updateTask = useUpdateTask(firstProjectId);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -54,7 +58,7 @@ export default function DashboardScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([refetchProjects(), refetchSummary(), refetchTasks(), refetchInspections(), refetchAlerts()]);
+    await Promise.all([refetchProjects(), refetchSummary(), refetchTasks(), refetchInspections(), refetchAlerts(), refetchComms(), refetchDraftComms()]);
     setRefreshing(false);
   }, [refetchProjects, refetchSummary, refetchTasks, refetchAlerts]);
 
@@ -73,7 +77,8 @@ export default function DashboardScreen() {
   const failedInspections = inspectionSummary?.fail ?? 0;
   const attentionInspections = inspectionSummary?.needsAttention ?? 0;
 
-  const attentionCount = (taskSummary?.urgent ?? 0) + (taskSummary?.overdue ?? 0) + expiringCount + failedInspections + attentionInspections;
+  const pendingDrafts = commSummary?.draft ?? 0;
+  const attentionCount = (taskSummary?.urgent ?? 0) + (taskSummary?.overdue ?? 0) + expiringCount + failedInspections + attentionInspections + pendingDrafts;
 
   const handleCompleteTask = (task: Task) => {
     updateTask.mutate({ taskId: task.id, body: { status: 'COMPLETED' } });
@@ -162,6 +167,14 @@ export default function DashboardScreen() {
                   <Text style={styles.attentionBadgeText}>{expiringCount} Expiring</Text>
                 </Pressable>
               )}
+              {pendingDrafts > 0 && (
+                <Pressable
+                  onPress={() => firstProjectId && router.push(`/(tabs)/(projects)/${firstProjectId}/communications` as any)}
+                  style={[styles.attentionBadge, { backgroundColor: '#2563eb' }]}
+                >
+                  <Text style={styles.attentionBadgeText}>{pendingDrafts} Drafts Ready</Text>
+                </Pressable>
+              )}
             </View>
           </View>
         )}
@@ -236,6 +249,38 @@ export default function DashboardScreen() {
                 </View>
               </View>
             ))}
+          </View>
+        )}
+
+        {/* Pending Drafts */}
+        {draftComms && draftComms.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Pending Drafts</Text>
+              {firstProjectId ? (
+                <Pressable onPress={() => router.push(`/(tabs)/(projects)/${firstProjectId}/communications` as any)}>
+                  <Text style={[styles.viewAll, { color: colors.primary }]}>View All</Text>
+                </Pressable>
+              ) : null}
+            </View>
+            {draftComms.slice(0, 3).map((comm: CommunicationDetail) => {
+              const typeIcons: Record<string, string> = {
+                EMAIL: '\u{1F4E7}', TEXT: '\u{1F4AC}', CALL: '\u{1F4DE}', RFI: '\u{2753}', CHANGE_ORDER: '\u{1F504}',
+              };
+              return (
+                <Pressable
+                  key={comm.id}
+                  onPress={() => router.push(`/(tabs)/(projects)/${firstProjectId}/communications/${comm.id}` as any)}
+                  style={[styles.draftCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                >
+                  <Text style={styles.draftTypeIcon}>{typeIcons[comm.type] ?? '\u{2709}\u{FE0F}'}</Text>
+                  <View style={styles.draftCardContent}>
+                    <Text style={[styles.draftSubject, { color: colors.text }]} numberOfLines={1}>{comm.subject}</Text>
+                    <Text style={[styles.draftRecipient, { color: colors.textSecondary }]} numberOfLines={1}>To: {comm.recipient}</Text>
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
         )}
 
@@ -431,6 +476,20 @@ const styles = StyleSheet.create({
   activityText: { fontSize: 14 },
   activityTime: { fontSize: 12, marginTop: 2 },
   emptyText: { fontSize: 14, textAlign: 'center', paddingVertical: 16 },
+  // Draft cards
+  draftCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 8,
+    gap: 10,
+  },
+  draftTypeIcon: { fontSize: 20 },
+  draftCardContent: { flex: 1 },
+  draftSubject: { fontSize: 14, fontWeight: '600' },
+  draftRecipient: { fontSize: 12, marginTop: 2 },
   // Ask XO bar
   askXoBar: {
     flexDirection: 'row',
