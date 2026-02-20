@@ -110,13 +110,28 @@ export default function ProjectDetailScreen() {
               </View>
             )}
 
+            {/* AI Inspect — Killer Feature */}
+            <Pressable
+              onPress={() => router.push(`/(tabs)/(projects)/${projectId}/inspections`)}
+              style={[styles.inspectCard, { backgroundColor: '#7C3AED' }]}
+            >
+              <View style={styles.askXoContent}>
+                <Text style={styles.askXoIcon}>{'\u{1F50D}'}</Text>
+                <View style={styles.askXoText}>
+                  <Text style={styles.askXoTitle}>AI Vision Inspection</Text>
+                  <Text style={styles.askXoSubtitle}>Photo vs. drawings, specs & safety standards</Text>
+                </View>
+                <Text style={styles.askXoArrow}>{'\u{203A}'}</Text>
+              </View>
+            </Pressable>
+
             {/* Quick Actions */}
             <View style={styles.quickActions}>
               <Pressable
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/analytics`)}
                 style={[styles.actionCard, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}
               >
-                <Text style={styles.actionIcon}>📊</Text>
+                <Text style={styles.actionIcon}>{'\u{1F4CA}'}</Text>
                 <Text style={[styles.actionLabel, { color: colors.primary }]}>Analytics</Text>
               </Pressable>
               <Pressable
@@ -205,6 +220,7 @@ const styles = StyleSheet.create({
   stat: { fontSize: 14 },
   badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
   badgeText: { fontSize: 12, fontWeight: '600' },
+  inspectCard: { borderRadius: 14, padding: 16, marginBottom: 12 },
   askXoCard: { borderRadius: 14, padding: 16, marginBottom: 12 },
   askXoContent: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   askXoIcon: { fontSize: 28 },
