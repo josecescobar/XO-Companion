@@ -5,6 +5,7 @@ import {
   ScrollView,
   Pressable,
   RefreshControl,
+  Modal,
   StyleSheet,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -38,6 +39,16 @@ export default function DashboardScreen() {
   const updateTask = useUpdateTask(firstProjectId);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [projectPickerVisible, setProjectPickerVisible] = useState(false);
+
+  const handleAskXO = () => {
+    if (!projects || projects.length === 0) return;
+    if (projects.length === 1) {
+      router.push(`/(tabs)/(projects)/${projects[0].id}/ask-xo`);
+    } else {
+      setProjectPickerVisible(true);
+    }
+  };
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -86,6 +97,19 @@ export default function DashboardScreen() {
             {format(new Date(), 'EEEE, MMM d')}
           </Text>
         </View>
+
+        {/* Ask XO Search Bar */}
+        {projects && projects.length > 0 && (
+          <Pressable
+            onPress={handleAskXO}
+            style={[styles.askXoBar, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          >
+            <Text style={styles.askXoBarIcon}>🤖</Text>
+            <Text style={[styles.askXoBarText, { color: colors.textSecondary }]}>
+              Ask XO a question...
+            </Text>
+          </Pressable>
+        )}
 
         {/* Attention Required Card */}
         {attentionCount > 0 && (
@@ -271,6 +295,37 @@ export default function DashboardScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Project Picker Modal for Ask XO */}
+      <Modal visible={projectPickerVisible} animationType="fade" transparent>
+        <Pressable
+          style={styles.pickerOverlay}
+          onPress={() => setProjectPickerVisible(false)}
+        >
+          <View style={[styles.pickerSheet, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.pickerTitle, { color: colors.text }]}>
+              Which project?
+            </Text>
+            {projects?.filter((p) => p.isActive).map((p) => (
+              <Pressable
+                key={p.id}
+                onPress={() => {
+                  setProjectPickerVisible(false);
+                  router.push(`/(tabs)/(projects)/${p.id}/ask-xo`);
+                }}
+                style={[styles.pickerItem, { borderColor: colors.border }]}
+              >
+                <Text style={[styles.pickerItemText, { color: colors.text }]}>
+                  {p.name}
+                </Text>
+                <Text style={[styles.pickerItemCode, { color: colors.textSecondary }]}>
+                  {p.code}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
     </ScreenWrapper>
   );
 }
@@ -356,4 +411,35 @@ const styles = StyleSheet.create({
   activityText: { fontSize: 14 },
   activityTime: { fontSize: 12, marginTop: 2 },
   emptyText: { fontSize: 14, textAlign: 'center', paddingVertical: 16 },
+  // Ask XO bar
+  askXoBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 14,
+    gap: 10,
+    marginBottom: 16,
+  },
+  askXoBarIcon: { fontSize: 20 },
+  askXoBarText: { fontSize: 16, fontWeight: '500' },
+  // Project picker
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 32,
+  },
+  pickerSheet: { borderRadius: 16, padding: 20, gap: 8 },
+  pickerTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
+  pickerItem: {
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  pickerItemText: { fontSize: 16, fontWeight: '600' },
+  pickerItemCode: { fontSize: 13 },
 });

@@ -2,6 +2,7 @@ import { View, Text, FlatList, Pressable, RefreshControl, StyleSheet } from 'rea
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useProject } from '@/hooks/queries/useProjects';
 import { useDailyLogs } from '@/hooks/queries/useDailyLogs';
+import { useMemoryStats } from '@/hooks/queries/useMemoryStats';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { CollapsibleSection } from '@/components/daily-log/CollapsibleSection';
@@ -17,6 +18,7 @@ export default function ProjectDetailScreen() {
   const router = useRouter();
   const { data: project, isLoading, error, refetch } = useProject(projectId);
   const { data: logs, refetch: refetchLogs, isRefetching } = useDailyLogs(projectId);
+  const { data: memoryStats } = useMemoryStats(projectId);
   const { colors } = useTheme();
 
   const statusColors: Record<string, { bg: string; text: string }> = {
@@ -80,6 +82,33 @@ export default function ProjectDetailScreen() {
                 </View>
               ))}
             </CollapsibleSection>
+
+            {/* Ask XO Card */}
+            <Pressable
+              onPress={() => router.push(`/(tabs)/(projects)/${projectId}/ask-xo`)}
+              style={[styles.askXoCard, { backgroundColor: colors.primary }]}
+            >
+              <View style={styles.askXoContent}>
+                <Text style={styles.askXoIcon}>🤖</Text>
+                <View style={styles.askXoText}>
+                  <Text style={styles.askXoTitle}>Ask XO anything about this project</Text>
+                  <Text style={styles.askXoSubtitle}>Search documents, logs, and project history</Text>
+                </View>
+                <Text style={styles.askXoArrow}>›</Text>
+              </View>
+            </Pressable>
+
+            {/* Memory Stats */}
+            {memoryStats && memoryStats.totalChunks > 0 && (
+              <View style={[styles.memoryCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[styles.memoryLabel, { color: colors.textSecondary }]}>
+                  Project Memory: {memoryStats.totalChunks} chunks indexed · {memoryStats.embeddedChunks} embedded
+                  {memoryStats.bySourceType.find((s) => s.sourceType === 'DOCUMENT')
+                    ? ` · ${memoryStats.bySourceType.find((s) => s.sourceType === 'DOCUMENT')!.count} from documents`
+                    : ''}
+                </Text>
+              </View>
+            )}
 
             {/* Quick Actions */}
             <View style={styles.quickActions}>
@@ -176,6 +205,15 @@ const styles = StyleSheet.create({
   stat: { fontSize: 14 },
   badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
   badgeText: { fontSize: 12, fontWeight: '600' },
+  askXoCard: { borderRadius: 14, padding: 16, marginBottom: 12 },
+  askXoContent: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  askXoIcon: { fontSize: 28 },
+  askXoText: { flex: 1 },
+  askXoTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  askXoSubtitle: { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginTop: 2 },
+  askXoArrow: { color: '#fff', fontSize: 28, fontWeight: '300' },
+  memoryCard: { borderRadius: 10, borderWidth: 1, padding: 12, marginBottom: 12 },
+  memoryLabel: { fontSize: 13 },
   quickActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
   actionCard: { flexBasis: '30%', flexGrow: 1, borderRadius: 12, borderWidth: 1, padding: 14, alignItems: 'center', gap: 4 },
   actionIcon: { fontSize: 24 },
