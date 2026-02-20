@@ -20,7 +20,9 @@
         "NSMicrophoneUsageDescription": "XO Companion needs microphone access to record voice notes for daily logs.",
         "NSCameraUsageDescription": "XO Companion needs camera access to document jobsite conditions.",
         "NSPhotoLibraryUsageDescription": "XO Companion needs photo library access to attach existing photos.",
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -59,7 +61,8 @@
           "defaultChannel": "xo-companion",
           "sounds": []
         }
-      ]
+      ],
+      "@journeyapps/react-native-quick-sqlite"
     ]
   }
 }

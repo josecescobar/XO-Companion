@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth.store';
 import { useThemeStore } from '@/stores/theme.store';
 import { useTheme } from '@/hooks/useTheme';
+import { PowerSyncProvider } from '@/lib/powersync/provider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,7 +59,9 @@ function AuthGate() {
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthGate />
+      <PowerSyncProvider>
+        <AuthGate />
+      </PowerSyncProvider>
     </QueryClientProvider>
   );
 }
