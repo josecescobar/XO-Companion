@@ -337,6 +337,23 @@ export default function RecordScreen() {
             />
           </View>
         )}
+
+        {/* AI Inspection Suggestion — show after photos attached */}
+        {selectedProjectId && mediaAttachments.length > 0 && processingPhase === 'idle' && (
+          <Pressable
+            onPress={() => router.push(`/(tabs)/(projects)/${selectedProjectId}/inspections/new`)}
+            style={[styles.inspectSuggestion, { backgroundColor: colors.surface, borderColor: '#7C3AED' }]}
+          >
+            <Text style={styles.inspectSuggestionIcon}>{'\u{1F50D}'}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.inspectSuggestionTitle, { color: '#7C3AED' }]}>Run AI Inspection?</Text>
+              <Text style={[styles.inspectSuggestionText, { color: colors.textSecondary }]}>
+                Analyze attached photos against specs & drawings
+              </Text>
+            </View>
+            <Text style={{ color: '#7C3AED', fontSize: 20 }}>{'\u{203A}'}</Text>
+          </Pressable>
+        )}
       </ScrollView>
 
       <MediaPreviewModal
@@ -401,4 +418,17 @@ const styles = StyleSheet.create({
   errorBox: { borderRadius: 10, padding: 12, marginTop: 8, marginBottom: 16 },
   errorText: { fontSize: 14 },
   statusActions: { marginTop: 8, width: '100%' },
+  // Inspection suggestion
+  inspectSuggestion: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    padding: 14,
+    gap: 12,
+    marginTop: 16,
+  },
+  inspectSuggestionIcon: { fontSize: 24 },
+  inspectSuggestionTitle: { fontSize: 15, fontWeight: '700' },
+  inspectSuggestionText: { fontSize: 13, marginTop: 2 },
 });

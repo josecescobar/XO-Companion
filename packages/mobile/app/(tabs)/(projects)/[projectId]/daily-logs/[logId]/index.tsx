@@ -20,6 +20,7 @@ import { MediaAttachmentBar } from '@/components/media/MediaAttachmentBar';
 import { MediaPreviewModal } from '@/components/media/MediaPreviewModal';
 import { useLogMedia } from '@/hooks/queries/useMedia';
 import { useUploadMedia } from '@/hooks/mutations/useMediaMutations';
+import { useProjectInspections } from '@/hooks/queries/useInspections';
 import { useTheme } from '@/hooks/useTheme';
 import { format } from 'date-fns';
 import { deleteEntry } from '@/api/endpoints/daily-logs';
@@ -43,6 +44,7 @@ export default function DailyLogDetailScreen() {
   const [previewIndex, setPreviewIndex] = useState(-1);
   const { data: existingMedia } = useLogMedia(projectId, logId);
   const uploadMutation = useUploadMedia(projectId);
+  const { data: logInspections } = useProjectInspections(projectId, { dailyLogId: logId });
 
   const handleAddMedia = async (asset: MediaAsset) => {
     setMediaAttachments((prev) => [...prev, asset]);
@@ -227,6 +229,48 @@ export default function DailyLogDetailScreen() {
           )}
         </View>
 
+        {/* AI Inspection */}
+        <View style={styles.inspectionSection}>
+          <View style={styles.mediaSectionHeader}>
+            <Text style={[styles.mediaSectionTitle, { color: colors.text }]}>AI Inspection</Text>
+            {(logInspections?.length ?? 0) > 0 && (
+              <View style={[styles.mediaBadge, { backgroundColor: colors.primaryLight }]}>
+                <Text style={[styles.mediaBadgeText, { color: colors.primary }]}>{logInspections!.length}</Text>
+              </View>
+            )}
+          </View>
+          <Pressable
+            onPress={() => router.push(`/(tabs)/(projects)/${projectId}/inspections/new?dailyLogId=${logId}`)}
+            style={[styles.inspectButton, { backgroundColor: '#7C3AED' }]}
+          >
+            <Text style={styles.inspectButtonText}>{'\u{1F50D}'} Run AI Inspection</Text>
+          </Pressable>
+          {logInspections && logInspections.length > 0 && logInspections.map((insp) => {
+            const barColors: Record<string, string> = {
+              PASS: '#16A34A', FAIL: '#DC2626', NEEDS_ATTENTION: '#D97706',
+              PENDING: '#9CA3AF', PROCESSING: '#2563EB', INCONCLUSIVE: '#6B7280',
+            };
+            const bc = barColors[insp.status] || '#9CA3AF';
+            return (
+              <Pressable
+                key={insp.id}
+                onPress={() => router.push(`/(tabs)/(projects)/${projectId}/inspections/${insp.id}`)}
+                style={[styles.inspectionCard, { backgroundColor: colors.surface, borderColor: colors.border, borderLeftColor: bc }]}
+              >
+                <Text style={[styles.inspectionCardTitle, { color: colors.text }]} numberOfLines={1}>
+                  {insp.title}
+                </Text>
+                <View style={styles.inspectionCardMeta}>
+                  <Text style={[styles.inspectionCardStatus, { color: bc }]}>{insp.status.replace('_', ' ')}</Text>
+                  {insp.aiOverallScore != null && (
+                    <Text style={[styles.inspectionCardScore, { color: colors.textSecondary }]}>{insp.aiOverallScore}/100</Text>
+                  )}
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+
         {/* Navigation to sub-screens */}
         <View style={styles.navSection}>
           <Pressable
@@ -314,4 +358,13 @@ const styles = StyleSheet.create({
   mediaBadgeText: { fontSize: 12, fontWeight: '700' },
   uploadingText: { fontSize: 13, fontWeight: '500' },
   existingMediaText: { fontSize: 13 },
+  // Inspection
+  inspectionSection: { marginTop: 16, gap: 8 },
+  inspectButton: { borderRadius: 12, padding: 14, alignItems: 'center' },
+  inspectButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  inspectionCard: { borderRadius: 10, borderWidth: 1, borderLeftWidth: 4, padding: 12 },
+  inspectionCardTitle: { fontSize: 14, fontWeight: '600' },
+  inspectionCardMeta: { flexDirection: 'row', gap: 12, marginTop: 4 },
+  inspectionCardStatus: { fontSize: 12, fontWeight: '700', textTransform: 'capitalize' },
+  inspectionCardScore: { fontSize: 12 },
 });

@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { useAuthStore } from '@/stores/auth.store';
 import { useProjects } from '@/hooks/queries/useProjects';
 import { useTaskSummary, useProjectTasks } from '@/hooks/queries/useTasks';
+import { useInspectionSummary } from '@/hooks/queries/useInspections';
 import { useComplianceAlerts } from '@/hooks/queries/useCompliance';
 import { useUpdateTask } from '@/hooks/mutations/useTaskMutations';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
@@ -35,6 +36,7 @@ export default function DashboardScreen() {
   const firstProjectId = projects?.[0]?.id ?? '';
   const { data: taskSummary, refetch: refetchSummary } = useTaskSummary(firstProjectId);
   const { data: allTasks, refetch: refetchTasks } = useProjectTasks(firstProjectId);
+  const { data: inspectionSummary, refetch: refetchInspections } = useInspectionSummary(firstProjectId);
   const { data: complianceAlerts, refetch: refetchAlerts } = useComplianceAlerts();
   const updateTask = useUpdateTask(firstProjectId);
 
@@ -52,7 +54,7 @@ export default function DashboardScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([refetchProjects(), refetchSummary(), refetchTasks(), refetchAlerts()]);
+    await Promise.all([refetchProjects(), refetchSummary(), refetchTasks(), refetchInspections(), refetchAlerts()]);
     setRefreshing(false);
   }, [refetchProjects, refetchSummary, refetchTasks, refetchAlerts]);
 
@@ -68,8 +70,10 @@ export default function DashboardScreen() {
   }, [allTasks]);
 
   const expiringCount = complianceAlerts?.filter((a: any) => a.severity === 'HIGH' || a.severity === 'CRITICAL').length ?? 0;
+  const failedInspections = inspectionSummary?.fail ?? 0;
+  const attentionInspections = inspectionSummary?.needsAttention ?? 0;
 
-  const attentionCount = (taskSummary?.urgent ?? 0) + (taskSummary?.overdue ?? 0) + expiringCount;
+  const attentionCount = (taskSummary?.urgent ?? 0) + (taskSummary?.overdue ?? 0) + expiringCount + failedInspections + attentionInspections;
 
   const handleCompleteTask = (task: Task) => {
     updateTask.mutate({ taskId: task.id, body: { status: 'COMPLETED' } });
@@ -132,6 +136,22 @@ export default function DashboardScreen() {
                   style={[styles.attentionBadge, { backgroundColor: colors.warning }]}
                 >
                   <Text style={styles.attentionBadgeText}>{taskSummary!.overdue} Overdue</Text>
+                </Pressable>
+              )}
+              {failedInspections > 0 && (
+                <Pressable
+                  onPress={() => firstProjectId && router.push(`/(tabs)/(projects)/${firstProjectId}/inspections`)}
+                  style={[styles.attentionBadge, { backgroundColor: colors.error }]}
+                >
+                  <Text style={styles.attentionBadgeText}>{failedInspections} Failed Inspections</Text>
+                </Pressable>
+              )}
+              {attentionInspections > 0 && (
+                <Pressable
+                  onPress={() => firstProjectId && router.push(`/(tabs)/(projects)/${firstProjectId}/inspections`)}
+                  style={[styles.attentionBadge, { backgroundColor: '#D97706' }]}
+                >
+                  <Text style={styles.attentionBadgeText}>{attentionInspections} Need Attention</Text>
                 </Pressable>
               )}
               {expiringCount > 0 && (
