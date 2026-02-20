@@ -1,13 +1,16 @@
 import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
+import { View, Text } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useNotifications } from '@/hooks/useNotifications';
+import { SyncStatusBar } from '@/components/common/SyncStatusBar';
 
 export default function TabsLayout() {
   const { colors } = useTheme();
   useNotifications();
 
   return (
+    <View style={{ flex: 1 }}>
+    <SyncStatusBar />
     <Tabs
       screenOptions={{
         headerStyle: { backgroundColor: colors.header },
@@ -66,5 +69,6 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+    </View>
   );
 }
