@@ -235,6 +235,30 @@ enum MediaType {
   VIDEO
 }
 
+// ─── Communication Enums ───
+
+enum CommunicationType {
+  EMAIL
+  TEXT
+  CALL
+  RFI
+  CHANGE_ORDER
+}
+
+enum CommunicationStatus {
+  DRAFTING
+  DRAFT
+  APPROVED
+  SENT
+  CANCELLED
+}
+
+enum CommunicationUrgency {
+  LOW
+  NORMAL
+  HIGH
+}
+
 // ─── Inspection Enums ───
 
 enum InspectionType {
@@ -276,6 +300,7 @@ model Organization {
   media               Media[]
   projectDocuments    ProjectDocument[]
   inspections         Inspection[]
+  communications      Communication[]
 
   @@map("organizations")
 }
@@ -302,9 +327,11 @@ model User {
   createdTasks       Task[]          @relation("CreatedTasks")
   uploadedMedia      Media[]         @relation("UploadedMedia")
   uploadedDocuments  ProjectDocument[] @relation("UploadedDocuments")
-  createdInspections  Inspection[]   @relation("CreatedInspections")
-  reviewedInspections Inspection[]   @relation("ReviewedInspections")
-  deviceTokens        DeviceToken[]
+  createdInspections      Inspection[]     @relation("CreatedInspections")
+  reviewedInspections     Inspection[]     @relation("ReviewedInspections")
+  deviceTokens            DeviceToken[]
+  createdCommunications   Communication[]  @relation("CreatedCommunications")
+  approvedCommunications  Communication[]  @relation("ApprovedCommunications")
 
   @@index([organizationId])
   @@index([email])
@@ -355,6 +382,7 @@ model Project {
   media               Media[]
   documents           ProjectDocument[]
   inspections         Inspection[]
+  communications      Communication[]
 
   @@unique([organizationId, code])
   @@index([organizationId])
@@ -403,9 +431,10 @@ model DailyLog {
   voiceNotes    VoiceNote[]
   signatures    Signature[]
   reviewEntries ReviewEntry[]
-  tasks         Task[]
-  media         Media[]
-  inspections   Inspection[]
+  tasks            Task[]
+  media            Media[]
+  inspections      Inspection[]
+  communications   Communication[]
 
   @@unique([projectId, logDate])
   @@index([projectId, status])
@@ -1065,6 +1094,55 @@ model Inspection {
   @@index([projectId, inspectionType])
   @@index([mediaId])
   @@map("inspections")
+}
+
+// ─────────────────────────────────────────────
+// COMMUNICATIONS
+// ─────────────────────────────────────────────
+
+model Communication {
+  id              String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId  String                @map("organization_id") @db.Uuid
+  projectId       String                @map("project_id") @db.Uuid
+  dailyLogId      String?               @map("daily_log_id") @db.Uuid
+  voiceNoteId     String?               @map("voice_note_id") @db.Uuid
+
+  type            CommunicationType
+  status          CommunicationStatus   @default(DRAFTING)
+  urgency         CommunicationUrgency  @default(NORMAL)
+
+  recipient       String
+  recipientEmail  String?               @map("recipient_email")
+  recipientPhone  String?               @map("recipient_phone")
+  subject         String
+  body            String?               @db.Text
+  context         String?               @db.Text
+
+  aiGenerated     Boolean               @default(true) @map("ai_generated")
+  aiConfidence    Float?                @map("ai_confidence")
+  aiDraftedAt     DateTime?             @map("ai_drafted_at")
+  processingError String?               @map("processing_error")
+  tokensUsed      Int?                  @map("tokens_used")
+
+  editedBody      String?               @map("edited_body") @db.Text
+  approvedById    String?               @map("approved_by_id") @db.Uuid
+  approvedAt      DateTime?             @map("approved_at")
+  sentAt          DateTime?             @map("sent_at")
+
+  createdById     String                @map("created_by_id") @db.Uuid
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+
+  organization    Organization          @relation(fields: [organizationId], references: [id])
+  project         Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  dailyLog        DailyLog?             @relation(fields: [dailyLogId], references: [id], onDelete: SetNull)
+  createdBy       User                  @relation("CreatedCommunications", fields: [createdById], references: [id])
+  approvedBy      User?                 @relation("ApprovedCommunications", fields: [approvedById], references: [id])
+
+  @@index([projectId, status])
+  @@index([projectId, type])
+  @@index([createdById])
+  @@map("communications")
 }
 
 // ─────────────────────────────────────────────

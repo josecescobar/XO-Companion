@@ -26,6 +26,9 @@ import { DailyLogsModule } from '../daily-logs/daily-logs.module';
       {
         name: 'memory-ingestion',
       },
+      {
+        name: 'communication-drafting',
+      },
     ),
     ProjectsModule,
     DailyLogsModule,

@@ -24,6 +24,7 @@ export class VoiceProcessor extends WorkerHost {
     private llmExtractionService: LlmExtractionService,
     private notificationsService: NotificationsService,
     @InjectQueue('memory-ingestion') private memoryQueue: Queue,
+    @InjectQueue('communication-drafting') private communicationQueue: Queue,
   ) {
     super();
   }
@@ -105,6 +106,49 @@ export class VoiceProcessor extends WorkerHost {
         }
       } catch (err: any) {
         this.logger.warn(`Failed to create tasks from voice note: ${err.message}`);
+      }
+
+      // Create communication drafts from extracted communications
+      try {
+        if (extractedData.communications && extractedData.communications.length > 0) {
+          const voiceNote = await this.prisma.voiceNote.findUnique({
+            where: { id: voiceNoteId },
+            select: {
+              userId: true,
+              dailyLog: { select: { projectId: true, id: true } },
+            },
+          });
+
+          if (voiceNote?.dailyLog) {
+            for (const comm of extractedData.communications) {
+              const record = await this.prisma.communication.create({
+                data: {
+                  organizationId,
+                  projectId: voiceNote.dailyLog.projectId,
+                  dailyLogId: voiceNote.dailyLog.id,
+                  voiceNoteId,
+                  type: comm.type as any,
+                  urgency: comm.urgency as any,
+                  recipient: comm.recipient,
+                  subject: comm.subject,
+                  context: comm.context,
+                  status: 'DRAFTING',
+                  aiGenerated: true,
+                  aiConfidence: comm.confidence,
+                  createdById: voiceNote.userId,
+                },
+              });
+
+              await this.communicationQueue.add('draft', {
+                communicationId: record.id,
+                projectId: voiceNote.dailyLog.projectId,
+              });
+            }
+            this.logger.log(`Created ${extractedData.communications.length} communication drafts from voice note`);
+          }
+        }
+      } catch (err: any) {
+        this.logger.warn(`Failed to create communications from voice note: ${err.message}`);
       }
 
       // Enqueue memory ingestion for the voice transcript (non-blocking)
