@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { VisionComparisonService } from './services/vision-comparison.service';
 import { MemoryService } from '../memory/memory.service';
 import { MediaService } from '../media/media.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Processor('inspection-processing')
 export class InspectionsProcessor extends WorkerHost {
@@ -15,6 +16,7 @@ export class InspectionsProcessor extends WorkerHost {
     private visionService: VisionComparisonService,
     private memoryService: MemoryService,
     private mediaService: MediaService,
+    private notificationsService: NotificationsService,
   ) {
     super();
   }
@@ -91,6 +93,52 @@ export class InspectionsProcessor extends WorkerHost {
           },
         },
       });
+
+      // Notify the user of inspection results
+      try {
+        const resultEmoji = result.overallAssessment === 'PASS' ? '✅'
+          : result.overallAssessment === 'FAIL' ? '❌'
+          : result.overallAssessment === 'NEEDS_ATTENTION' ? '⚠️' : '❓';
+
+        await this.notificationsService.sendToUser(inspection.createdById, {
+          title: `${resultEmoji} Inspection ${result.overallAssessment.replace('_', ' ')}`,
+          body: `${inspection.title} — Score: ${result.overallScore}/100. ${result.findings.length} findings.`,
+          data: {
+            screen: 'inspection-result',
+            projectId,
+            inspectionId,
+          },
+        });
+
+        // If FAIL or CRITICAL findings, also notify project managers
+        if (result.overallAssessment === 'FAIL' || result.findings.some((f: any) => f.severity === 'CRITICAL')) {
+          const managers = await this.prisma.projectMember.findMany({
+            where: {
+              projectId,
+              role: { in: ['PROJECT_MANAGER', 'SUPERINTENDENT', 'SAFETY_OFFICER'] },
+              userId: { not: inspection.createdById },
+            },
+            select: { userId: true },
+          });
+
+          if (managers.length > 0) {
+            await this.notificationsService.sendToUsers(
+              managers.map((m) => m.userId),
+              {
+                title: `🚨 Failed Inspection: ${inspection.title}`,
+                body: `Score: ${result.overallScore}/100 — ${result.findings.filter((f: any) => f.severity === 'CRITICAL').length} critical findings. Review required.`,
+                data: {
+                  screen: 'inspection-result',
+                  projectId,
+                  inspectionId,
+                },
+              },
+            );
+          }
+        }
+      } catch (err: any) {
+        this.logger.warn(`Failed to send inspection notification: ${err.message}`);
+      }
 
       this.logger.log(`Inspection ${inspectionId} processed: ${result.overallAssessment} (${result.overallScore}/100)`);
     } catch (err: any) {

@@ -5,6 +5,7 @@ import { Job, Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 import { AssemblyAiService } from './services/assemblyai.service';
 import { LlmExtractionService } from './services/llm-extraction.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { VoiceNoteStatus } from '@prisma/client';
 
 export interface VoiceProcessingJobData {
@@ -21,6 +22,7 @@ export class VoiceProcessor extends WorkerHost {
     private prisma: PrismaService,
     private assemblyAiService: AssemblyAiService,
     private llmExtractionService: LlmExtractionService,
+    private notificationsService: NotificationsService,
     @InjectQueue('memory-ingestion') private memoryQueue: Queue,
   ) {
     super();
@@ -121,6 +123,39 @@ export class VoiceProcessor extends WorkerHost {
         }
       } catch (err: any) {
         this.logger.warn(`Failed to queue memory ingestion: ${err.message}`);
+      }
+
+      // Notify the user their voice note is processed
+      try {
+        const voiceNote = await this.prisma.voiceNote.findUnique({
+          where: { id: voiceNoteId },
+          select: {
+            userId: true,
+            dailyLog: { select: { projectId: true, id: true } },
+          },
+        });
+
+        if (voiceNote) {
+          const extractionSummary: string[] = [];
+          if (extractedData.workforce?.length) extractionSummary.push(`${extractedData.workforce.length} workforce`);
+          if (extractedData.workCompleted?.length) extractionSummary.push(`${extractedData.workCompleted.length} work items`);
+          if (extractedData.nextActions?.length) extractionSummary.push(`${extractedData.nextActions.length} tasks`);
+          if (extractedData.communications?.length) extractionSummary.push(`${extractedData.communications.length} comms`);
+
+          await this.notificationsService.sendToUser(voiceNote.userId, {
+            title: '🎙️ Voice Note Processed',
+            body: extractionSummary.length > 0
+              ? `Extracted: ${extractionSummary.join(', ')}. Tap to review.`
+              : 'Your voice note has been transcribed. Tap to review.',
+            data: {
+              screen: 'voice-review',
+              projectId: voiceNote.dailyLog?.projectId ?? '',
+              logId: voiceNote.dailyLog?.id ?? '',
+            },
+          });
+        }
+      } catch (err: any) {
+        this.logger.warn(`Failed to send voice notification: ${err.message}`);
       }
 
       this.logger.log(`Voice note ${voiceNoteId} processed successfully`);
