@@ -16,6 +16,7 @@ export default function ProjectDetailLayout() {
       <Stack.Screen name="analytics" options={{ title: 'Analytics' }} />
       <Stack.Screen name="tasks" options={{ title: 'Tasks' }} />
       <Stack.Screen name="reports" options={{ title: 'Weekly Report' }} />
+      <Stack.Screen name="documents" options={{ title: 'Documents' }} />
       <Stack.Screen name="team" options={{ title: 'Team' }} />
     </Stack>
   );
