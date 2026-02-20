@@ -304,6 +304,7 @@ model User {
   uploadedDocuments  ProjectDocument[] @relation("UploadedDocuments")
   createdInspections  Inspection[]   @relation("CreatedInspections")
   reviewedInspections Inspection[]   @relation("ReviewedInspections")
+  deviceTokens        DeviceToken[]
 
   @@index([organizationId])
   @@index([email])
@@ -1064,4 +1065,24 @@ model Inspection {
   @@index([projectId, inspectionType])
   @@index([mediaId])
   @@map("inspections")
+}
+
+// ─────────────────────────────────────────────
+// DEVICE TOKENS (Push Notifications)
+// ─────────────────────────────────────────────
+
+model DeviceToken {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  token       String   @unique
+  platform    String   @default("ios")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("device_tokens")
 }

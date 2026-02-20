@@ -20,6 +20,7 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { MediaModule } from './modules/media/media.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { InspectionsModule } from './modules/inspections/inspections.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -85,6 +86,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     MediaModule,
     DocumentsModule,
     InspectionsModule,
+    NotificationsModule,
     MemoryModule,
     HealthModule,
   ],

@@ -17,6 +17,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^1.0.0",
     "@ai-sdk/openai": "^1.0.0",
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/bullmq": "^11.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
@@ -32,6 +33,7 @@
     "@xo/shared": "workspace:*",
     "ai": "^4.0.0",
     "assemblyai": "^4.0.0",
+    "axios": "^1.13.5",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.0.0",
     "class-transformer": "^0.5.1",
