@@ -169,6 +169,13 @@ export default function ProjectDetailScreen() {
                 <Text style={styles.actionIcon}>📄</Text>
                 <Text style={[styles.actionLabel, { color: colors.text }]}>Documents</Text>
               </Pressable>
+              <Pressable
+                onPress={() => router.push(`/(tabs)/(projects)/${projectId}/communications` as any)}
+                style={[styles.actionCard, { backgroundColor: '#dbeafe', borderColor: colors.border }]}
+              >
+                <Text style={styles.actionIcon}>✉️</Text>
+                <Text style={[styles.actionLabel, { color: '#2563eb' }]}>Comms</Text>
+              </Pressable>
             </View>
 
             {/* Section Header */}
