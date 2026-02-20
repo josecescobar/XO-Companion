@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
-import { useProjectTasks } from '@/hooks/queries/useTasks';
+import { useProjectTasksOffline } from '@/hooks/queries/useTasksOffline';
 import { useUpdateTask, useCreateTask } from '@/hooks/mutations/useTaskMutations';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { LoadingState } from '@/components/common/LoadingState';
@@ -51,7 +51,7 @@ export default function TasksScreen() {
     ? { priority: 'URGENT' }
     : undefined;
 
-  const { data: tasks, isLoading, refetch, isRefetching } = useProjectTasks(projectId, filters);
+  const { data: tasks, isLoading, refetch } = useProjectTasksOffline(projectId, filters);
   const updateTask = useUpdateTask(projectId);
   const createTask = useCreateTask(projectId);
 
@@ -113,7 +113,7 @@ export default function TasksScreen() {
       <FlatList
         data={filteredTasks}
         keyExtractor={(item) => item.id}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <View style={[styles.taskCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>

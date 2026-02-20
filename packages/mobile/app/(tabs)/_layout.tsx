@@ -2,11 +2,13 @@ import { Tabs } from 'expo-router';
 import { View, Text } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { SyncStatusBar } from '@/components/common/SyncStatusBar';
 
 export default function TabsLayout() {
   const { colors } = useTheme();
   useNotifications();
+  useOfflineSync();
 
   return (
     <View style={{ flex: 1 }}>

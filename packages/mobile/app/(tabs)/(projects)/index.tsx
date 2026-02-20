@@ -1,6 +1,6 @@
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useProjects } from '@/hooks/queries/useProjects';
+import { useProjectsOffline } from '@/hooks/queries/useProjectsOffline';
 import { ProjectCard } from '@/components/project/ProjectCard';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ErrorState } from '@/components/common/ErrorState';
@@ -10,7 +10,7 @@ import { useTheme } from '@/hooks/useTheme';
 
 export default function ProjectsScreen() {
   const router = useRouter();
-  const { data: projects, isLoading, error, refetch, isRefetching } = useProjects();
+  const { data: projects, isLoading, error, refetch } = useProjectsOffline();
   const currentUser = useAuthStore((s) => s.user);
   const { colors } = useTheme();
   const canCreate = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'PROJECT_MANAGER';
@@ -34,7 +34,7 @@ export default function ProjectsScreen() {
         )}
         contentContainerStyle={styles.list}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+          <RefreshControl refreshing={isLoading} onRefresh={refetch} />
         }
       />
       {canCreate && (

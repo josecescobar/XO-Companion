@@ -11,8 +11,8 @@ import {
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { useAuthStore } from '@/stores/auth.store';
-import { useProjects } from '@/hooks/queries/useProjects';
-import { useTaskSummary, useProjectTasks } from '@/hooks/queries/useTasks';
+import { useProjectsOffline } from '@/hooks/queries/useProjectsOffline';
+import { useProjectTasksOffline, useTaskSummaryOffline } from '@/hooks/queries/useTasksOffline';
 import { useInspectionSummary } from '@/hooks/queries/useInspections';
 import { useComplianceAlerts } from '@/hooks/queries/useCompliance';
 import { useCommunicationSummary, useProjectCommunications } from '@/hooks/queries/useCommunications';
@@ -33,11 +33,11 @@ export default function DashboardScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const user = useAuthStore((s) => s.user);
-  const { data: projects, refetch: refetchProjects, isRefetching: isRefetchingProjects } = useProjects();
+  const { data: projects, refetch: refetchProjects } = useProjectsOffline();
 
   const firstProjectId = projects?.[0]?.id ?? '';
-  const { data: taskSummary, refetch: refetchSummary } = useTaskSummary(firstProjectId);
-  const { data: allTasks, refetch: refetchTasks } = useProjectTasks(firstProjectId);
+  const { data: taskSummary, refetch: refetchSummary } = useTaskSummaryOffline(firstProjectId);
+  const { data: allTasks, refetch: refetchTasks } = useProjectTasksOffline(firstProjectId);
   const { data: inspectionSummary, refetch: refetchInspections } = useInspectionSummary(firstProjectId);
   const { data: complianceAlerts, refetch: refetchAlerts } = useComplianceAlerts();
   const { data: commSummary, refetch: refetchComms } = useCommunicationSummary(firstProjectId);

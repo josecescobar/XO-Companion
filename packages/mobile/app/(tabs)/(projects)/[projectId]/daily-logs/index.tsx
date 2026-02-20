@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { useDailyLogs } from '@/hooks/queries/useDailyLogs';
+import { useDailyLogsOffline } from '@/hooks/queries/useDailyLogsOffline';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ErrorState } from '@/components/common/ErrorState';
@@ -21,7 +21,7 @@ export default function DailyLogsListScreen() {
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
-  const { data: logs, isLoading, error, refetch, isRefetching } = useDailyLogs(
+  const { data: logs, isLoading, error, refetch } = useDailyLogsOffline(
     projectId,
     statusFilter,
   );
@@ -121,7 +121,7 @@ export default function DailyLogsListScreen() {
         }
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+          <RefreshControl refreshing={isLoading} onRefresh={refetch} />
         }
       />
       {/* FAB to create new log */}
