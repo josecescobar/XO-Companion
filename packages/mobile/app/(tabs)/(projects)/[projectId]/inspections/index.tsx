@@ -8,8 +8,10 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useProjectInspections } from '@/hooks/queries/useInspections';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import type { InspectionDetail, InspectionStatus } from '@/api/endpoints/inspections';
 
 const FILTER_OPTIONS: { key: InspectionStatus | 'ALL'; label: string }[] = [
@@ -23,9 +25,9 @@ const FILTER_OPTIONS: { key: InspectionStatus | 'ALL'; label: string }[] = [
 const STATUS_BAR_COLOR: Record<string, string> = {
   PASS: '#16A34A',
   FAIL: '#DC2626',
-  NEEDS_ATTENTION: '#D97706',
+  NEEDS_ATTENTION: '#F59E0B',
   PENDING: '#9CA3AF',
-  PROCESSING: '#2563EB',
+  PROCESSING: '#7C3AED',
   INCONCLUSIVE: '#6B7280',
 };
 
@@ -54,7 +56,8 @@ export default function InspectionsListScreen() {
         onPress={() => router.push(`/(tabs)/(projects)/${projectId}/inspections/${item.id}`)}
         style={({ pressed }) => [
           styles.card,
-          { backgroundColor: colors.surface, borderColor: colors.border },
+          shadows.md,
+          { backgroundColor: colors.surface },
           pressed && { opacity: 0.7 },
         ]}
       >
@@ -123,7 +126,7 @@ export default function InspectionsListScreen() {
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>{'\u{1F50D}'}</Text>
+            <Ionicons name="search-outline" size={48} color={colors.textTertiary} style={{ marginBottom: 12 }} />
             <Text style={[styles.emptyTitle, { color: colors.text }]}>No inspections yet</Text>
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
               Take a photo of work in place and let AI compare it against your specs.
@@ -137,7 +140,10 @@ export default function InspectionsListScreen() {
         onPress={() => router.push(`/(tabs)/(projects)/${projectId}/inspections/new`)}
         style={[styles.fab, { backgroundColor: colors.primary }]}
       >
-        <Text style={styles.fabText}>{'\u{1F4F7}'} New Inspection</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Ionicons name="camera-outline" size={20} color="#fff" />
+          <Text style={styles.fabText}>New Inspection</Text>
+        </View>
       </Pressable>
     </View>
   );
@@ -146,24 +152,24 @@ export default function InspectionsListScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   filterRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 12 },
-  filterChip: { borderRadius: 20, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 7 },
-  filterText: { fontSize: 13, fontWeight: '600' },
+  filterChip: { borderRadius: 20, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, justifyContent: 'center' as const },
+  filterText: { fontSize: 13, fontWeight: '700' },
   list: { paddingHorizontal: 16, paddingBottom: 100 },
   // Card
-  card: { flexDirection: 'row', borderRadius: 12, borderWidth: 1, marginBottom: 10, overflow: 'hidden' },
+  card: { flexDirection: 'row', borderRadius: 14, marginBottom: 10, overflow: 'hidden' },
   statusBar: { width: 5 },
   cardContent: { flex: 1, padding: 14, gap: 8 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardTitle: { fontSize: 15, fontWeight: '600', flex: 1, marginRight: 8 },
-  scoreBadge: { borderRadius: 12, paddingHorizontal: 8, paddingVertical: 3, minWidth: 32, alignItems: 'center' },
+  cardTitle: { fontSize: 15, fontWeight: '700', flex: 1, marginRight: 8 },
+  scoreBadge: { borderRadius: 14, paddingHorizontal: 8, paddingVertical: 3, minWidth: 32, alignItems: 'center' },
   scoreText: { color: '#fff', fontSize: 12, fontWeight: '800' },
   cardMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   typeBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  typeText: { fontSize: 11, fontWeight: '600' },
+  typeText: { fontSize: 11, fontWeight: '700' },
   dateText: { fontSize: 12 },
   // Empty
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32 },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
+  // emptyIcon handled by Ionicons inline
   emptyTitle: { fontSize: 20, fontWeight: '700', marginBottom: 8 },
   emptyText: { fontSize: 15, textAlign: 'center', lineHeight: 22 },
   // FAB
@@ -174,12 +180,10 @@ const styles = StyleSheet.create({
     left: 16,
     borderRadius: 14,
     padding: 16,
+    minHeight: 48,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
+    justifyContent: 'center',
+    ...shadows.lg,
+  } as any,
   fabText: { color: '#fff', fontSize: 17, fontWeight: '700' },
 });

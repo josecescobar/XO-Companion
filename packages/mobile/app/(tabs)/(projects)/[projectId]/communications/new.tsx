@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useCreateCommunication } from '@/hooks/mutations/useCommunicationMutations';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import type { CommunicationType, CommunicationUrgency } from '@/api/endpoints/communications';
 
-const TYPES: { key: CommunicationType; icon: string; label: string }[] = [
-  { key: 'EMAIL', icon: '📧', label: 'Email' },
-  { key: 'TEXT', icon: '💬', label: 'Text' },
-  { key: 'CALL', icon: '📞', label: 'Call' },
-  { key: 'RFI', icon: '❓', label: 'RFI' },
-  { key: 'CHANGE_ORDER', icon: '🔄', label: 'Change Order' },
+const TYPES: { key: CommunicationType; icon: React.ComponentProps<typeof Ionicons>['name']; label: string }[] = [
+  { key: 'EMAIL', icon: 'mail-outline', label: 'Email' },
+  { key: 'TEXT', icon: 'chatbubble-outline', label: 'Text' },
+  { key: 'CALL', icon: 'call-outline', label: 'Call' },
+  { key: 'RFI', icon: 'help-circle-outline', label: 'RFI' },
+  { key: 'CHANGE_ORDER', icon: 'swap-horizontal-outline', label: 'Change Order' },
 ];
 
 const URGENCY_OPTIONS: { key: CommunicationUrgency; label: string }[] = [
@@ -79,12 +81,15 @@ export default function NewCommunicationScreen() {
                 styles.chip,
                 type === t.key
                   ? { backgroundColor: colors.primary }
-                  : { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
+                  : [shadows.sm, { backgroundColor: colors.surface }],
               ]}
             >
-              <Text style={{ color: type === t.key ? '#fff' : colors.text, fontSize: 13 }}>
-                {t.icon} {t.label}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons name={t.icon} size={16} color={type === t.key ? '#fff' : colors.text} />
+                <Text style={{ color: type === t.key ? '#fff' : colors.text, fontSize: 13, fontWeight: '600' }}>
+                  {t.label}
+                </Text>
+              </View>
             </Pressable>
           ))}
         </View>
@@ -122,7 +127,7 @@ export default function NewCommunicationScreen() {
                 styles.chip,
                 urgency === u.key
                   ? { backgroundColor: colors.primary }
-                  : { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
+                  : [shadows.sm, { backgroundColor: colors.surface }],
               ]}
             >
               <Text style={{ color: urgency === u.key ? '#fff' : colors.text, fontSize: 13 }}>
@@ -144,7 +149,7 @@ export default function NewCommunicationScreen() {
         />
 
         <View style={{ height: 16 }} />
-        <Button title="🤖 Draft with AI" onPress={handleSubmit} loading={createMutation.isPending} />
+        <Button title="Draft with AI" onPress={handleSubmit} loading={createMutation.isPending} />
         <View style={{ height: 40 }} />
       </ScrollView>
     </ScreenWrapper>
@@ -153,7 +158,7 @@ export default function NewCommunicationScreen() {
 
 const styles = StyleSheet.create({
   content: { padding: 16 },
-  label: { fontSize: 14, fontWeight: '600', marginTop: 16, marginBottom: 6 },
+  label: { fontSize: 14, fontWeight: '700', marginTop: 16, marginBottom: 6 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
+  chip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, justifyContent: 'center' as const },
 });

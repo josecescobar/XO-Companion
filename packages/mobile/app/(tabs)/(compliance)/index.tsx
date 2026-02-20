@@ -6,6 +6,8 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
+import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import type { ComplianceDocument } from '@/api/endpoints/compliance';
 
@@ -16,7 +18,7 @@ function SummaryCard({ expired, expiringSoon, upcoming, colors }: {
   colors: any;
 }) {
   return (
-    <View style={[styles.summaryCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <View style={[styles.summaryCard, { backgroundColor: colors.surface }, shadows.md]}>
       <View style={styles.summaryItem}>
         <Text style={[styles.summaryValue, { color: expired > 0 ? colors.error : colors.success }]}>
           {expired}
@@ -49,7 +51,7 @@ function DocumentRow({ doc, alertType, daysUntilExpiration, colors }: {
   const isExpired = alertType === 'EXPIRED';
 
   return (
-    <View style={[styles.docRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <View style={[styles.docRow, { backgroundColor: colors.surface }, shadows.md]}>
       <View style={styles.docHeader}>
         <Text style={[styles.docName, { color: colors.text }]} numberOfLines={1}>{doc.name}</Text>
         {daysUntilExpiration != null && (
@@ -136,23 +138,23 @@ function ComplianceContent() {
               <View style={styles.actionsRow}>
                 <Pressable
                   onPress={() => router.push('/(tabs)/(compliance)/add-document')}
-                  style={[styles.actionCard, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}
+                  style={[styles.actionCard, { backgroundColor: colors.primaryLight }, shadows.sm]}
                 >
-                  <Text style={styles.actionIcon}>📄</Text>
+                  <Ionicons name="document-outline" size={24} color={colors.primary} />
                   <Text style={[styles.actionLabel, { color: colors.primary }]}>+ Document</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => router.push('/(tabs)/(compliance)/training')}
-                  style={[styles.actionCard, { backgroundColor: colors.successLight, borderColor: colors.border }]}
+                  style={[styles.actionCard, { backgroundColor: colors.successLight }, shadows.sm]}
                 >
-                  <Text style={styles.actionIcon}>📋</Text>
+                  <Ionicons name="school-outline" size={24} color={colors.success} />
                   <Text style={[styles.actionLabel, { color: colors.success }]}>Training</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => router.push('/(tabs)/(compliance)/incidents')}
-                  style={[styles.actionCard, { backgroundColor: colors.errorLight, borderColor: colors.border }]}
+                  style={[styles.actionCard, { backgroundColor: colors.errorLight }, shadows.sm]}
                 >
-                  <Text style={styles.actionIcon}>🛡️</Text>
+                  <Ionicons name="shield-checkmark-outline" size={24} color={colors.error} />
                   <Text style={[styles.actionLabel, { color: colors.error }]}>Incidents</Text>
                 </Pressable>
               </View>
@@ -178,7 +180,7 @@ function ComplianceContent() {
           case 'upcoming':
             return <DocumentRow doc={item.doc} colors={colors} />;
           case 'empty':
-            return <EmptyState title="No Documents" message={item.message} icon="📄" />;
+            return <EmptyState title="No Documents" message={item.message} icon="document-outline" />;
           default:
             return null;
         }
@@ -202,15 +204,14 @@ const styles = StyleSheet.create({
   list: { padding: 16, paddingBottom: 32 },
   summaryCard: {
     flexDirection: 'row',
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
     padding: 16,
     marginBottom: 16,
     alignItems: 'center',
   },
   summaryItem: { flex: 1, alignItems: 'center' },
   summaryValue: { fontSize: 24, fontWeight: '800' },
-  summaryLabel: { fontSize: 11, fontWeight: '500', marginTop: 2 },
+  summaryLabel: { fontSize: 11, fontWeight: '600', marginTop: 2 },
   divider: { width: 1, height: 36 },
   sectionRow: {
     flexDirection: 'row',
@@ -219,19 +220,18 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 8,
   },
-  sectionTitle: { fontSize: 17, fontWeight: '700' },
-  sectionCount: { fontSize: 14, fontWeight: '500' },
-  docRow: { borderRadius: 10, borderWidth: 1, padding: 12, marginBottom: 8 },
+  sectionTitle: { fontSize: 17, fontWeight: '800' },
+  sectionCount: { fontSize: 14, fontWeight: '600' },
+  docRow: { borderRadius: 12, padding: 12, marginBottom: 8 },
   docHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  docName: { fontSize: 15, fontWeight: '600', flex: 1, marginRight: 8 },
+  docName: { fontSize: 15, fontWeight: '700', flex: 1, marginRight: 8 },
   daysBadge: { borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 },
-  daysText: { fontSize: 11, fontWeight: '600' },
+  daysText: { fontSize: 11, fontWeight: '700' },
   docMeta: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  docType: { fontSize: 12, fontWeight: '500', textTransform: 'capitalize' },
+  docType: { fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
   docDate: { fontSize: 12 },
   docLicense: { fontSize: 11, marginTop: 2 },
   actionsRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  actionCard: { flex: 1, borderRadius: 12, borderWidth: 1, padding: 14, alignItems: 'center', gap: 4 },
-  actionIcon: { fontSize: 24 },
-  actionLabel: { fontSize: 12, fontWeight: '600' },
+  actionCard: { flex: 1, borderRadius: 14, padding: 14, alignItems: 'center', gap: 4, minHeight: 48 },
+  actionLabel: { fontSize: 12, fontWeight: '700' },
 });

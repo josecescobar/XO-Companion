@@ -1,9 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useStatus } from '@powersync/react';
+import { usePowerSyncAvailable } from '@/lib/powersync/provider';
 
-export function SyncStatusBar() {
-  const status = useStatus();
+// Dynamically import useStatus — crashes without native modules
+let usePSStatus: any = null;
+try {
+  usePSStatus = require('@powersync/react').useStatus;
+} catch {
+  // PowerSync not available
+}
+
+function SyncStatusBarInner() {
+  const status = usePSStatus!();
 
   if (status.connected) return null;
 
@@ -16,6 +24,14 @@ export function SyncStatusBar() {
       </Text>
     </View>
   );
+}
+
+export function SyncStatusBar() {
+  const psAvailable = usePowerSyncAvailable();
+
+  if (!psAvailable || !usePSStatus) return null;
+
+  return <SyncStatusBarInner />;
 }
 
 const styles = StyleSheet.create({

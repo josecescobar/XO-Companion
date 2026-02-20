@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import type { TextInputProps } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
@@ -7,8 +8,9 @@ interface InputProps extends TextInputProps {
   error?: string;
 }
 
-export function Input({ label, error, style, ...props }: InputProps) {
+export function Input({ label, error, style, onFocus, onBlur, ...props }: InputProps) {
   const { colors } = useTheme();
+  const [focused, setFocused] = useState(false);
 
   return (
     <View>
@@ -19,11 +21,14 @@ export function Input({ label, error, style, ...props }: InputProps) {
           {
             color: colors.text,
             backgroundColor: colors.surface,
-            borderColor: error ? colors.error : colors.border,
+            borderColor: error ? colors.error : focused ? colors.primary : colors.border,
+            borderWidth: focused ? 2 : 1,
           },
           style,
         ]}
         placeholderTextColor={colors.textTertiary}
+        onFocus={(e) => { setFocused(true); onFocus?.(e); }}
+        onBlur={(e) => { setFocused(false); onBlur?.(e); }}
         {...props}
       />
       {error && <Text style={[styles.error, { color: colors.error }]}>{error}</Text>}
@@ -32,13 +37,13 @@ export function Input({ label, error, style, ...props }: InputProps) {
 }
 
 const styles = StyleSheet.create({
-  label: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 6 },
   input: {
-    borderRadius: 8,
-    borderWidth: 1,
+    borderRadius: 10,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     fontSize: 16,
+    minHeight: 48,
   },
-  error: { fontSize: 14, marginTop: 4 },
+  error: { fontSize: 14, marginTop: 4, fontWeight: '500' },
 });

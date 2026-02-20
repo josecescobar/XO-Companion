@@ -1,4 +1,5 @@
 import { View, Text, Image, Pressable, ScrollView, Alert, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useMediaCapture } from '@/hooks/useMediaCapture';
 import { useTheme } from '@/hooks/useTheme';
 import type { MediaAsset } from '@/hooks/useMediaCapture';
@@ -45,21 +46,21 @@ export function MediaAttachmentBar({
           onPress={() => handleCapture('photo')}
           style={[styles.actionBtn, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}
         >
-          <Text style={styles.actionIcon}>📷</Text>
+          <Ionicons name="camera-outline" size={18} color={colors.primary} />
           <Text style={[styles.actionLabel, { color: colors.primary }]}>Photo</Text>
         </Pressable>
         <Pressable
           onPress={() => handleCapture('video')}
           style={[styles.actionBtn, { backgroundColor: colors.warningLight, borderColor: colors.border }]}
         >
-          <Text style={styles.actionIcon}>🎥</Text>
+          <Ionicons name="videocam-outline" size={18} color={colors.warning} />
           <Text style={[styles.actionLabel, { color: colors.warning }]}>Video (10s)</Text>
         </Pressable>
         <Pressable
           onPress={() => handleCapture('library')}
           style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
         >
-          <Text style={styles.actionIcon}>📎</Text>
+          <Ionicons name="attach-outline" size={18} color={colors.textSecondary} />
           <Text style={[styles.actionLabel, { color: colors.textSecondary }]}>Library</Text>
         </Pressable>
       </View>
@@ -85,7 +86,7 @@ export function MediaAttachmentBar({
                 onPress={() => onRemove(index)}
                 style={[styles.removeBtn, { backgroundColor: colors.error }]}
               >
-                <Text style={styles.removeBtnText}>✕</Text>
+                <Ionicons name="close" size={12} color="#fff" />
               </Pressable>
             </View>
           ))}

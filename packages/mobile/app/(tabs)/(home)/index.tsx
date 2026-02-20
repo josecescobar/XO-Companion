@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { useAuthStore } from '@/stores/auth.store';
 import { useProjectsOffline } from '@/hooks/queries/useProjectsOffline';
@@ -19,6 +20,7 @@ import { useCommunicationSummary, useProjectCommunications } from '@/hooks/queri
 import { useUpdateTask } from '@/hooks/mutations/useTaskMutations';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import type { Task } from '@/api/endpoints/tasks';
 import type { CommunicationDetail } from '@/api/endpoints/communications';
 
@@ -111,9 +113,9 @@ export default function DashboardScreen() {
         {projects && projects.length > 0 && (
           <Pressable
             onPress={handleAskXO}
-            style={[styles.askXoBar, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={[styles.askXoBar, shadows.md, { backgroundColor: colors.surface, borderLeftColor: colors.primary }]}
           >
-            <Text style={styles.askXoBarIcon}>🤖</Text>
+            <Ionicons name="sparkles" size={22} color={colors.primary} />
             <Text style={[styles.askXoBarText, { color: colors.textSecondary }]}>
               Ask XO a question...
             </Text>
@@ -154,7 +156,7 @@ export default function DashboardScreen() {
               {attentionInspections > 0 && (
                 <Pressable
                   onPress={() => firstProjectId && router.push(`/(tabs)/(projects)/${firstProjectId}/inspections`)}
-                  style={[styles.attentionBadge, { backgroundColor: '#D97706' }]}
+                  style={[styles.attentionBadge, { backgroundColor: colors.warning }]}
                 >
                   <Text style={styles.attentionBadgeText}>{attentionInspections} Need Attention</Text>
                 </Pressable>
@@ -170,7 +172,7 @@ export default function DashboardScreen() {
               {pendingDrafts > 0 && (
                 <Pressable
                   onPress={() => firstProjectId && router.push(`/(tabs)/(projects)/${firstProjectId}/communications` as any)}
-                  style={[styles.attentionBadge, { backgroundColor: '#2563eb' }]}
+                  style={[styles.attentionBadge, { backgroundColor: colors.primary }]}
                 >
                   <Text style={styles.attentionBadgeText}>{pendingDrafts} Drafts Ready</Text>
                 </Pressable>
@@ -183,30 +185,30 @@ export default function DashboardScreen() {
         <View style={styles.quickActions}>
           <Pressable
             onPress={() => router.push('/(tabs)/(record)')}
-            style={[styles.quickAction, { backgroundColor: colors.primaryLight }]}
+            style={[styles.quickAction, shadows.sm, { backgroundColor: colors.primaryLight }]}
           >
-            <Text style={styles.quickActionIcon}>🎙️</Text>
+            <Ionicons name="mic" size={26} color={colors.primary} />
             <Text style={[styles.quickActionLabel, { color: colors.primary }]}>Record</Text>
           </Pressable>
           <Pressable
             onPress={() => router.push('/(tabs)/(projects)')}
-            style={[styles.quickAction, { backgroundColor: colors.successLight }]}
+            style={[styles.quickAction, shadows.sm, { backgroundColor: colors.successLight }]}
           >
-            <Text style={styles.quickActionIcon}>📋</Text>
+            <Ionicons name="document-text" size={26} color={colors.success} />
             <Text style={[styles.quickActionLabel, { color: colors.success }]}>New Log</Text>
           </Pressable>
           <Pressable
             onPress={() => router.push('/(tabs)/(compliance)/incidents/new' as any)}
-            style={[styles.quickAction, { backgroundColor: colors.errorLight }]}
+            style={[styles.quickAction, shadows.sm, { backgroundColor: colors.errorLight }]}
           >
-            <Text style={styles.quickActionIcon}>🛡️</Text>
+            <Ionicons name="shield-checkmark" size={26} color={colors.error} />
             <Text style={[styles.quickActionLabel, { color: colors.error }]}>Incident</Text>
           </Pressable>
           <Pressable
             onPress={() => router.push('/(tabs)/(reviews)')}
-            style={[styles.quickAction, { backgroundColor: colors.warningLight }]}
+            style={[styles.quickAction, shadows.sm, { backgroundColor: colors.warningLight }]}
           >
-            <Text style={styles.quickActionIcon}>✅</Text>
+            <Ionicons name="checkmark-circle" size={26} color={colors.warning} />
             <Text style={[styles.quickActionLabel, { color: colors.warning }]}>Reviews</Text>
           </Pressable>
         </View>
@@ -225,14 +227,14 @@ export default function DashboardScreen() {
             {todaysTasks.map((task: Task) => (
               <View
                 key={task.id}
-                style={[styles.taskCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                style={[styles.taskCard, shadows.sm, { backgroundColor: colors.surface }]}
               >
                 <View style={[styles.priorityBar, { backgroundColor: priorityColors[task.priority] ?? colors.border }]} />
                 <Pressable
                   onPress={() => handleCompleteTask(task)}
                   style={[styles.checkbox, { borderColor: colors.border }]}
                 >
-                  {task.status === 'COMPLETED' && <Text style={{ color: colors.success }}>✓</Text>}
+                  {task.status === 'COMPLETED' && <Ionicons name="checkmark" size={16} color={colors.success} />}
                 </Pressable>
                 <View style={styles.taskContent}>
                   <Text style={[styles.taskDescription, { color: colors.text }]} numberOfLines={2}>
@@ -244,7 +246,7 @@ export default function DashboardScreen() {
                         Due {format(new Date(task.dueDate), 'MMM d')}
                       </Text>
                     )}
-                    {task.aiGenerated && <Text style={styles.aiIcon}>🤖</Text>}
+                    {task.aiGenerated && <Ionicons name="sparkles" size={14} color={colors.primary} />}
                   </View>
                 </View>
               </View>
@@ -264,16 +266,16 @@ export default function DashboardScreen() {
               ) : null}
             </View>
             {draftComms.slice(0, 3).map((comm: CommunicationDetail) => {
-              const typeIcons: Record<string, string> = {
-                EMAIL: '\u{1F4E7}', TEXT: '\u{1F4AC}', CALL: '\u{1F4DE}', RFI: '\u{2753}', CHANGE_ORDER: '\u{1F504}',
+              const typeIconNames: Record<string, 'mail' | 'chatbubble' | 'call' | 'help-circle' | 'swap-horizontal'> = {
+                EMAIL: 'mail', TEXT: 'chatbubble', CALL: 'call', RFI: 'help-circle', CHANGE_ORDER: 'swap-horizontal',
               };
               return (
                 <Pressable
                   key={comm.id}
                   onPress={() => router.push(`/(tabs)/(projects)/${firstProjectId}/communications/${comm.id}` as any)}
-                  style={[styles.draftCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  style={[styles.draftCard, shadows.sm, { backgroundColor: colors.surface }]}
                 >
-                  <Text style={styles.draftTypeIcon}>{typeIcons[comm.type] ?? '\u{2709}\u{FE0F}'}</Text>
+                  <Ionicons name={typeIconNames[comm.type] ?? 'mail'} size={22} color={colors.primary} />
                   <View style={styles.draftCardContent}>
                     <Text style={[styles.draftSubject, { color: colors.text }]} numberOfLines={1}>{comm.subject}</Text>
                     <Text style={[styles.draftRecipient, { color: colors.textSecondary }]} numberOfLines={1}>To: {comm.recipient}</Text>
@@ -287,19 +289,19 @@ export default function DashboardScreen() {
         {/* Task Summary Stats */}
         {taskSummary && (
           <View style={styles.statsRow}>
-            <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.statCard, shadows.md, { backgroundColor: colors.surface }]}>
               <Text style={[styles.statNumber, { color: colors.primary }]}>{taskSummary.pending}</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Pending</Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.statCard, shadows.md, { backgroundColor: colors.surface }]}>
               <Text style={[styles.statNumber, { color: colors.error }]}>{taskSummary.urgent}</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Urgent</Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.statCard, shadows.md, { backgroundColor: colors.surface }]}>
               <Text style={[styles.statNumber, { color: colors.success }]}>{taskSummary.completedThisWeek}</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Done This Week</Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.statCard, shadows.md, { backgroundColor: colors.surface }]}>
               <Text style={[styles.statNumber, { color: colors.warning }]}>{taskSummary.overdue}</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Overdue</Text>
             </View>
@@ -315,7 +317,7 @@ export default function DashboardScreen() {
                 <Pressable
                   key={project.id}
                   onPress={() => router.push(`/(tabs)/(projects)/${project.id}`)}
-                  style={[styles.projectCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  style={[styles.projectCard, shadows.md, { backgroundColor: colors.surface }]}
                 >
                   <Text style={[styles.projectName, { color: colors.text }]} numberOfLines={1}>
                     {project.name}
@@ -398,109 +400,101 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 32 },
   header: { marginBottom: 20 },
-  greeting: { fontSize: 24, fontWeight: '700' },
-  date: { fontSize: 15, marginTop: 4 },
+  greeting: { fontSize: 28, fontWeight: '800' },
+  date: { fontSize: 15, marginTop: 4, fontWeight: '500' },
   // Attention card
-  attentionCard: { borderRadius: 12, padding: 16, marginBottom: 16 },
-  attentionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 10 },
+  attentionCard: { borderRadius: 14, padding: 16, marginBottom: 16 },
+  attentionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 10 },
   attentionBadges: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  attentionBadge: { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
-  attentionBadgeText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  attentionBadge: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
+  attentionBadgeText: { color: '#fff', fontSize: 13, fontWeight: '700' },
   // Quick actions
   quickActions: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  quickAction: { flex: 1, borderRadius: 12, padding: 14, alignItems: 'center', gap: 6 },
-  quickActionIcon: { fontSize: 24 },
-  quickActionLabel: { fontSize: 12, fontWeight: '600' },
+  quickAction: { flex: 1, borderRadius: 14, padding: 14, alignItems: 'center', gap: 8, minHeight: 64 },
+  quickActionLabel: { fontSize: 12, fontWeight: '700' },
   // Sections
-  section: { marginBottom: 20 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 10 },
-  viewAll: { fontSize: 14, fontWeight: '500' },
+  section: { marginBottom: 24 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  sectionTitle: { fontSize: 20, fontWeight: '800', marginBottom: 12 },
+  viewAll: { fontSize: 14, fontWeight: '600' },
   // Task cards
   taskCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 10,
-    borderWidth: 1,
-    marginBottom: 8,
+    borderRadius: 12,
+    marginBottom: 10,
     overflow: 'hidden',
   },
-  priorityBar: { width: 4, alignSelf: 'stretch' },
+  priorityBar: { width: 6, alignSelf: 'stretch' },
   checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 12,
   },
-  taskContent: { flex: 1, paddingVertical: 12, paddingRight: 12 },
-  taskDescription: { fontSize: 15, fontWeight: '500' },
+  taskContent: { flex: 1, paddingVertical: 14, paddingRight: 14 },
+  taskDescription: { fontSize: 15, fontWeight: '600' },
   taskMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  taskMetaText: { fontSize: 12 },
-  aiIcon: { fontSize: 14 },
+  taskMetaText: { fontSize: 12, fontWeight: '500' },
   // Stats row
-  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
+  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 24 },
   statCard: {
     flex: 1,
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 12,
+    borderRadius: 12,
+    padding: 14,
     alignItems: 'center',
   },
-  statNumber: { fontSize: 22, fontWeight: '700' },
-  statLabel: { fontSize: 11, fontWeight: '500', marginTop: 2, textAlign: 'center' },
+  statNumber: { fontSize: 26, fontWeight: '700' },
+  statLabel: { fontSize: 11, fontWeight: '600', marginTop: 4, textAlign: 'center' },
   // Projects
-  projectScroll: { gap: 10 },
+  projectScroll: { gap: 12 },
   projectCard: {
-    width: 160,
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 14,
+    width: 170,
+    borderRadius: 14,
+    padding: 16,
   },
-  projectName: { fontSize: 15, fontWeight: '600' },
-  projectCode: { fontSize: 12, marginTop: 2 },
+  projectName: { fontSize: 15, fontWeight: '700' },
+  projectCode: { fontSize: 12, marginTop: 2, fontWeight: '500' },
   projectStats: { flexDirection: 'row', gap: 8, marginTop: 10 },
-  projectStat: { fontSize: 11 },
+  projectStat: { fontSize: 11, fontWeight: '500' },
   // Activity
   activityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     gap: 10,
   },
-  activityDot: { width: 8, height: 8, borderRadius: 4 },
+  activityDot: { width: 10, height: 10, borderRadius: 5 },
   activityContent: { flex: 1 },
-  activityText: { fontSize: 14 },
+  activityText: { fontSize: 14, fontWeight: '500' },
   activityTime: { fontSize: 12, marginTop: 2 },
   emptyText: { fontSize: 14, textAlign: 'center', paddingVertical: 16 },
   // Draft cards
   draftCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 12,
-    marginBottom: 8,
-    gap: 10,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    gap: 12,
   },
-  draftTypeIcon: { fontSize: 20 },
   draftCardContent: { flex: 1 },
-  draftSubject: { fontSize: 14, fontWeight: '600' },
+  draftSubject: { fontSize: 14, fontWeight: '700' },
   draftRecipient: { fontSize: 12, marginTop: 2 },
   // Ask XO bar
   askXoBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 14,
-    gap: 10,
+    borderRadius: 14,
+    borderLeftWidth: 3,
+    padding: 16,
+    gap: 12,
     marginBottom: 16,
   },
-  askXoBarIcon: { fontSize: 20 },
   askXoBarText: { fontSize: 16, fontWeight: '500' },
   // Project picker
   pickerOverlay: {
@@ -512,9 +506,9 @@ const styles = StyleSheet.create({
   pickerSheet: { borderRadius: 16, padding: 20, gap: 8 },
   pickerTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
   pickerItem: {
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    padding: 14,
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

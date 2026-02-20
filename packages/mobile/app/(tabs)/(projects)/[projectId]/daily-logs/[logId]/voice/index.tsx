@@ -6,6 +6,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/ui/Badge';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 
 const statusVariant: Record<string, 'default' | 'info' | 'success' | 'warning' | 'error'> = {
   UPLOADING: 'info',
@@ -38,7 +39,7 @@ export default function VoiceNotesScreen() {
               )
             }
           >
-            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.card, shadows.md, { backgroundColor: colors.surface }]}>
               <View style={styles.row}>
                 <Text style={[styles.duration, { color: colors.text }]}>
                   {item.durationSeconds
@@ -54,7 +55,7 @@ export default function VoiceNotesScreen() {
           </Pressable>
         )}
         ListEmptyComponent={
-          <EmptyState title="No Voice Notes" message="Record a voice note to get started." icon="🎙️" />
+          <EmptyState title="No Voice Notes" message="Record a voice note to get started." icon="mic-outline" />
         }
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
@@ -66,10 +67,10 @@ export default function VoiceNotesScreen() {
 const styles = StyleSheet.create({
   list: { padding: 16, flexGrow: 1 },
   card: {
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
     padding: 16,
     marginBottom: 8,
+    minHeight: 48,
   },
   row: {
     flexDirection: 'row',

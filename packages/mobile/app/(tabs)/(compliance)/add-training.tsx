@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useCreateTraining } from '@/hooks/mutations/useCrudMutations';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 
 const TRAINING_TYPES = [
   { label: 'OSHA 10', value: 'OSHA_10' },
@@ -119,7 +120,7 @@ export default function AddTrainingScreen() {
             {Platform.OS === 'android' && (
               <Pressable
                 onPress={() => setShowCompletedPicker(true)}
-                style={[styles.dateButton, { borderColor: colors.border, backgroundColor: colors.surface }]}
+                style={[styles.dateButton, { backgroundColor: colors.surface }, shadows.sm]}
               >
                 <Text style={[styles.dateText, { color: colors.text }]}>
                   {format(completedDate, 'MMM d, yyyy')}
@@ -145,7 +146,7 @@ export default function AddTrainingScreen() {
             <Text style={[styles.label, { color: colors.textSecondary }]}>Expiration Date</Text>
             <Pressable
               onPress={() => setShowExpPicker(true)}
-              style={[styles.dateButton, { borderColor: colors.border, backgroundColor: colors.surface }]}
+              style={[styles.dateButton, { backgroundColor: colors.surface }, shadows.sm]}
             >
               <Text style={[styles.dateText, { color: expirationDate ? colors.text : colors.textTertiary }]}>
                 {expirationDate ? format(expirationDate, 'MMM d, yyyy') : 'Not set'}
@@ -181,10 +182,10 @@ export default function AddTrainingScreen() {
 const styles = StyleSheet.create({
   content: { padding: 16, gap: 16, paddingBottom: 40 },
   field: { gap: 4 },
-  label: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
   chipRow: { gap: 8, paddingVertical: 4 },
-  chip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
-  chipText: { fontSize: 13, fontWeight: '500' },
-  dateButton: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 12 },
+  chip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, minHeight: 44, justifyContent: 'center' },
+  chipText: { fontSize: 13, fontWeight: '600' },
+  dateButton: { borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, minHeight: 48 },
   dateText: { fontSize: 16 },
 });

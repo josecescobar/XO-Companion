@@ -5,6 +5,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import type { RiskAlert } from '@/api/endpoints/analytics';
 
 function severityColor(severity: string, colors: any) {
@@ -35,7 +36,7 @@ function riskColor(level: string, colors: any) {
 
 function StatBox({ label, value, color, colors }: { label: string; value: string | number; color?: string; colors: any }) {
   return (
-    <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <View style={[styles.statBox, { backgroundColor: colors.surface }, shadows.md]}>
       <Text style={[styles.statBoxValue, { color: color ?? colors.text }]}>{value}</Text>
       <Text style={[styles.statBoxLabel, { color: colors.textSecondary }]}>{label}</Text>
     </View>
@@ -45,7 +46,7 @@ function StatBox({ label, value, color, colors }: { label: string; value: string
 function AlertRow({ alert, colors }: { alert: RiskAlert; colors: any }) {
   const sc = severityColor(alert.severity, colors);
   return (
-    <View style={[styles.alertRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <View style={[styles.alertRow, { backgroundColor: colors.surface }, shadows.md]}>
       <View style={styles.alertHeader}>
         <View style={[styles.severityBadge, { backgroundColor: sc.bg }]}>
           <Text style={[styles.severityText, { color: sc.text }]}>{alert.severity}</Text>
@@ -91,7 +92,7 @@ export default function AnalyticsDashboardScreen() {
 
         {/* Safety Score */}
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Safety</Text>
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.card, { backgroundColor: colors.surface }, shadows.md]}>
           <View style={styles.safetyRow}>
             <View style={styles.scoreCircle}>
               <Text style={[styles.scoreValue, { color: safetyScore.score >= 60 ? colors.success : colors.error }]}>
@@ -118,7 +119,7 @@ export default function AnalyticsDashboardScreen() {
 
         {/* Delay Analysis */}
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Delays</Text>
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.card, { backgroundColor: colors.surface }, shadows.md]}>
           <View style={styles.rowBetween}>
             <Text style={[styles.cardStat, { color: colors.text }]}>{delayAnalysis.totalHours}h total</Text>
             <Text style={[styles.trendText, { color: colors.textSecondary }]}>{trendLabel(delayAnalysis.trend)}</Text>
@@ -141,7 +142,7 @@ export default function AnalyticsDashboardScreen() {
 
         {/* Workforce Trend */}
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Workforce</Text>
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.card, { backgroundColor: colors.surface }, shadows.md]}>
           <View style={styles.rowBetween}>
             <View>
               <Text style={[styles.cardStat, { color: colors.text }]}>{workforceTrend.currentAvg} avg/day</Text>
@@ -167,7 +168,7 @@ export default function AnalyticsDashboardScreen() {
 
         {/* Schedule Risk */}
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Schedule Risk</Text>
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.card, { backgroundColor: colors.surface }, shadows.md]}>
           <View style={styles.rowBetween}>
             <View>
               <Text style={[styles.cardStat, { color: colors.text }]}>{scheduleRisk.totalDelayHours}h cumulative delay</Text>
@@ -191,7 +192,7 @@ export default function AnalyticsDashboardScreen() {
         {activeAlerts.length > 0 ? (
           activeAlerts.map((alert) => <AlertRow key={alert.id} alert={alert} colors={colors} />)
         ) : (
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.card, { backgroundColor: colors.surface }, shadows.md]}>
             <Text style={[styles.noData, { color: colors.textTertiary }]}>No active alerts</Text>
           </View>
         )}
@@ -203,42 +204,41 @@ export default function AnalyticsDashboardScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 16, paddingBottom: 32 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', marginTop: 16, marginBottom: 8 },
+  sectionTitle: { fontSize: 18, fontWeight: '800', marginTop: 16, marginBottom: 8 },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   statBox: {
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 12,
     padding: 12,
     minWidth: '30%',
     flexGrow: 1,
     alignItems: 'center',
   },
-  statBoxValue: { fontSize: 20, fontWeight: '700' },
-  statBoxLabel: { fontSize: 11, fontWeight: '500', marginTop: 2 },
-  card: { borderRadius: 12, borderWidth: 1, padding: 14, marginBottom: 4 },
+  statBoxValue: { fontSize: 20, fontWeight: '800' },
+  statBoxLabel: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+  card: { borderRadius: 14, padding: 14, marginBottom: 4 },
   safetyRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   scoreCircle: { alignItems: 'center' },
   scoreValue: { fontSize: 32, fontWeight: '800' },
   scoreMax: { fontSize: 14 },
   safetyDetails: { flex: 1, gap: 2 },
   detailRow: { fontSize: 14 },
-  trendText: { fontSize: 13, fontWeight: '500', marginTop: 4 },
+  trendText: { fontSize: 13, fontWeight: '600', marginTop: 4 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardStat: { fontSize: 16, fontWeight: '600' },
+  cardStat: { fontSize: 16, fontWeight: '700' },
   subStat: { fontSize: 13, marginTop: 2 },
   categoryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, marginTop: 4 },
   categoryName: { fontSize: 14, textTransform: 'capitalize' },
-  categoryValue: { fontSize: 14, fontWeight: '500' },
+  categoryValue: { fontSize: 14, fontWeight: '600' },
   tradeList: { marginTop: 8, borderTopWidth: 1, borderTopColor: '#e2e8f020', paddingTop: 4 },
   riskBadge: { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
   riskText: { fontSize: 12, fontWeight: '700' },
   impactText: { fontSize: 13, marginTop: 8 },
   noData: { fontSize: 14, textAlign: 'center', paddingVertical: 8 },
-  alertRow: { borderRadius: 10, borderWidth: 1, padding: 12, marginBottom: 8 },
+  alertRow: { borderRadius: 12, padding: 12, marginBottom: 8 },
   alertHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   severityBadge: { borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 },
   severityText: { fontSize: 10, fontWeight: '700' },
-  alertType: { fontSize: 11, fontWeight: '500', textTransform: 'capitalize' },
-  alertTitle: { fontSize: 15, fontWeight: '600', marginBottom: 2 },
+  alertType: { fontSize: 11, fontWeight: '600', textTransform: 'capitalize' },
+  alertTitle: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
   alertDesc: { fontSize: 13 },
 });

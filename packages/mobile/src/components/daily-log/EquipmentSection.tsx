@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import type { EquipmentEntry } from '@/api/endpoints/daily-logs';
 
@@ -28,10 +29,10 @@ export function EquipmentSection({ entries, editable, onEdit, onDelete, onAdd }:
               {editable && (
                 <View style={styles.editActions}>
                   <Pressable onPress={() => onEdit?.(e)} hitSlop={8}>
-                    <Text style={{ color: colors.primary, fontSize: 16 }}>✏️</Text>
+                    <Ionicons name="create-outline" size={18} color={colors.primary} />
                   </Pressable>
                   <Pressable onPress={() => onDelete?.(e.id)} hitSlop={8}>
-                    <Text style={{ color: colors.error, fontSize: 16 }}>🗑️</Text>
+                    <Ionicons name="trash-outline" size={18} color={colors.error} />
                   </Pressable>
                 </View>
               )}

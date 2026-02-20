@@ -16,6 +16,7 @@ import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/ui/Badge';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import { format } from 'date-fns';
 import type { Incident } from '@/api/endpoints/compliance-extended';
 
@@ -83,7 +84,7 @@ export default function IncidentsScreen() {
           <EmptyState
             title="No Incidents"
             message={recordableFilter !== undefined ? 'No matching incidents found.' : 'No incidents have been reported.'}
-            icon="🛡️"
+            icon="shield-checkmark-outline"
           />
         }
         contentContainerStyle={styles.list}
@@ -95,7 +96,7 @@ export default function IncidentsScreen() {
 
 function IncidentRow({ incident, colors }: { incident: Incident; colors: any }) {
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <View style={[styles.card, { backgroundColor: colors.surface }, shadows.md]}>
       <View style={styles.cardHeader}>
         <Text style={[styles.employeeName, { color: colors.text }]} numberOfLines={1}>
           {incident.employeeName}
@@ -133,16 +134,16 @@ function IncidentRow({ incident, colors }: { incident: Incident; colors: any }) 
 const styles = StyleSheet.create({
   filterContainer: { paddingHorizontal: 16, paddingVertical: 8 },
   filterRow: { gap: 8 },
-  filterChip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
-  filterText: { fontSize: 13, fontWeight: '500' },
+  filterChip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, minHeight: 44, justifyContent: 'center' },
+  filterText: { fontSize: 13, fontWeight: '600' },
   list: { padding: 16, paddingTop: 0, gap: 8 },
-  addButton: { borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 8 },
-  addButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  card: { borderRadius: 12, borderWidth: 1, padding: 14 },
+  addButton: { borderRadius: 14, padding: 14, alignItems: 'center', marginBottom: 8, minHeight: 48 },
+  addButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  card: { borderRadius: 14, padding: 14 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  employeeName: { fontSize: 16, fontWeight: '600', flex: 1, marginRight: 8 },
+  employeeName: { fontSize: 16, fontWeight: '700', flex: 1, marginRight: 8 },
   date: { fontSize: 13, marginBottom: 6 },
   description: { fontSize: 14 },
   daysRow: { flexDirection: 'row', gap: 12, marginTop: 8 },
-  daysBadge: { fontSize: 12, fontWeight: '600' },
+  daysBadge: { fontSize: 12, fontWeight: '700' },
 });

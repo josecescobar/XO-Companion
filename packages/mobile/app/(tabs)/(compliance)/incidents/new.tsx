@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { useCreateIncident } from '@/hooks/mutations/useCrudMutations';
 import { useProjects } from '@/hooks/queries/useProjects';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import { MediaAttachmentBar } from '@/components/media/MediaAttachmentBar';
 import { MediaPreviewModal } from '@/components/media/MediaPreviewModal';
 import { uploadMedia } from '@/api/endpoints/media';
@@ -113,7 +114,7 @@ export default function CreateIncidentScreen() {
             {Platform.OS === 'android' && (
               <Pressable
                 onPress={() => setShowDatePicker(true)}
-                style={[styles.dateButton, { borderColor: colors.border, backgroundColor: colors.surface }]}
+                style={[styles.dateButton, { backgroundColor: colors.surface }, shadows.sm]}
               >
                 <Text style={[styles.dateText, { color: colors.text }]}>
                   {format(incidentDate, 'MMM d, yyyy')}
@@ -202,7 +203,7 @@ export default function CreateIncidentScreen() {
           <Input label="Nature of Injury" placeholder="e.g. Laceration" value={natureOfInjury} onChangeText={setNatureOfInjury} />
 
           {/* OSHA Recordable */}
-          <View style={[styles.switchRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.switchRow, { backgroundColor: colors.surface }, shadows.md]}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.switchLabel, { color: colors.text }]}>OSHA Recordable</Text>
               <Text style={[styles.switchSub, { color: colors.textSecondary }]}>
@@ -274,20 +275,19 @@ export default function CreateIncidentScreen() {
 const styles = StyleSheet.create({
   content: { padding: 16, gap: 16, paddingBottom: 40 },
   field: { gap: 4 },
-  label: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
   row: { flexDirection: 'row', gap: 12 },
   chipRow: { gap: 8, paddingVertical: 4 },
-  chip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
-  chipText: { fontSize: 13, fontWeight: '500' },
-  dateButton: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 12 },
+  chip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, minHeight: 44, justifyContent: 'center' },
+  chipText: { fontSize: 13, fontWeight: '600' },
+  dateButton: { borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, minHeight: 48 },
   dateText: { fontSize: 16 },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
     padding: 14,
   },
-  switchLabel: { fontSize: 16, fontWeight: '600' },
+  switchLabel: { fontSize: 16, fontWeight: '700' },
   switchSub: { fontSize: 12, marginTop: 4 },
 });

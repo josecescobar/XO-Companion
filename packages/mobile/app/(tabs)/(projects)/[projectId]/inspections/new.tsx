@@ -11,22 +11,24 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useMediaCapture } from '@/hooks/useMediaCapture';
 import { useProjectDocuments } from '@/hooks/queries/useDocuments';
 import { useDailyLogs } from '@/hooks/queries/useDailyLogs';
 import { useCreateInspection } from '@/hooks/mutations/useInspectionMutations';
 import { uploadMedia } from '@/api/endpoints/media';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import type { MediaAsset } from '@/hooks/useMediaCapture';
 import type { InspectionType } from '@/api/endpoints/inspections';
 
-const INSPECTION_TYPES: { key: InspectionType; label: string; icon: string }[] = [
-  { key: 'DRAWING_COMPARISON', label: 'Drawing', icon: '\u{1F4D0}' },
-  { key: 'SPEC_COMPLIANCE', label: 'Spec', icon: '\u{1F4CB}' },
-  { key: 'SAFETY_CHECK', label: 'Safety', icon: '\u{1F6E1}' },
-  { key: 'QUALITY_CHECK', label: 'Quality', icon: '\u{2705}' },
-  { key: 'PROGRESS_PHOTO', label: 'Progress', icon: '\u{1F4F8}' },
-  { key: 'GENERAL', label: 'General', icon: '\u{1F50D}' },
+const INSPECTION_TYPES: { key: InspectionType; label: string; icon: React.ComponentProps<typeof Ionicons>['name'] }[] = [
+  { key: 'DRAWING_COMPARISON', label: 'Drawing', icon: 'pencil-outline' },
+  { key: 'SPEC_COMPLIANCE', label: 'Spec', icon: 'document-text-outline' },
+  { key: 'SAFETY_CHECK', label: 'Safety', icon: 'shield-checkmark-outline' },
+  { key: 'QUALITY_CHECK', label: 'Quality', icon: 'checkmark-circle-outline' },
+  { key: 'PROGRESS_PHOTO', label: 'Progress', icon: 'camera-outline' },
+  { key: 'GENERAL', label: 'General', icon: 'search-outline' },
 ];
 
 const CATEGORY_MAP: Record<string, string | undefined> = {
@@ -125,14 +127,17 @@ export default function NewInspectionScreen() {
               onPress={handleTakePhoto}
               style={[styles.captureButton, { backgroundColor: colors.primary }]}
             >
-              <Text style={styles.captureIcon}>{'\u{1F4F7}'}</Text>
+              <Ionicons name="camera-outline" size={40} color="#fff" />
               <Text style={styles.captureText}>Take Photo of Work</Text>
             </Pressable>
             <Pressable
               onPress={handlePickFromLibrary}
-              style={[styles.libraryButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              style={[styles.libraryButton, shadows.sm, { backgroundColor: colors.surface }]}
             >
-              <Text style={[styles.libraryText, { color: colors.textSecondary }]}>{'\u{1F4CE}'} Pick from Library</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons name="images-outline" size={18} color={colors.textSecondary} />
+                <Text style={[styles.libraryText, { color: colors.textSecondary }]}>Pick from Library</Text>
+              </View>
             </Pressable>
           </View>
         )}
@@ -157,7 +162,7 @@ export default function NewInspectionScreen() {
                 },
               ]}
             >
-              <Text style={styles.typeIcon}>{t.icon}</Text>
+              <Ionicons name={t.icon} size={16} color={inspectionType === t.key ? '#fff' : colors.text} />
               <Text style={[styles.typeLabel, { color: inspectionType === t.key ? '#fff' : colors.text }]}>
                 {t.label}
               </Text>
@@ -170,7 +175,7 @@ export default function NewInspectionScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>TITLE *</Text>
         <TextInput
-          style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
+          style={[styles.input, shadows.sm, { backgroundColor: colors.surface, color: colors.text }]}
           placeholder="e.g. Foundation wall east elevation"
           placeholderTextColor={colors.textTertiary}
           value={title}
@@ -182,7 +187,7 @@ export default function NewInspectionScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>DESCRIPTION</Text>
         <TextInput
-          style={[styles.input, styles.multilineInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
+          style={[styles.input, styles.multilineInput, shadows.sm, { backgroundColor: colors.surface, color: colors.text }]}
           placeholder="Add details about what you're inspecting..."
           placeholderTextColor={colors.textTertiary}
           value={description}
@@ -289,7 +294,10 @@ export default function NewInspectionScreen() {
             <Text style={styles.submitText}>{submitStatus}</Text>
           </View>
         ) : (
-          <Text style={styles.submitText}>{'\u{1F50D}'} Run AI Inspection</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Ionicons name="search-outline" size={20} color="#fff" />
+            <Text style={styles.submitText}>Run AI Inspection</Text>
+          </View>
         )}
       </Pressable>
 
@@ -302,7 +310,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 16 },
   section: { marginBottom: 20 },
-  sectionLabel: { fontSize: 12, fontWeight: '700', marginBottom: 8, letterSpacing: 0.5 },
+  sectionLabel: { fontSize: 12, fontWeight: '800', marginBottom: 8, letterSpacing: 0.5 },
   // Photo
   captureArea: { gap: 10 },
   captureButton: {
@@ -312,18 +320,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  captureIcon: { fontSize: 40 },
+  // captureIcon handled by Ionicons inline
   captureText: { color: '#fff', fontSize: 18, fontWeight: '700' },
   libraryButton: {
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 12,
     padding: 12,
+    minHeight: 48,
     alignItems: 'center',
+    justifyContent: 'center' as const,
   },
-  libraryText: { fontSize: 15, fontWeight: '500' },
+  libraryText: { fontSize: 15, fontWeight: '600' },
   photoPreview: { width: '100%', height: 200, borderRadius: 14, resizeMode: 'cover' },
-  retakeBtn: { position: 'absolute', top: 10, right: 10, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
-  retakeBtnText: { fontSize: 14, fontWeight: '600' },
+  retakeBtn: { position: 'absolute', top: 10, right: 10, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, minHeight: 44, justifyContent: 'center' as const },
+  retakeBtnText: { fontSize: 14, fontWeight: '700' },
   // Type chips
   typeRow: { gap: 8 },
   typeChip: {
@@ -333,14 +342,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 10,
+    minHeight: 44,
   },
-  typeIcon: { fontSize: 16 },
-  typeLabel: { fontSize: 14, fontWeight: '600' },
+  typeLabel: { fontSize: 14, fontWeight: '700' },
   // Inputs
   input: {
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 12,
     padding: 14,
     fontSize: 16,
   },
@@ -348,19 +356,23 @@ const styles = StyleSheet.create({
   // Documents
   docRow: { gap: 8 },
   docChip: {
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 10,
     maxWidth: 180,
+    minHeight: 44,
+    justifyContent: 'center' as const,
   },
-  docChipText: { fontSize: 14, fontWeight: '500' },
+  docChipText: { fontSize: 14, fontWeight: '600' },
   hint: { fontSize: 12, marginTop: 6 },
   // Submit
   submitBtn: {
     borderRadius: 14,
     padding: 16,
+    minHeight: 48,
     alignItems: 'center',
+    justifyContent: 'center' as const,
     marginTop: 8,
   },
   submitRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },

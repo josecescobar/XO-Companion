@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useCreateDailyLog } from '@/hooks/mutations/useCreateDailyLog';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 
 export default function CreateDailyLogScreen() {
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
@@ -66,7 +67,7 @@ export default function CreateDailyLogScreen() {
             {Platform.OS === 'android' && (
               <Pressable
                 onPress={() => setShowDatePicker(true)}
-                style={[styles.dateButton, { borderColor: colors.border, backgroundColor: colors.surface }]}
+                style={[styles.dateButton, shadows.sm, { backgroundColor: colors.surface }]}
               >
                 <Text style={[styles.dateText, { color: colors.text }]}>
                   {format(logDate, 'EEEE, MMM d, yyyy')}
@@ -115,12 +116,13 @@ export default function CreateDailyLogScreen() {
 const styles = StyleSheet.create({
   content: { padding: 16, gap: 24 },
   field: { gap: 4 },
-  label: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
   dateButton: {
-    borderRadius: 8,
-    borderWidth: 1,
+    borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
+    minHeight: 48,
+    justifyContent: 'center' as const,
   },
   dateText: { fontSize: 16 },
   notesInput: { minHeight: 100 },

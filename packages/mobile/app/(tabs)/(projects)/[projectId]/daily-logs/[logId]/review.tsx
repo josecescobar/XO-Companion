@@ -45,7 +45,7 @@ export default function LogReviewScreen() {
           ) : null
         }
         ListEmptyComponent={
-          <EmptyState title="All Reviewed" message="No pending items for this log." icon="✅" />
+          <EmptyState title="All Reviewed" message="No pending items for this log." icon="checkmark-circle-outline" />
         }
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}

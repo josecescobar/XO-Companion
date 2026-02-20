@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { CollapsibleSection } from '@/components/daily-log/CollapsibleSection';
 import { ExtractedDataSections } from '@/components/voice-note/ExtractedDataSections';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 
@@ -85,7 +86,7 @@ export default function VoiceNoteDetailScreen() {
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
         {/* Audio Info Header */}
-        <View style={[styles.infoCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.infoCard, shadows.md, { backgroundColor: colors.surface }]}>
           <View style={styles.row}>
             <Text style={[styles.duration, { color: colors.text }]}>{formattedDuration}</Text>
             <Badge
@@ -164,8 +165,7 @@ export default function VoiceNoteDetailScreen() {
 const styles = StyleSheet.create({
   content: { padding: 16 },
   infoCard: {
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
     padding: 16,
     marginBottom: 12,
   },
@@ -180,18 +180,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 16,
     marginBottom: 12,
   },
-  processingText: { fontSize: 14, fontWeight: '500' },
+  processingText: { fontSize: 14, fontWeight: '600' },
   errorCard: {
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 16,
     marginBottom: 12,
     gap: 8,
   },
-  errorTitle: { fontSize: 16, fontWeight: '600' },
+  errorTitle: { fontSize: 16, fontWeight: '700' },
   errorMessage: { fontSize: 14 },
   transcriptText: { fontSize: 15, lineHeight: 22 },
   appliedBanner: {

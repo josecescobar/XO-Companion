@@ -8,6 +8,7 @@ import {
   Alert,
   StyleSheet,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -158,7 +159,7 @@ export function DocumentUploadModal({
               </View>
             ) : (
               <View style={styles.filePrompt}>
-                <Text style={styles.filePromptIcon}>📄</Text>
+                <Ionicons name="document-outline" size={36} color={colors.textTertiary} />
                 <Text
                   style={[styles.filePromptText, { color: colors.textSecondary }]}
                 >
@@ -255,26 +256,25 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 12,
   },
-  headerTitle: { fontSize: 20, fontWeight: '700' },
-  cancelText: { fontSize: 16, fontWeight: '500' },
+  headerTitle: { fontSize: 20, fontWeight: '800' },
+  cancelText: { fontSize: 16, fontWeight: '600' },
   content: { padding: 16, gap: 16, paddingBottom: 40 },
   filePicker: {
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderRadius: 12,
-    padding: 24,
+    borderRadius: 14,
+    padding: 28,
     alignItems: 'center',
   },
-  fileInfo: { alignItems: 'center', gap: 4 },
-  fileName: { fontSize: 16, fontWeight: '600', textAlign: 'center' },
-  fileSize: { fontSize: 14 },
-  filePrompt: { alignItems: 'center', gap: 8 },
-  filePromptIcon: { fontSize: 32 },
-  filePromptText: { fontSize: 16, fontWeight: '500' },
-  filePromptHint: { fontSize: 13 },
+  fileInfo: { alignItems: 'center', gap: 6 },
+  fileName: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
+  fileSize: { fontSize: 14, fontWeight: '500' },
+  filePrompt: { alignItems: 'center', gap: 10 },
+  filePromptText: { fontSize: 16, fontWeight: '600' },
+  filePromptHint: { fontSize: 13, fontWeight: '500' },
   field: { gap: 4 },
-  label: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
   chipRow: { gap: 8, paddingVertical: 4 },
-  chip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
-  chipText: { fontSize: 13, fontWeight: '500' },
+  chip: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, minHeight: 40, justifyContent: 'center' },
+  chipText: { fontSize: 13, fontWeight: '600' },
 });

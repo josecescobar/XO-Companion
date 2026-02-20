@@ -8,6 +8,7 @@ import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Badge } from '@/components/ui/Badge';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import { format } from 'date-fns';
 import type { TrainingRecord } from '@/api/endpoints/compliance';
 
@@ -26,7 +27,7 @@ export default function TrainingScreen() {
         data={data}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.card, { backgroundColor: colors.surface }, shadows.md]}>
             <View style={styles.cardHeader}>
               <Text style={[styles.employeeName, { color: colors.text }]}>{item.employeeName}</Text>
               <Badge label={item.trainingType.replace(/_/g, ' ')} variant="info" />
@@ -59,7 +60,7 @@ export default function TrainingScreen() {
           </Pressable>
         }
         ListEmptyComponent={
-          <EmptyState title="No Training Records" message="No training records have been added yet." icon="📋" />
+          <EmptyState title="No Training Records" message="No training records have been added yet." icon="school-outline" />
         }
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
@@ -70,11 +71,11 @@ export default function TrainingScreen() {
 
 const styles = StyleSheet.create({
   list: { padding: 16, gap: 8 },
-  addButton: { borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 8 },
-  addButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  card: { borderRadius: 12, borderWidth: 1, padding: 14 },
+  addButton: { borderRadius: 14, padding: 14, alignItems: 'center', marginBottom: 8, minHeight: 48 },
+  addButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  card: { borderRadius: 14, padding: 14 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  employeeName: { fontSize: 16, fontWeight: '600', flex: 1, marginRight: 8 },
+  employeeName: { fontSize: 16, fontWeight: '700', flex: 1, marginRight: 8 },
   topic: { fontSize: 14, marginBottom: 6 },
   meta: { flexDirection: 'row', gap: 16 },
   metaText: { fontSize: 12 },

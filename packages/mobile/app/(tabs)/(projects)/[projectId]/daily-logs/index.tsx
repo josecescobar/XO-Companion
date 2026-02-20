@@ -8,6 +8,7 @@ import { ErrorState } from '@/components/common/ErrorState';
 import { EmptyState } from '@/components/common/EmptyState';
 import { StatusChip } from '@/components/ui/StatusChip';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import { format } from 'date-fns';
 
 const STATUS_FILTERS = [
@@ -49,7 +50,7 @@ export default function DailyLogsListScreen() {
               styles.filterChip,
               statusFilter === filter.value
                 ? [styles.filterSelected, { backgroundColor: colors.primary }]
-                : [styles.filterDefault, { backgroundColor: colors.surface, borderColor: colors.border }],
+                : [styles.filterDefault, shadows.sm, { backgroundColor: colors.surface }],
             ]}
           >
             <Text
@@ -78,7 +79,7 @@ export default function DailyLogsListScreen() {
               )
             }
           >
-            <View style={[styles.logCard, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+            <View style={[styles.logCard, shadows.md, { backgroundColor: colors.surface }]}>
               <View style={styles.logHeader}>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.logDate, { color: colors.text }]}>
@@ -116,7 +117,7 @@ export default function DailyLogsListScreen() {
                 ? `No logs with status "${statusFilter}"`
                 : 'No daily logs have been created yet.'
             }
-            icon="📋"
+            icon="document-text-outline"
           />
         }
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
@@ -140,15 +141,14 @@ export default function DailyLogsListScreen() {
 const styles = StyleSheet.create({
   filterContainer: { flexShrink: 0, paddingHorizontal: 16, paddingVertical: 12 },
   filterRow: { gap: 8 },
-  filterChip: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
+  filterChip: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, minHeight: 44, justifyContent: 'center' as const },
   filterSelected: {},
-  filterDefault: { borderWidth: 1 },
-  filterText: { fontSize: 14, fontWeight: '500' },
+  filterDefault: {},
+  filterText: { fontSize: 14, fontWeight: '600' },
   filterTextSelected: { color: '#ffffff' },
   filterTextDefault: {},
   logCard: {
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
     padding: 16,
     marginBottom: 8,
   },
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  logDate: { fontSize: 16, fontWeight: '600' },
+  logDate: { fontSize: 16, fontWeight: '700' },
   logAuthor: { fontSize: 13, marginTop: 2 },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 12 },
   stat: { fontSize: 13 },
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   fabText: {
     fontSize: 28,
     color: '#ffffff',
-    fontWeight: '600',
+    fontWeight: '700',
     lineHeight: 30,
   },
 });

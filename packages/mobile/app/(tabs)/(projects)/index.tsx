@@ -18,7 +18,7 @@ export default function ProjectsScreen() {
   if (isLoading) return <LoadingState message="Loading projects..." />;
   if (error) return <ErrorState message="Failed to load projects" onRetry={refetch} />;
   if (!projects?.length) {
-    return <EmptyState title="No Projects" message="You haven't been added to any projects yet." icon="🏗️" />;
+    return <EmptyState title="No Projects" message="You haven't been added to any projects yet." icon="construct-outline" />;
   }
 
   return (
@@ -56,16 +56,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 24,
     right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  fabText: { color: '#fff', fontSize: 28, fontWeight: '600', marginTop: -2 },
+  fabText: { color: '#fff', fontSize: 30, fontWeight: '600', marginTop: -2 },
 });

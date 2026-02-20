@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { ReviewCard } from '@/components/review/ReviewCard';
 import { SectionHeader } from '@/components/common/SectionHeader';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import type { PendingReviewItem } from '@/api/endpoints/reviews';
 
 function ReviewsList() {
@@ -49,7 +50,7 @@ function ReviewsList() {
 
   if (loadingProjects) return <LoadingState message="Loading..." />;
   if (!projects?.length) {
-    return <EmptyState title="No Projects" message="No projects to review." icon="✅" />;
+    return <EmptyState title="No Projects" message="No projects to review." icon="checkmark-circle-outline" />;
   }
 
   const isLoading = loadingLogs || loadingReviews;
@@ -90,7 +91,7 @@ function ReviewsList() {
       </View>
 
       {reviewStats && reviewStats.totalReviewed > 0 && (
-        <View style={[styles.statsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.statsCard, shadows.md, { backgroundColor: colors.surface }]}>
           <View style={styles.statItem}>
             <Text style={[styles.statValue, { color: colors.text }]}>{reviewStats.totalReviewed}</Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Reviewed</Text>
@@ -122,7 +123,7 @@ function ReviewsList() {
         <EmptyState
           title="All Clear"
           message="No pending reviews for this project."
-          icon="✅"
+          icon="checkmark-circle-outline"
         />
       ) : (
         <FlatList
@@ -180,10 +181,10 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   tabContainer: { flexShrink: 0, paddingHorizontal: 16, paddingVertical: 12 },
   tabRow: { gap: 8 },
-  tab: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
+  tab: { borderRadius: 20, paddingHorizontal: 18, paddingVertical: 10, minHeight: 44, justifyContent: 'center' },
   tabSelected: {},
   tabDefault: { borderWidth: 1 },
-  tabText: { fontSize: 14, fontWeight: '500' },
+  tabText: { fontSize: 14, fontWeight: '600' },
   tabTextSelected: { color: '#ffffff' },
   tabTextDefault: {},
   statsCard: {
@@ -191,22 +192,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     marginHorizontal: 16,
-    marginBottom: 8,
-    paddingVertical: 10,
+    marginBottom: 12,
+    paddingVertical: 14,
     paddingHorizontal: 12,
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 14,
   },
   statItem: {
     alignItems: 'center',
   },
   statValue: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
   },
   statLabel: {
     fontSize: 11,
-    fontWeight: '500',
-    marginTop: 2,
+    fontWeight: '600',
+    marginTop: 4,
   },
 });

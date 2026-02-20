@@ -26,8 +26,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 20,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
-  text: { fontSize: 12, fontWeight: '600' },
+  text: { fontSize: 13, fontWeight: '700' },
 });

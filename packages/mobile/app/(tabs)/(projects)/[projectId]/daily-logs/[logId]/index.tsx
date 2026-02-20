@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ScrollView, View, Text, Image, Pressable, RefreshControl, Alert, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useDailyLog } from '@/hooks/queries/useDailyLogs';
 import { useAuthStore } from '@/stores/auth.store';
 import { getStatusAction } from '@/lib/permissions';
@@ -23,6 +24,7 @@ import { useUploadMedia } from '@/hooks/mutations/useMediaMutations';
 import { useProjectInspections } from '@/hooks/queries/useInspections';
 import { useProjectCommunications } from '@/hooks/queries/useCommunications';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import { format } from 'date-fns';
 import { deleteEntry } from '@/api/endpoints/daily-logs';
 import type { EntityType } from '@/api/endpoints/daily-logs';
@@ -246,19 +248,22 @@ export default function DailyLogDetailScreen() {
             onPress={() => router.push(`/(tabs)/(projects)/${projectId}/inspections/new?dailyLogId=${logId}`)}
             style={[styles.inspectButton, { backgroundColor: '#7C3AED' }]}
           >
-            <Text style={styles.inspectButtonText}>{'\u{1F50D}'} Run AI Inspection</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ionicons name="search-outline" size={18} color="#fff" />
+              <Text style={styles.inspectButtonText}>Run AI Inspection</Text>
+            </View>
           </Pressable>
           {logInspections && logInspections.length > 0 && logInspections.map((insp) => {
             const barColors: Record<string, string> = {
-              PASS: '#16A34A', FAIL: '#DC2626', NEEDS_ATTENTION: '#D97706',
-              PENDING: '#9CA3AF', PROCESSING: '#2563EB', INCONCLUSIVE: '#6B7280',
+              PASS: '#16A34A', FAIL: '#DC2626', NEEDS_ATTENTION: '#F59E0B',
+              PENDING: '#9CA3AF', PROCESSING: '#7C3AED', INCONCLUSIVE: '#6B7280',
             };
             const bc = barColors[insp.status] || '#9CA3AF';
             return (
               <Pressable
                 key={insp.id}
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/inspections/${insp.id}`)}
-                style={[styles.inspectionCard, { backgroundColor: colors.surface, borderColor: colors.border, borderLeftColor: bc }]}
+                style={[styles.inspectionCard, shadows.sm, { backgroundColor: colors.surface, borderLeftColor: bc }]}
               >
                 <Text style={[styles.inspectionCardTitle, { color: colors.text }]} numberOfLines={1}>
                   {insp.title}
@@ -279,34 +284,37 @@ export default function DailyLogDetailScreen() {
           <View style={styles.mediaSectionHeader}>
             <Text style={[styles.mediaSectionTitle, { color: colors.text }]}>Communications</Text>
             {logComms.length > 0 && (
-              <View style={[styles.mediaBadge, { backgroundColor: '#dbeafe' }]}>
-                <Text style={[styles.mediaBadgeText, { color: '#2563eb' }]}>{logComms.length}</Text>
+              <View style={[styles.mediaBadge, { backgroundColor: '#EDE9FE' }]}>
+                <Text style={[styles.mediaBadgeText, { color: '#7C3AED' }]}>{logComms.length}</Text>
               </View>
             )}
           </View>
           <Pressable
             onPress={() => router.push(`/(tabs)/(projects)/${projectId}/communications/new` as any)}
-            style={[styles.inspectButton, { backgroundColor: '#2563eb' }]}
+            style={[styles.inspectButton, { backgroundColor: '#7C3AED' }]}
           >
             <Text style={styles.inspectButtonText}>Draft New Communication</Text>
           </Pressable>
           {logComms.map((comm) => {
-            const typeIcons: Record<string, string> = {
-              EMAIL: '\u{1F4E7}', TEXT: '\u{1F4AC}', CALL: '\u{1F4DE}', RFI: '\u{2753}', CHANGE_ORDER: '\u{1F504}',
+            const typeIconNames: Record<string, keyof typeof Ionicons.glyphMap> = {
+              EMAIL: 'mail-outline', TEXT: 'chatbubble-outline', CALL: 'call-outline', RFI: 'help-circle-outline', CHANGE_ORDER: 'swap-horizontal-outline',
             };
             const statusColors2: Record<string, string> = {
-              DRAFTING: '#2563eb', DRAFT: '#2563eb', APPROVED: '#16a34a', SENT: '#6b7280', CANCELLED: '#dc2626',
+              DRAFTING: '#7C3AED', DRAFT: '#7C3AED', APPROVED: '#16a34a', SENT: '#6b7280', CANCELLED: '#dc2626',
             };
             const sc2 = statusColors2[comm.status] || '#9CA3AF';
             return (
               <Pressable
                 key={comm.id}
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/communications/${comm.id}` as any)}
-                style={[styles.inspectionCard, { backgroundColor: colors.surface, borderColor: colors.border, borderLeftColor: sc2 }]}
+                style={[styles.inspectionCard, shadows.sm, { backgroundColor: colors.surface, borderLeftColor: sc2 }]}
               >
-                <Text style={[styles.inspectionCardTitle, { color: colors.text }]} numberOfLines={1}>
-                  {typeIcons[comm.type] ?? '\u{2709}\u{FE0F}'} {comm.subject}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name={typeIconNames[comm.type] ?? 'mail-outline'} size={16} color={colors.text} />
+                  <Text style={[styles.inspectionCardTitle, { color: colors.text, flex: 1 }]} numberOfLines={1}>
+                    {comm.subject}
+                  </Text>
+                </View>
                 <View style={styles.inspectionCardMeta}>
                   <Text style={[styles.inspectionCardStatus, { color: sc2 }]}>{comm.status}</Text>
                   <Text style={[styles.inspectionCardScore, { color: colors.textSecondary }]}>To: {comm.recipient}</Text>
@@ -320,35 +328,35 @@ export default function DailyLogDetailScreen() {
         <View style={styles.navSection}>
           <Pressable
             onPress={() => router.push(`/(tabs)/(projects)/${projectId}/daily-logs/${logId}/voice`)}
-            style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={[styles.navButton, shadows.md, { backgroundColor: colors.surface }]}
           >
             <View style={{ flex: 1 }}>
               <Text style={[styles.navButtonTitle, { color: colors.text }]}>Voice Notes</Text>
               <Text style={[styles.navButtonSub, { color: colors.textSecondary }]}>{log.voiceNotes.length} note{log.voiceNotes.length !== 1 ? 's' : ''}</Text>
             </View>
-            <Text style={[styles.navArrow, { color: colors.textTertiary }]}>›</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </Pressable>
 
           <Pressable
             onPress={() => router.push(`/(tabs)/(projects)/${projectId}/daily-logs/${logId}/review`)}
-            style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={[styles.navButton, shadows.md, { backgroundColor: colors.surface }]}
           >
             <View style={{ flex: 1 }}>
               <Text style={[styles.navButtonTitle, { color: colors.text }]}>AI Review</Text>
               <Text style={[styles.navButtonSub, { color: colors.textSecondary }]}>Review extracted data</Text>
             </View>
-            <Text style={[styles.navArrow, { color: colors.textTertiary }]}>›</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </Pressable>
 
           <Pressable
             onPress={() => router.push(`/(tabs)/(projects)/${projectId}/daily-logs/${logId}/history`)}
-            style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={[styles.navButton, shadows.md, { backgroundColor: colors.surface }]}
           >
             <View style={{ flex: 1 }}>
               <Text style={[styles.navButtonTitle, { color: colors.text }]}>Review History</Text>
               <Text style={[styles.navButtonSub, { color: colors.textSecondary }]}>View review actions</Text>
             </View>
-            <Text style={[styles.navArrow, { color: colors.textTertiary }]}>›</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </Pressable>
         </View>
       </ScrollView>
@@ -381,35 +389,35 @@ const styles = StyleSheet.create({
   date: { fontSize: 20, fontWeight: '700' },
   author: { fontSize: 14, marginTop: 4 },
   statusBadge: { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
-  statusText: { fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
-  notesBox: { borderRadius: 8, padding: 12, marginBottom: 16 },
+  statusText: { fontSize: 12, fontWeight: '700', textTransform: 'capitalize' },
+  notesBox: { borderRadius: 10, padding: 12, marginBottom: 16 },
   notesText: { fontSize: 16 },
   actionSection: { marginTop: 16 },
   navSection: { marginTop: 16, gap: 8 },
   navButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
     padding: 16,
+    minHeight: 48,
   },
-  navButtonTitle: { fontSize: 16, fontWeight: '600' },
+  navButtonTitle: { fontSize: 16, fontWeight: '700' },
   navButtonSub: { fontSize: 13, marginTop: 2 },
-  navArrow: { fontSize: 24, marginLeft: 8 },
+  navArrow: { marginLeft: 8 },
   mediaSection: { marginTop: 16, gap: 8 },
   mediaSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  mediaSectionTitle: { fontSize: 17, fontWeight: '700' },
+  mediaSectionTitle: { fontSize: 17, fontWeight: '800' },
   mediaBadge: { borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 },
   mediaBadgeText: { fontSize: 12, fontWeight: '700' },
-  uploadingText: { fontSize: 13, fontWeight: '500' },
+  uploadingText: { fontSize: 13, fontWeight: '600' },
   existingMediaText: { fontSize: 13 },
   // Inspection
   inspectionSection: { marginTop: 16, gap: 8 },
-  inspectButton: { borderRadius: 12, padding: 14, alignItems: 'center' },
+  inspectButton: { borderRadius: 14, padding: 14, alignItems: 'center', minHeight: 48 },
   inspectButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  inspectionCard: { borderRadius: 10, borderWidth: 1, borderLeftWidth: 4, padding: 12 },
-  inspectionCardTitle: { fontSize: 14, fontWeight: '600' },
+  inspectionCard: { borderRadius: 12, borderLeftWidth: 4, padding: 12, minHeight: 48 },
+  inspectionCardTitle: { fontSize: 14, fontWeight: '700' },
   inspectionCardMeta: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  inspectionCardStatus: { fontSize: 12, fontWeight: '700', textTransform: 'capitalize' },
+  inspectionCardStatus: { fontSize: 12, fontWeight: '800', textTransform: 'capitalize' },
   inspectionCardScore: { fontSize: 12 },
 });

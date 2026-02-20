@@ -12,25 +12,27 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
+import { Ionicons } from '@expo/vector-icons';
 import { useInspection } from '@/hooks/queries/useInspections';
 import { useReviewInspection } from '@/hooks/mutations/useInspectionMutations';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import type { InspectionFinding, InspectionStatus } from '@/api/endpoints/inspections';
 
 const SEVERITY_CONFIG: Record<string, { color: string; icon: string; order: number }> = {
   CRITICAL: { color: '#DC2626', icon: '\u{1F534}', order: 0 },
   MAJOR: { color: '#EA580C', icon: '\u{1F7E0}', order: 1 },
   MINOR: { color: '#CA8A04', icon: '\u{1F7E1}', order: 2 },
-  OBSERVATION: { color: '#2563EB', icon: '\u{1F535}', order: 3 },
+  OBSERVATION: { color: '#7C3AED', icon: '\u{1F535}', order: 3 },
 };
 
-const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string; icon: string }> = {
-  PENDING: { bg: '#E5E7EB', text: '#6B7280', label: 'Pending', icon: '\u{23F3}' },
-  PROCESSING: { bg: '#DBEAFE', text: '#2563EB', label: 'Analyzing...', icon: '\u{1F50D}' },
-  PASS: { bg: '#DCFCE7', text: '#16A34A', label: 'PASS', icon: '\u{2705}' },
-  FAIL: { bg: '#FEE2E2', text: '#DC2626', label: 'FAIL', icon: '\u{274C}' },
-  NEEDS_ATTENTION: { bg: '#FEF3C7', text: '#D97706', label: 'Needs Attention', icon: '\u{26A0}\u{FE0F}' },
-  INCONCLUSIVE: { bg: '#F3F4F6', text: '#6B7280', label: 'Inconclusive', icon: '\u{2753}' },
+const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
+  PENDING: { bg: '#E5E7EB', text: '#6B7280', label: 'Pending', icon: 'hourglass-outline' },
+  PROCESSING: { bg: '#EDE9FE', text: '#7C3AED', label: 'Analyzing...', icon: 'search-outline' },
+  PASS: { bg: '#DCFCE7', text: '#16A34A', label: 'PASS', icon: 'checkmark-circle' },
+  FAIL: { bg: '#FEE2E2', text: '#DC2626', label: 'FAIL', icon: 'close-circle' },
+  NEEDS_ATTENTION: { bg: '#FEF3C7', text: '#F59E0B', label: 'Needs Attention', icon: 'warning-outline' },
+  INCONCLUSIVE: { bg: '#F3F4F6', text: '#6B7280', label: 'Inconclusive', icon: 'help-circle-outline' },
 };
 
 export default function InspectionResultScreen() {
@@ -123,14 +125,16 @@ export default function InspectionResultScreen() {
           {isProcessing ? (
             <View style={styles.processingRow}>
               <ActivityIndicator size="small" color={statusConf.text} />
+              <Ionicons name={statusConf.icon} size={18} color={statusConf.text} />
               <Text style={[styles.statusLabel, { color: statusConf.text }]}>
-                {statusConf.icon} AI is analyzing your photo...
+                AI is analyzing your photo...
               </Text>
             </View>
           ) : (
             <View style={styles.statusRow}>
+              <Ionicons name={statusConf.icon} size={18} color={statusConf.text} />
               <Text style={[styles.statusLabel, { color: statusConf.text }]}>
-                {statusConf.icon} {statusConf.label}
+                {statusConf.label}
               </Text>
               {inspection.aiOverallScore != null && (
                 <View style={[styles.scoreBadge, { backgroundColor: statusConf.text }]}>
@@ -142,7 +146,7 @@ export default function InspectionResultScreen() {
         </View>
 
         {/* Photo + Document Reference */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.card, shadows.md, { backgroundColor: colors.surface }]}>
           <Text style={[styles.cardTitle, { color: colors.text }]}>{inspection.title}</Text>
           {inspection.description && (
             <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{inspection.description}</Text>
@@ -158,7 +162,7 @@ export default function InspectionResultScreen() {
 
         {/* AI Summary */}
         {inspection.aiAnalysis && (
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.card, shadows.md, { backgroundColor: colors.surface }]}>
             <Text style={[styles.cardTitle, { color: colors.text }]}>AI Summary</Text>
             <Text style={[styles.summaryText, { color: colors.text }]}>{inspection.aiAnalysis}</Text>
             {inspection.aiFindings?.photoCoverage && (
@@ -182,7 +186,7 @@ export default function InspectionResultScreen() {
                 <Pressable
                   key={idx}
                   onPress={() => toggleFinding(idx)}
-                  style={[styles.findingCard, { backgroundColor: colors.surface, borderColor: colors.border, borderLeftColor: sev.color }]}
+                  style={[styles.findingCard, shadows.md, { backgroundColor: colors.surface, borderLeftColor: sev.color }]}
                 >
                   <View style={styles.findingHeader}>
                     <View style={styles.findingBadges}>
@@ -229,7 +233,7 @@ export default function InspectionResultScreen() {
         {inspection.aiFindings?.specReferences && inspection.aiFindings.specReferences.length > 0 && (
           <Pressable
             onPress={() => setShowSpecs(!showSpecs)}
-            style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={[styles.card, shadows.md, { backgroundColor: colors.surface }]}
           >
             <Text style={[styles.cardTitle, { color: colors.text }]}>
               Spec References ({inspection.aiFindings.specReferences.length}) {showSpecs ? '\u{25B2}' : '\u{25BC}'}
@@ -244,7 +248,7 @@ export default function InspectionResultScreen() {
 
         {/* Human Review */}
         {!isProcessing && (
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.card, shadows.md, { backgroundColor: colors.surface }]}>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Human Review</Text>
             {inspection.reviewedBy ? (
               <View>
@@ -305,13 +309,19 @@ export default function InspectionResultScreen() {
                   disabled={reviewMutation.isPending}
                   style={[styles.confirmBtn, { backgroundColor: '#16A34A' }]}
                 >
-                  <Text style={styles.confirmBtnText}>{'\u{2705}'} Confirm</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+                    <Text style={styles.confirmBtnText}>Confirm</Text>
+                  </View>
                 </Pressable>
                 <Pressable
                   onPress={() => setShowOverride(true)}
-                  style={[styles.overrideBtn, { backgroundColor: colors.background, borderColor: colors.border }]}
+                  style={[styles.overrideBtn, shadows.sm, { backgroundColor: colors.background }]}
                 >
-                  <Text style={[styles.overrideBtnText, { color: colors.error }]}>{'\u{274C}'} Override</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Ionicons name="close-circle-outline" size={18} color={colors.error} />
+                    <Text style={[styles.overrideBtnText, { color: colors.error }]}>Override</Text>
+                  </View>
                 </Pressable>
               </View>
             )}
@@ -331,12 +341,18 @@ export default function InspectionResultScreen() {
 
       {/* Action Bar */}
       {!isProcessing && (
-        <View style={[styles.actionBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Pressable onPress={handleCopy} style={[styles.actionBtn, { borderColor: colors.border }]}>
-            <Text style={[styles.actionBtnText, { color: colors.text }]}>{'\u{1F4CB}'} Copy</Text>
+        <View style={[styles.actionBar, shadows.lg, { backgroundColor: colors.surface }]}>
+          <Pressable onPress={handleCopy} style={[styles.actionBtn, shadows.sm, { backgroundColor: colors.surface }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="document-text-outline" size={18} color={colors.text} />
+              <Text style={[styles.actionBtnText, { color: colors.text }]}>Copy</Text>
+            </View>
           </Pressable>
-          <Pressable onPress={handleShare} style={[styles.actionBtn, { borderColor: colors.border }]}>
-            <Text style={[styles.actionBtnText, { color: colors.text }]}>{'\u{1F4E4}'} Share</Text>
+          <Pressable onPress={handleShare} style={[styles.actionBtn, shadows.sm, { backgroundColor: colors.surface }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="share-outline" size={18} color={colors.text} />
+              <Text style={[styles.actionBtnText, { color: colors.text }]}>Share</Text>
+            </View>
           </Pressable>
         </View>
       )}
@@ -357,23 +373,23 @@ const styles = StyleSheet.create({
   scoreBadge: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6 },
   scoreText: { color: '#fff', fontSize: 16, fontWeight: '800' },
   // Cards
-  card: { borderRadius: 12, borderWidth: 1, padding: 16, marginBottom: 14 },
+  card: { borderRadius: 14, padding: 16, marginBottom: 14 },
   cardTitle: { fontSize: 16, fontWeight: '700', marginBottom: 8 },
   cardDesc: { fontSize: 14, lineHeight: 20 },
   summaryText: { fontSize: 15, lineHeight: 22 },
   coverageText: { fontSize: 13, marginTop: 10, fontStyle: 'italic' },
-  docRef: { borderRadius: 8, padding: 10, marginTop: 10 },
+  docRef: { borderRadius: 10, padding: 10, marginTop: 10 },
   docRefText: { fontSize: 13 },
   // Findings
   section: { marginBottom: 14 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 10 },
-  findingCard: { borderRadius: 12, borderWidth: 1, borderLeftWidth: 4, padding: 14, marginBottom: 10 },
+  sectionTitle: { fontSize: 18, fontWeight: '800', marginBottom: 10 },
+  findingCard: { borderRadius: 14, borderLeftWidth: 4, padding: 14, marginBottom: 10 },
   findingHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   findingBadges: { flexDirection: 'row', gap: 6 },
   severityBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   severityText: { color: '#fff', fontSize: 11, fontWeight: '800' },
   categoryBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  categoryText: { fontSize: 11, fontWeight: '600' },
+  categoryText: { fontSize: 11, fontWeight: '700' },
   expandIcon: { fontSize: 12 },
   findingDesc: { fontSize: 14, lineHeight: 20 },
   findingDetails: { marginTop: 12, gap: 8 },
@@ -385,23 +401,23 @@ const styles = StyleSheet.create({
   specRef: { fontSize: 14, lineHeight: 22, marginTop: 4 },
   // Review
   reviewActions: { flexDirection: 'row', gap: 10 },
-  confirmBtn: { flex: 1, borderRadius: 10, padding: 14, alignItems: 'center' },
+  confirmBtn: { flex: 1, borderRadius: 12, padding: 14, minHeight: 48, alignItems: 'center', justifyContent: 'center' as const },
   confirmBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  overrideBtn: { flex: 1, borderRadius: 10, borderWidth: 1, padding: 14, alignItems: 'center' },
+  overrideBtn: { flex: 1, borderRadius: 12, padding: 14, minHeight: 48, alignItems: 'center', justifyContent: 'center' as const },
   overrideBtnText: { fontSize: 15, fontWeight: '700' },
   reviewedText: { fontSize: 14 },
   reviewNotes: { fontSize: 14, marginTop: 6, fontStyle: 'italic' },
   overrideForm: { gap: 12 },
   overrideOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  overrideChip: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8 },
-  notesInput: { borderRadius: 10, borderWidth: 1, padding: 12, fontSize: 15, minHeight: 60, textAlignVertical: 'top' },
+  overrideChip: { borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, minHeight: 44 },
+  notesInput: { borderRadius: 12, borderWidth: 1, padding: 12, fontSize: 15, minHeight: 60, textAlignVertical: 'top' },
   overrideActions: { flexDirection: 'row', gap: 10 },
-  cancelBtn: { flex: 1, borderRadius: 10, borderWidth: 1, padding: 12, alignItems: 'center' },
-  cancelBtnText: { fontSize: 15, fontWeight: '600' },
-  overrideSubmitBtn: { flex: 1, borderRadius: 10, padding: 12, alignItems: 'center' },
+  cancelBtn: { flex: 1, borderRadius: 12, borderWidth: 1, padding: 12, minHeight: 48, alignItems: 'center', justifyContent: 'center' as const },
+  cancelBtnText: { fontSize: 15, fontWeight: '700' },
+  overrideSubmitBtn: { flex: 1, borderRadius: 12, padding: 12, minHeight: 48, alignItems: 'center', justifyContent: 'center' as const },
   overrideSubmitText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   // Action Bar
-  actionBar: { flexDirection: 'row', gap: 10, padding: 16, borderTopWidth: 1 },
-  actionBtn: { flex: 1, borderRadius: 10, borderWidth: 1, padding: 12, alignItems: 'center' },
-  actionBtnText: { fontSize: 15, fontWeight: '600' },
+  actionBar: { flexDirection: 'row', gap: 10, padding: 16 },
+  actionBtn: { flex: 1, borderRadius: 12, padding: 12, minHeight: 48, alignItems: 'center', justifyContent: 'center' as const },
+  actionBtnText: { fontSize: 15, fontWeight: '700' },
 });

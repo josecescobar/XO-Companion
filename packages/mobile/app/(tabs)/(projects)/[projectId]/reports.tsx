@@ -14,6 +14,7 @@ import { useWeeklyReport } from '@/hooks/queries/useReports';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { Button } from '@/components/ui/Button';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 
 function getMonday(date: Date): Date {
   return startOfWeek(date, { weekStartsOn: 1 });
@@ -64,7 +65,7 @@ export default function ReportsScreen() {
       <Stack.Screen options={{ title: 'Weekly Report' }} />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Week Picker */}
-        <View style={[styles.weekPicker, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.weekPicker, { backgroundColor: colors.surface }, shadows.md]}>
           <Pressable onPress={prevWeek} style={styles.weekArrow}>
             <Text style={[styles.weekArrowText, { color: colors.primary }]}>‹</Text>
           </Pressable>
@@ -86,7 +87,7 @@ export default function ReportsScreen() {
         {report && (
           <>
             {/* Narrative */}
-            <View style={[styles.narrativeCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.narrativeCard, { backgroundColor: colors.surface }, shadows.md]}>
               <Text style={[styles.narrativeTitle, { color: colors.text }]}>Weekly Progress Report</Text>
               <Text style={[styles.narrativeText, { color: colors.text }]}>{report.narrative}</Text>
             </View>
@@ -121,7 +122,7 @@ export default function ReportsScreen() {
 
             {/* Trade Breakdown */}
             {report.structured.tradeBreakdown.length > 0 && (
-              <View style={[styles.dataCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={[styles.dataCard, { backgroundColor: colors.surface }, shadows.md]}>
                 <Text style={[styles.dataCardTitle, { color: colors.text }]}>Workforce by Trade</Text>
                 {report.structured.tradeBreakdown.map((t, i) => (
                   <View key={i} style={styles.dataRow}>
@@ -136,7 +137,7 @@ export default function ReportsScreen() {
 
             {/* Delay Breakdown */}
             {report.structured.delayBreakdown.length > 0 && (
-              <View style={[styles.dataCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={[styles.dataCard, { backgroundColor: colors.surface }, shadows.md]}>
                 <Text style={[styles.dataCardTitle, { color: colors.text }]}>Delays by Cause</Text>
                 {report.structured.delayBreakdown.map((d, i) => (
                   <View key={i} style={styles.dataRow}>
@@ -150,7 +151,7 @@ export default function ReportsScreen() {
             )}
 
             {/* Safety Summary */}
-            <View style={[styles.dataCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.dataCard, { backgroundColor: colors.surface }, shadows.md]}>
               <Text style={[styles.dataCardTitle, { color: colors.text }]}>Safety Summary</Text>
               <View style={styles.dataRow}>
                 <Text style={[styles.dataRowLabel, { color: colors.text }]}>Incidents</Text>
@@ -173,7 +174,7 @@ export default function ReportsScreen() {
             </View>
 
             {/* Tasks Summary */}
-            <View style={[styles.dataCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.dataCard, { backgroundColor: colors.surface }, shadows.md]}>
               <Text style={[styles.dataCardTitle, { color: colors.text }]}>Tasks This Week</Text>
               <View style={styles.dataRow}>
                 <Text style={[styles.dataRowLabel, { color: colors.text }]}>Created</Text>
@@ -213,32 +214,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 8,
   },
-  weekArrow: { padding: 8 },
-  weekArrowText: { fontSize: 28, fontWeight: '600' },
-  weekRange: { fontSize: 16, fontWeight: '600' },
+  weekArrow: { padding: 8, minHeight: 44 },
+  weekArrowText: { fontSize: 28, fontWeight: '700' },
+  weekRange: { fontSize: 16, fontWeight: '700' },
   // Narrative
-  narrativeCard: { borderRadius: 12, borderWidth: 1, padding: 16 },
-  narrativeTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
+  narrativeCard: { borderRadius: 14, padding: 16 },
+  narrativeTitle: { fontSize: 18, fontWeight: '800', marginBottom: 12 },
   narrativeText: { fontSize: 15, lineHeight: 22 },
   // Stats grid
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   statCard: {
     flex: 1,
     minWidth: '45%',
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 14,
     alignItems: 'center',
   },
-  statNumber: { fontSize: 24, fontWeight: '700' },
-  statLabel: { fontSize: 12, fontWeight: '500', marginTop: 4 },
+  statNumber: { fontSize: 24, fontWeight: '800' },
+  statLabel: { fontSize: 12, fontWeight: '600', marginTop: 4 },
   // Data cards
-  dataCard: { borderRadius: 12, borderWidth: 1, padding: 14 },
-  dataCardTitle: { fontSize: 16, fontWeight: '700', marginBottom: 10 },
+  dataCard: { borderRadius: 14, padding: 14 },
+  dataCardTitle: { fontSize: 16, fontWeight: '800', marginBottom: 10 },
   dataRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   dataRowLabel: { fontSize: 14, flex: 1 },
-  dataRowValue: { fontSize: 14, fontWeight: '600' },
+  dataRowValue: { fontSize: 14, fontWeight: '700' },
   // Actions
   actions: { marginTop: 4 },
   generatedAt: { fontSize: 12, textAlign: 'center', marginTop: 4 },

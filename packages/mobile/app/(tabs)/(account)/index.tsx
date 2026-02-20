@@ -1,7 +1,9 @@
 import { View, Text, Alert, StyleSheet, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/auth.store';
 import { useLogout } from '@/hooks/mutations/useLogout';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 
 function formatRole(role: string): string {
   return role.split('_').map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
@@ -28,7 +30,7 @@ export default function AccountScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Profile Card */}
-      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={[styles.card, shadows.md, { backgroundColor: colors.surface }]}>
         <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
           <Text style={[styles.avatarText, { color: colors.primary }]}>
             {user?.firstName?.charAt(0) ?? '?'}{user?.lastName?.charAt(0) ?? ''}
@@ -44,7 +46,7 @@ export default function AccountScreen() {
       </View>
 
       {/* Info Card */}
-      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={[styles.card, shadows.md, { backgroundColor: colors.surface }]}>
         <View style={styles.infoRow}>
           <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>User ID</Text>
           <Text style={[styles.infoValue, { color: colors.text }]}>{user?.id?.slice(0, 8)}...</Text>
@@ -56,7 +58,7 @@ export default function AccountScreen() {
       </View>
 
       {/* Appearance Card */}
-      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={[styles.card, shadows.md, { backgroundColor: colors.surface }]}>
         <Text style={[styles.appearanceTitle, { color: colors.text }]}>Appearance</Text>
         <View style={styles.appearanceRow}>
           {APPEARANCE_OPTIONS.map((option) => (
@@ -90,10 +92,11 @@ export default function AccountScreen() {
       <View style={styles.spacer} />
 
       <Pressable
-        style={[styles.logoutButton, { backgroundColor: colors.error }, isPending && styles.disabled]}
+        style={[styles.logoutButton, shadows.sm, { backgroundColor: colors.error }, isPending && styles.disabled]}
         onPress={handleLogout}
         disabled={isPending}
       >
+        <Ionicons name="log-out-outline" size={20} color="#ffffff" style={{ marginRight: 8 }} />
         <Text style={styles.logoutText}>{isPending ? 'Logging out...' : 'Log Out'}</Text>
       </Pressable>
     </View>
@@ -103,41 +106,42 @@ export default function AccountScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
   card: {
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
     padding: 20,
     marginBottom: 16,
     alignItems: 'center',
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  avatarText: { fontSize: 28, fontWeight: '700' },
-  name: { fontSize: 22, fontWeight: '700' },
-  email: { fontSize: 16, marginTop: 4 },
+  avatarText: { fontSize: 30, fontWeight: '800' },
+  name: { fontSize: 22, fontWeight: '800' },
+  email: { fontSize: 16, marginTop: 4, fontWeight: '500' },
   roleBadge: {
-    marginTop: 8,
+    marginTop: 10,
     borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
   },
-  roleText: { fontSize: 13, fontWeight: '600' },
+  roleText: { fontSize: 13, fontWeight: '700' },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    paddingVertical: 8,
+    paddingVertical: 10,
+    minHeight: 44,
+    alignItems: 'center',
   },
-  infoLabel: { fontSize: 16 },
+  infoLabel: { fontSize: 16, fontWeight: '500' },
   infoValue: { fontSize: 14, fontFamily: 'Courier' },
   appearanceTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 12,
   },
   appearanceRow: {
@@ -147,19 +151,24 @@ const styles = StyleSheet.create({
   },
   appearanceOption: {
     flex: 1,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
-    paddingVertical: 10,
+    paddingVertical: 12,
     alignItems: 'center',
+    minHeight: 48,
+    justifyContent: 'center',
   },
   appearanceOptionText: {
     fontSize: 14,
+    fontWeight: '600',
   },
   spacer: { flex: 1 },
   logoutButton: {
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
     marginBottom: 32,
   },
   disabled: { opacity: 0.5 },

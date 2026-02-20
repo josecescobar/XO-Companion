@@ -29,6 +29,6 @@ export function Badge({ label, variant = 'default' }: BadgeProps) {
 }
 
 const styles = StyleSheet.create({
-  badge: { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
-  text: { fontSize: 12, fontWeight: '600' },
+  badge: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6 },
+  text: { fontSize: 13, fontWeight: '700' },
 });

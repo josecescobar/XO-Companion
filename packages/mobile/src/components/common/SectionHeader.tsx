@@ -28,6 +28,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  title: { fontSize: 18, fontWeight: '700' },
-  action: { fontSize: 14, fontWeight: '500' },
+  title: { fontSize: 20, fontWeight: '800' },
+  action: { fontSize: 14, fontWeight: '600' },
 });

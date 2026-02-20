@@ -1,5 +1,6 @@
 import { View, Text, FlatList, Pressable, RefreshControl, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useProject } from '@/hooks/queries/useProjects';
 import { useDailyLogs } from '@/hooks/queries/useDailyLogs';
 import { useMemoryStats } from '@/hooks/queries/useMemoryStats';
@@ -7,6 +8,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { ErrorState } from '@/components/common/ErrorState';
 import { CollapsibleSection } from '@/components/daily-log/CollapsibleSection';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import { format } from 'date-fns';
 
 function formatRole(role: string): string {
@@ -41,7 +43,7 @@ export default function ProjectDetailScreen() {
         ListHeaderComponent={
           <View>
             {/* Project Header Card */}
-            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.card, shadows.md, { backgroundColor: colors.surface }]}>
               <View style={styles.row}>
                 <Text style={[styles.projectName, { color: colors.text }]}>{project.name}</Text>
                 <View style={[styles.badge, { backgroundColor: project.isActive ? colors.successLight : colors.border }]}>
@@ -89,18 +91,18 @@ export default function ProjectDetailScreen() {
               style={[styles.askXoCard, { backgroundColor: colors.primary }]}
             >
               <View style={styles.askXoContent}>
-                <Text style={styles.askXoIcon}>🤖</Text>
+                <Ionicons name="sparkles" size={28} color="#fff" />
                 <View style={styles.askXoText}>
                   <Text style={styles.askXoTitle}>Ask XO anything about this project</Text>
                   <Text style={styles.askXoSubtitle}>Search documents, logs, and project history</Text>
                 </View>
-                <Text style={styles.askXoArrow}>›</Text>
+                <Ionicons name="chevron-forward" size={24} color="#fff" />
               </View>
             </Pressable>
 
             {/* Memory Stats */}
             {memoryStats && memoryStats.totalChunks > 0 && (
-              <View style={[styles.memoryCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={[styles.memoryCard, shadows.sm, { backgroundColor: colors.surface }]}>
                 <Text style={[styles.memoryLabel, { color: colors.textSecondary }]}>
                   Project Memory: {memoryStats.totalChunks} chunks indexed · {memoryStats.embeddedChunks} embedded
                   {memoryStats.bySourceType.find((s) => s.sourceType === 'DOCUMENT')
@@ -116,12 +118,12 @@ export default function ProjectDetailScreen() {
               style={[styles.inspectCard, { backgroundColor: '#7C3AED' }]}
             >
               <View style={styles.askXoContent}>
-                <Text style={styles.askXoIcon}>{'\u{1F50D}'}</Text>
+                <Ionicons name="search-outline" size={28} color="#fff" />
                 <View style={styles.askXoText}>
                   <Text style={styles.askXoTitle}>AI Vision Inspection</Text>
                   <Text style={styles.askXoSubtitle}>Photo vs. drawings, specs & safety standards</Text>
                 </View>
-                <Text style={styles.askXoArrow}>{'\u{203A}'}</Text>
+                <Ionicons name="chevron-forward" size={24} color="#fff" />
               </View>
             </Pressable>
 
@@ -129,52 +131,52 @@ export default function ProjectDetailScreen() {
             <View style={styles.quickActions}>
               <Pressable
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/analytics`)}
-                style={[styles.actionCard, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}
+                style={[styles.actionCard, shadows.sm, { backgroundColor: colors.primaryLight }]}
               >
-                <Text style={styles.actionIcon}>{'\u{1F4CA}'}</Text>
+                <Ionicons name="bar-chart-outline" size={24} color={colors.primary} />
                 <Text style={[styles.actionLabel, { color: colors.primary }]}>Analytics</Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/tasks`)}
-                style={[styles.actionCard, { backgroundColor: colors.errorLight, borderColor: colors.border }]}
+                style={[styles.actionCard, shadows.sm, { backgroundColor: colors.errorLight }]}
               >
-                <Text style={styles.actionIcon}>📋</Text>
+                <Ionicons name="document-text-outline" size={24} color={colors.error} />
                 <Text style={[styles.actionLabel, { color: colors.error }]}>Tasks</Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/team`)}
-                style={[styles.actionCard, { backgroundColor: colors.warningLight, borderColor: colors.border }]}
+                style={[styles.actionCard, shadows.sm, { backgroundColor: colors.warningLight }]}
               >
-                <Text style={styles.actionIcon}>👥</Text>
+                <Ionicons name="people-outline" size={24} color={colors.warning} />
                 <Text style={[styles.actionLabel, { color: colors.warning }]}>Team</Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/daily-logs`)}
-                style={[styles.actionCard, { backgroundColor: colors.successLight, borderColor: colors.border }]}
+                style={[styles.actionCard, shadows.sm, { backgroundColor: colors.successLight }]}
               >
-                <Text style={styles.actionIcon}>📝</Text>
+                <Ionicons name="create-outline" size={24} color={colors.success} />
                 <Text style={[styles.actionLabel, { color: colors.success }]}>All Logs</Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/reports`)}
-                style={[styles.actionCard, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}
+                style={[styles.actionCard, shadows.sm, { backgroundColor: colors.primaryLight }]}
               >
-                <Text style={styles.actionIcon}>📊</Text>
+                <Ionicons name="bar-chart-outline" size={24} color={colors.primary} />
                 <Text style={[styles.actionLabel, { color: colors.primary }]}>Report</Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/documents`)}
-                style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                style={[styles.actionCard, shadows.sm, { backgroundColor: colors.surface }]}
               >
-                <Text style={styles.actionIcon}>📄</Text>
+                <Ionicons name="document-outline" size={24} color={colors.text} />
                 <Text style={[styles.actionLabel, { color: colors.text }]}>Documents</Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push(`/(tabs)/(projects)/${projectId}/communications` as any)}
-                style={[styles.actionCard, { backgroundColor: '#dbeafe', borderColor: colors.border }]}
+                style={[styles.actionCard, shadows.sm, { backgroundColor: '#EDE9FE' }]}
               >
-                <Text style={styles.actionIcon}>✉️</Text>
-                <Text style={[styles.actionLabel, { color: '#2563eb' }]}>Comms</Text>
+                <Ionicons name="mail-outline" size={24} color="#7C3AED" />
+                <Text style={[styles.actionLabel, { color: '#7C3AED' }]}>Comms</Text>
               </Pressable>
             </View>
 
@@ -192,7 +194,7 @@ export default function ProjectDetailScreen() {
           return (
             <Pressable
               onPress={() => router.push(`/(tabs)/(projects)/${projectId}/daily-logs/${item.id}`)}
-              style={({ pressed }) => [styles.logCard, { backgroundColor: colors.surface, borderColor: colors.border }, pressed && { opacity: 0.7 }]}
+              style={({ pressed }) => [styles.logCard, shadows.md, { backgroundColor: colors.surface }, pressed && { opacity: 0.7 }]}
             >
               <View style={styles.row}>
                 <Text style={[styles.logDate, { color: colors.text }]}>{format(new Date(item.logDate), 'MMM d, yyyy')}</Text>
@@ -218,7 +220,7 @@ export default function ProjectDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   list: { padding: 16 },
-  card: { borderRadius: 12, borderWidth: 1, padding: 16, marginBottom: 16 },
+  card: { borderRadius: 14, padding: 16, marginBottom: 16 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   projectName: { fontSize: 20, fontWeight: '700', flex: 1 },
   code: { fontSize: 14, marginTop: 2 },
@@ -226,35 +228,32 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 16, marginTop: 12 },
   stat: { fontSize: 14 },
   badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
-  badgeText: { fontSize: 12, fontWeight: '600' },
+  badgeText: { fontSize: 12, fontWeight: '700' },
   inspectCard: { borderRadius: 14, padding: 16, marginBottom: 12 },
   askXoCard: { borderRadius: 14, padding: 16, marginBottom: 12 },
   askXoContent: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  askXoIcon: { fontSize: 28 },
   askXoText: { flex: 1 },
   askXoTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
   askXoSubtitle: { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginTop: 2 },
-  askXoArrow: { color: '#fff', fontSize: 28, fontWeight: '300' },
-  memoryCard: { borderRadius: 10, borderWidth: 1, padding: 12, marginBottom: 12 },
+  memoryCard: { borderRadius: 12, padding: 12, marginBottom: 12 },
   memoryLabel: { fontSize: 13 },
   quickActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
-  actionCard: { flexBasis: '30%', flexGrow: 1, borderRadius: 12, borderWidth: 1, padding: 14, alignItems: 'center', gap: 4 },
-  actionIcon: { fontSize: 24 },
-  actionLabel: { fontSize: 13, fontWeight: '600' },
+  actionCard: { flexBasis: '30%', flexGrow: 1, borderRadius: 14, padding: 14, alignItems: 'center', gap: 4, minHeight: 48 },
+  actionLabel: { fontSize: 13, fontWeight: '700' },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  sectionTitle: { fontSize: 18, fontWeight: '700' },
-  viewAll: { fontSize: 14, fontWeight: '500' },
-  logCard: { borderRadius: 12, borderWidth: 1, padding: 14, marginBottom: 8 },
-  logDate: { fontSize: 16, fontWeight: '600' },
+  sectionTitle: { fontSize: 18, fontWeight: '800' },
+  viewAll: { fontSize: 14, fontWeight: '600' },
+  logCard: { borderRadius: 14, padding: 14, marginBottom: 8 },
+  logDate: { fontSize: 16, fontWeight: '700' },
   statusBadge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
-  statusText: { fontSize: 11, fontWeight: '600', textTransform: 'capitalize' },
+  statusText: { fontSize: 11, fontWeight: '700', textTransform: 'capitalize' },
   logStats: { flexDirection: 'row', gap: 12, marginTop: 8 },
   empty: { fontSize: 16, textAlign: 'center', paddingVertical: 32 },
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
   memberAvatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   memberAvatarText: { fontSize: 13, fontWeight: '700' },
   memberInfo: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  memberName: { fontSize: 15, fontWeight: '600' },
+  memberName: { fontSize: 15, fontWeight: '700' },
   memberRoleBadge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
-  memberRoleText: { fontSize: 11, fontWeight: '600' },
+  memberRoleText: { fontSize: 11, fontWeight: '700' },
 });

@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useProjectTasksOffline } from '@/hooks/queries/useTasksOffline';
 import { useUpdateTask, useCreateTask } from '@/hooks/mutations/useTaskMutations';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
@@ -16,6 +17,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import { format } from 'date-fns';
 import type { Task } from '@/api/endpoints/tasks';
 
@@ -97,7 +99,7 @@ export default function TasksScreen() {
               styles.filterChip,
               activeFilter === f.key
                 ? { backgroundColor: colors.primary }
-                : { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
+                : [shadows.sm, { backgroundColor: colors.surface }],
             ]}
           >
             <Text style={[
@@ -116,7 +118,7 @@ export default function TasksScreen() {
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <View style={[styles.taskCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.taskCard, shadows.md, { backgroundColor: colors.surface }]}>
             <View style={[styles.priorityBar, { backgroundColor: PRIORITY_COLORS[item.priority] ?? colors.border }]} />
             <Pressable
               onPress={() => handleComplete(item)}
@@ -126,7 +128,7 @@ export default function TasksScreen() {
                 item.status === 'COMPLETED' && { backgroundColor: colors.successLight },
               ]}
             >
-              {item.status === 'COMPLETED' && <Text style={{ color: colors.success, fontSize: 12 }}>✓</Text>}
+              {item.status === 'COMPLETED' && <Ionicons name="checkmark" size={14} color={colors.success} />}
             </Pressable>
             <View style={styles.taskContent}>
               <Text
@@ -157,7 +159,7 @@ export default function TasksScreen() {
                 {item.assignee && (
                   <Text style={[styles.metaText, { color: colors.textTertiary }]}>{item.assignee}</Text>
                 )}
-                {item.aiGenerated && <Text style={styles.aiIcon}>🤖</Text>}
+                {item.aiGenerated && <Ionicons name="sparkles" size={14} color={colors.primary} />}
               </View>
             </View>
           </View>
@@ -169,7 +171,7 @@ export default function TasksScreen() {
 
       {/* Create task inline */}
       {showCreate ? (
-        <View style={[styles.createBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.createBar, shadows.md, { backgroundColor: colors.surface }]}>
           <Input
             placeholder="What needs to be done?"
             value={newDescription}
@@ -201,16 +203,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  filterChip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
-  filterText: { fontSize: 13, fontWeight: '500' },
+  filterChip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, minHeight: 44, justifyContent: 'center' as const },
+  filterText: { fontSize: 13, fontWeight: '600' },
   list: { padding: 16, paddingBottom: 80 },
   taskCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 12,
     marginBottom: 8,
     overflow: 'hidden',
+    minHeight: 48,
   },
   priorityBar: { width: 4, alignSelf: 'stretch' },
   checkbox: {
@@ -223,12 +225,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   taskContent: { flex: 1, paddingVertical: 12, paddingRight: 12 },
-  taskDescription: { fontSize: 15, fontWeight: '500' },
+  taskDescription: { fontSize: 15, fontWeight: '600' },
   taskMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' },
   categoryBadge: { borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
-  categoryText: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase' },
+  categoryText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
   metaText: { fontSize: 12 },
-  aiIcon: { fontSize: 14 },
   empty: { fontSize: 16, textAlign: 'center', paddingVertical: 32 },
   fab: {
     position: 'absolute',
@@ -243,10 +244,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
-  fabText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  fabText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   createBar: {
     padding: 16,
-    borderTopWidth: 1,
     gap: 8,
   },
   createActions: { flexDirection: 'row', gap: 8, justifyContent: 'flex-end' },

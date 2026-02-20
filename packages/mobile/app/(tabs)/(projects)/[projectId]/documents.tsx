@@ -10,25 +10,27 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { format } from 'date-fns';
+import { Ionicons } from '@expo/vector-icons';
 import { useProjectDocuments } from '@/hooks/queries/useDocuments';
 import { useDeleteDocument } from '@/hooks/mutations/useDocumentMutations';
 import { DocumentUploadModal } from '@/components/documents/DocumentUploadModal';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import type { ProjectDocument, DocumentCategory } from '@/api/endpoints/documents';
 
-const CATEGORY_ICONS: Record<string, string> = {
-  DRAWING: '\u{1F4D0}',
-  SPECIFICATION: '\u{1F4CB}',
-  SAFETY_MANUAL: '\u{1F6E1}',
-  CONTRACT: '\u{1F4DD}',
-  SUBMITTAL: '\u{1F4E5}',
-  RFI: '\u{2753}',
-  CHANGE_ORDER: '\u{1F504}',
-  PERMIT: '\u{1F3DB}',
-  INSPECTION_REPORT: '\u{1F50D}',
-  MEETING_MINUTES: '\u{1F4C4}',
-  SCHEDULE: '\u{1F4C5}',
-  OTHER: '\u{1F4C4}',
+const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
+  DRAWING: 'pencil-outline',
+  SPECIFICATION: 'document-text-outline',
+  SAFETY_MANUAL: 'shield-checkmark-outline',
+  CONTRACT: 'create-outline',
+  SUBMITTAL: 'download-outline',
+  RFI: 'help-circle-outline',
+  CHANGE_ORDER: 'swap-horizontal-outline',
+  PERMIT: 'business-outline',
+  INSPECTION_REPORT: 'search-outline',
+  MEETING_MINUTES: 'document-outline',
+  SCHEDULE: 'calendar-outline',
+  OTHER: 'document-outline',
 };
 
 const FILTERS: { label: string; value: string | undefined }[] = [
@@ -126,13 +128,12 @@ export default function DocumentsScreen() {
       onLongPress={() => handleDelete(item)}
       style={[
         styles.docCard,
-        { backgroundColor: colors.surface, borderColor: colors.border },
+        shadows.md,
+        { backgroundColor: colors.surface },
       ]}
     >
       <View style={styles.docHeader}>
-        <Text style={styles.docIcon}>
-          {CATEGORY_ICONS[item.category] ?? '\u{1F4C4}'}
-        </Text>
+        <Ionicons name={CATEGORY_ICONS[item.category] ?? 'document-outline'} size={28} color={colors.primary} />
         <View style={styles.docInfo}>
           <Text
             style={[styles.docTitle, { color: colors.text }]}
@@ -189,11 +190,7 @@ export default function DocumentsScreen() {
               styles.filterChip,
               categoryFilter === f.value
                 ? { backgroundColor: colors.primary }
-                : {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    borderWidth: 1,
-                  },
+                : [shadows.sm, { backgroundColor: colors.surface }],
             ]}
           >
             <Text
@@ -226,7 +223,7 @@ export default function DocumentsScreen() {
             </Text>
           ) : (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>📄</Text>
+              <Ionicons name="document-outline" size={48} color={colors.textTertiary} />
               <Text style={[styles.emptyTitle, { color: colors.text }]}>
                 No documents uploaded yet
               </Text>
@@ -256,31 +253,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  filterChip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
-  filterChipText: { fontSize: 13, fontWeight: '500' },
+  filterChip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, justifyContent: 'center' as const },
+  filterChipText: { fontSize: 13, fontWeight: '600' },
   list: { padding: 16, paddingTop: 0 },
   docCard: {
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
     padding: 14,
     marginBottom: 10,
     gap: 10,
   },
   docHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  docIcon: { fontSize: 28 },
+  // docIcon handled by Ionicons inline
   docInfo: { flex: 1, gap: 2 },
-  docTitle: { fontSize: 16, fontWeight: '600' },
+  docTitle: { fontSize: 16, fontWeight: '700' },
   docFileName: { fontSize: 13 },
   docFooter: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  categoryBadge: { borderRadius: 12, paddingHorizontal: 10, paddingVertical: 3 },
-  categoryText: { fontSize: 11, fontWeight: '600' },
-  statusBadge: { borderRadius: 12, paddingHorizontal: 10, paddingVertical: 3 },
-  statusText: { fontSize: 11, fontWeight: '600' },
+  categoryBadge: { borderRadius: 14, paddingHorizontal: 10, paddingVertical: 3 },
+  categoryText: { fontSize: 11, fontWeight: '700' },
+  statusBadge: { borderRadius: 14, paddingHorizontal: 10, paddingVertical: 3 },
+  statusText: { fontSize: 11, fontWeight: '700' },
   docDate: { fontSize: 12, marginLeft: 'auto' },
   addButton: { marginRight: 8 },
-  addButtonText: { fontSize: 16, fontWeight: '600' },
+  addButtonText: { fontSize: 16, fontWeight: '700' },
   emptyContainer: { alignItems: 'center', paddingVertical: 48, gap: 12 },
-  emptyIcon: { fontSize: 48 },
+  // emptyIcon handled by Ionicons inline
   emptyTitle: { fontSize: 18, fontWeight: '700' },
   emptyText: { fontSize: 14, textAlign: 'center', paddingHorizontal: 32 },
 });

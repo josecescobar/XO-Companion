@@ -56,6 +56,11 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
   stopIcon: {
     height: 32,
@@ -68,8 +73,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   label: {
-    marginTop: 12,
+    marginTop: 14,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });

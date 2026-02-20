@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import { ConfidenceBadge } from '../ui/ConfidenceBadge';
 import { Badge } from '../ui/Badge';
 import * as Haptics from 'expo-haptics';
@@ -46,7 +47,7 @@ export function ReviewCard({
   };
 
   return (
-    <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+    <View style={[styles.card, shadows.md, { backgroundColor: colors.surface }]}>
       <View style={styles.headerRow}>
         <Badge label={formatEntityType(item.entityType)} variant="info" />
         <ConfidenceBadge confidence={item.aiConfidence} />
@@ -91,10 +92,9 @@ export function ReviewCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 14,
+    padding: 18,
+    marginBottom: 14,
   },
   headerRow: {
     flexDirection: 'row',
@@ -102,23 +102,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   valueBox: {
-    marginTop: 12,
-    borderRadius: 8,
-    padding: 12,
+    marginTop: 14,
+    borderRadius: 10,
+    padding: 14,
   },
-  valueText: { fontSize: 14 },
+  valueText: { fontSize: 14, fontWeight: '500', lineHeight: 20 },
   actionsRow: {
-    marginTop: 12,
+    marginTop: 14,
     flexDirection: 'row',
     gap: 12,
   },
   actionBtn: {
     flex: 1,
     alignItems: 'center',
-    borderRadius: 8,
-    paddingVertical: 12,
+    borderRadius: 10,
+    paddingVertical: 14,
+    minHeight: 48,
+    justifyContent: 'center',
   },
   actionDisabled: { opacity: 0.5 },
   actionPressed: { opacity: 0.8 },
-  actionText: { fontWeight: '600', fontSize: 16 },
+  actionText: { fontWeight: '700', fontSize: 16 },
 });

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, ScrollView, Pressable, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
 import { useRecorder } from '@/hooks/useRecorder';
 import { useProjects } from '@/hooks/queries/useProjects';
 import { useDailyLogs } from '@/hooks/queries/useDailyLogs';
@@ -16,16 +17,17 @@ import { RecordButton } from '@/components/recording/RecordButton';
 import { RecordingTimer } from '@/components/recording/RecordingTimer';
 import { Button } from '@/components/ui/Button';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import { format } from 'date-fns';
 import type { MediaAsset } from '@/hooks/useMediaCapture';
 
 type ProcessingPhase = 'idle' | 'uploading' | 'tracking';
 
 const STATUS_STAGES = [
-  { key: 'UPLOADING', icon: '⏳', label: 'Uploading...' },
-  { key: 'TRANSCRIBING', icon: '🎙️', label: 'Transcribing...' },
-  { key: 'EXTRACTING', icon: '🤖', label: 'Extracting data...' },
-  { key: 'REVIEW_READY', icon: '✅', label: 'Ready for review' },
+  { key: 'UPLOADING', icon: 'cloud-upload' as const, label: 'Uploading...' },
+  { key: 'TRANSCRIBING', icon: 'mic' as const, label: 'Transcribing...' },
+  { key: 'EXTRACTING', icon: 'sparkles' as const, label: 'Extracting data...' },
+  { key: 'REVIEW_READY', icon: 'checkmark-circle' as const, label: 'Ready for review' },
 ] as const;
 
 function getStageIndex(status: string): number {
@@ -219,7 +221,7 @@ export default function RecordScreen() {
         )}
 
         {/* Recording Area */}
-        <View style={[styles.recordingCard, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+        <View style={[styles.recordingCard, shadows.lg, { backgroundColor: colors.surface }]}>
           {!selectedProjectId || !selectedLogId ? (
             <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>
               Select a project and daily log to start recording
@@ -245,15 +247,21 @@ export default function RecordScreen() {
                       {isCurrent && !isProcessingDone && (
                         <ActivityIndicator size="small" color="#fff" />
                       )}
-                      {isComplete && <Text style={styles.statusCheckmark}>✓</Text>}
-                      {isProcessingDone && i === 3 && <Text style={styles.statusCheckmark}>✓</Text>}
+                      {isComplete && <Ionicons name="checkmark" size={14} color="#fff" />}
+                      {isProcessingDone && i === 3 && <Ionicons name="checkmark" size={14} color="#fff" />}
                     </View>
+                    <Ionicons
+                      name={stage.icon}
+                      size={18}
+                      color={isComplete || isCurrent || (isProcessingDone && i === 3) ? colors.text : colors.textTertiary}
+                      style={{ marginRight: 4 }}
+                    />
                     <Text style={[
                       styles.statusLabel,
                       { color: isComplete || isCurrent || (isProcessingDone && i === 3) ? colors.text : colors.textTertiary },
                       (isComplete || (isProcessingDone && i === 3)) && { textDecorationLine: 'none' as const },
                     ]}>
-                      {stage.icon} {isProcessingDone && i === 3 ? 'Ready for review' : stage.label}
+                      {isProcessingDone && i === 3 ? 'Ready for review' : stage.label}
                     </Text>
                   </View>
                 );
@@ -281,12 +289,15 @@ export default function RecordScreen() {
               {isProcessingDone && voiceNote?.extractedData && (voiceNote.extractedData as any).communications?.length > 0 && (
                 <Pressable
                   onPress={() => selectedProjectId && router.push(`/(tabs)/(projects)/${selectedProjectId}/communications` as any)}
-                  style={[styles.commsIndicator, { backgroundColor: '#dbeafe', borderColor: '#93c5fd' }]}
+                  style={[styles.commsIndicator, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}
                 >
-                  <Text style={styles.commsIndicatorText}>
-                    {'\u{2709}\u{FE0F}'} {(voiceNote.extractedData as any).communications.length} communication{(voiceNote.extractedData as any).communications.length !== 1 ? 's' : ''} queued for AI drafting
-                  </Text>
-                  <Text style={styles.commsIndicatorLink}>View Drafts {'\u{203A}'}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Ionicons name="mail" size={16} color={colors.primary} />
+                    <Text style={[styles.commsIndicatorText, { color: colors.primary }]}>
+                      {(voiceNote.extractedData as any).communications.length} communication{(voiceNote.extractedData as any).communications.length !== 1 ? 's' : ''} queued for AI drafting
+                    </Text>
+                  </View>
+                  <Text style={[styles.commsIndicatorLink, { color: colors.primary }]}>View Drafts</Text>
                 </Pressable>
               )}
 
@@ -355,16 +366,16 @@ export default function RecordScreen() {
         {selectedProjectId && mediaAttachments.length > 0 && processingPhase === 'idle' && (
           <Pressable
             onPress={() => router.push(`/(tabs)/(projects)/${selectedProjectId}/inspections/new`)}
-            style={[styles.inspectSuggestion, { backgroundColor: colors.surface, borderColor: '#7C3AED' }]}
+            style={[styles.inspectSuggestion, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.primary }]}
           >
-            <Text style={styles.inspectSuggestionIcon}>{'\u{1F50D}'}</Text>
+            <Ionicons name="search" size={24} color={colors.primary} />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.inspectSuggestionTitle, { color: '#7C3AED' }]}>Run AI Inspection?</Text>
+              <Text style={[styles.inspectSuggestionTitle, { color: colors.primary }]}>Run AI Inspection?</Text>
               <Text style={[styles.inspectSuggestionText, { color: colors.textSecondary }]}>
                 Analyze attached photos against specs & drawings
               </Text>
             </View>
-            <Text style={{ color: '#7C3AED', fontSize: 20 }}>{'\u{203A}'}</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.primary} />
           </Pressable>
         )}
       </ScrollView>
@@ -385,73 +396,71 @@ export default function RecordScreen() {
 
 const styles = StyleSheet.create({
   scrollContent: { padding: 16 },
-  label: { fontSize: 14, fontWeight: '500', marginBottom: 8 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
   chipRow: { gap: 8, marginBottom: 16 },
-  chip: { borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12 },
+  chip: { borderRadius: 10, paddingHorizontal: 18, paddingVertical: 14, minHeight: 48, justifyContent: 'center' },
   chipSelected: {},
   chipDefault: { borderWidth: 1 },
-  chipText: { fontSize: 14, fontWeight: '500' },
+  chipText: { fontSize: 14, fontWeight: '600' },
   chipTextSelected: { color: '#ffffff' },
   chipTextDefault: {},
-  loadingText: { fontSize: 14, marginBottom: 16 },
+  loadingText: { fontSize: 14, marginBottom: 16, fontWeight: '500' },
   recordingCard: {
     marginTop: 16,
     alignItems: 'center',
     paddingVertical: 48,
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
   },
-  placeholderText: { fontSize: 16 },
+  placeholderText: { fontSize: 16, fontWeight: '500' },
   recordBtnWrapper: { marginTop: 32 },
   uploadArea: { marginTop: 32, width: '100%', paddingHorizontal: 16 },
   mediaSection: { marginTop: 16 },
   // Status tracker
   statusTracker: { width: '100%', paddingHorizontal: 8 },
-  statusTitle: { fontSize: 18, fontWeight: '700', textAlign: 'center', marginBottom: 24 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
+  statusTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center', marginBottom: 24 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 18 },
   statusDot: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   statusCheckmark: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  statusLabel: { fontSize: 15, fontWeight: '500' },
+  statusLabel: { fontSize: 15, fontWeight: '600' },
   transcriptBox: {
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    padding: 12,
+    padding: 14,
     marginTop: 8,
     marginBottom: 16,
   },
-  transcriptLabel: { fontSize: 12, fontWeight: '600', marginBottom: 6 },
-  transcriptText: { fontSize: 14, lineHeight: 20 },
-  errorBox: { borderRadius: 10, padding: 12, marginTop: 8, marginBottom: 16 },
-  errorText: { fontSize: 14 },
+  transcriptLabel: { fontSize: 12, fontWeight: '700', marginBottom: 6 },
+  transcriptText: { fontSize: 14, lineHeight: 22 },
+  errorBox: { borderRadius: 12, padding: 14, marginTop: 8, marginBottom: 16 },
+  errorText: { fontSize: 14, fontWeight: '500' },
   statusActions: { marginTop: 8, width: '100%' },
   // Inspection suggestion
   inspectSuggestion: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1.5,
-    padding: 14,
+    padding: 16,
     gap: 12,
     marginTop: 16,
   },
-  inspectSuggestionIcon: { fontSize: 24 },
   inspectSuggestionTitle: { fontSize: 15, fontWeight: '700' },
   inspectSuggestionText: { fontSize: 13, marginTop: 2 },
   // Communications indicator
   commsIndicator: {
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    padding: 12,
+    padding: 14,
     marginTop: 12,
     marginBottom: 4,
   },
-  commsIndicatorText: { fontSize: 14, fontWeight: '500', color: '#1e40af' },
-  commsIndicatorLink: { fontSize: 13, fontWeight: '600', color: '#2563eb', marginTop: 6 },
+  commsIndicatorText: { fontSize: 14, fontWeight: '600' },
+  commsIndicatorLink: { fontSize: 13, fontWeight: '700', marginTop: 6 },
 });

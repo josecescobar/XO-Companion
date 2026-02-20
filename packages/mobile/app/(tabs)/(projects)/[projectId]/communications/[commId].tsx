@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useCommunication } from '@/hooks/queries/useCommunications';
 import {
   useUpdateCommunication, useApproveCommunication, useSendCommunication,
@@ -13,13 +14,18 @@ import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { LoadingState } from '@/components/common/LoadingState';
 import { Button } from '@/components/ui/Button';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 
-const TYPE_ICONS: Record<string, string> = {
-  EMAIL: '📧', TEXT: '💬', CALL: '📞', RFI: '❓', CHANGE_ORDER: '🔄',
+const TYPE_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
+  EMAIL: 'mail-outline',
+  TEXT: 'chatbubble-outline',
+  CALL: 'call-outline',
+  RFI: 'help-circle-outline',
+  CHANGE_ORDER: 'swap-horizontal-outline',
 };
 
 const URGENCY_COLORS: Record<string, string> = {
-  LOW: '#9ca3af', NORMAL: '#2563eb', HIGH: '#dc2626',
+  LOW: '#9ca3af', NORMAL: '#7C3AED', HIGH: '#dc2626',
 };
 
 export default function CommunicationDetailScreen() {
@@ -71,18 +77,18 @@ export default function CommunicationDetailScreen() {
     Share.share({ message: `${displaySubject}\n\n${displayBody}` });
   };
 
-  const statusHeader = () => {
+  const statusHeader = (): { bg: string; color: string; label: string; icon: React.ComponentProps<typeof Ionicons>['name'] } => {
     switch (comm.status) {
       case 'DRAFTING':
-        return { bg: '#dbeafe', color: '#2563eb', label: '🤖 AI is drafting...' };
+        return { bg: '#EDE9FE', color: '#7C3AED', label: 'AI is drafting...', icon: 'sparkles' };
       case 'DRAFT':
-        return { bg: '#dbeafe', color: '#2563eb', label: '📝 Draft Ready for Review' };
+        return { bg: '#EDE9FE', color: '#7C3AED', label: 'Draft Ready for Review', icon: 'create-outline' };
       case 'APPROVED':
-        return { bg: '#dcfce7', color: '#16a34a', label: '✅ Approved — Ready to Send' };
+        return { bg: '#dcfce7', color: '#16a34a', label: 'Approved — Ready to Send', icon: 'checkmark-circle-outline' };
       case 'SENT':
-        return { bg: '#f3f4f6', color: '#6b7280', label: `📤 Sent${comm.sentAt ? ` on ${new Date(comm.sentAt).toLocaleDateString()}` : ''}` };
+        return { bg: '#f3f4f6', color: '#6b7280', label: `Sent${comm.sentAt ? ` on ${new Date(comm.sentAt).toLocaleDateString()}` : ''}`, icon: 'arrow-up-circle-outline' };
       case 'CANCELLED':
-        return { bg: '#fee2e2', color: '#dc2626', label: '❌ Cancelled' };
+        return { bg: '#fee2e2', color: '#dc2626', label: 'Cancelled', icon: 'close-circle-outline' };
     }
   };
 
@@ -95,13 +101,17 @@ export default function CommunicationDetailScreen() {
         {/* Status Header */}
         <View style={[styles.statusHeader, { backgroundColor: sh.bg }]}>
           {comm.status === 'DRAFTING' && <ActivityIndicator size="small" color={sh.color} style={{ marginRight: 8 }} />}
+          <Ionicons name={sh.icon} size={18} color={sh.color} style={{ marginRight: 6 }} />
           <Text style={[styles.statusLabel, { color: sh.color }]}>{sh.label}</Text>
         </View>
 
         {/* Type + Urgency */}
         <View style={styles.badgeRow}>
-          <View style={[styles.typeBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text>{TYPE_ICONS[comm.type] ?? '✉️'} {comm.type.replace('_', ' ')}</Text>
+          <View style={[styles.typeBadge, shadows.sm, { backgroundColor: colors.surface }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name={TYPE_ICONS[comm.type] ?? 'mail-outline'} size={16} color={colors.text} />
+              <Text>{comm.type.replace('_', ' ')}</Text>
+            </View>
           </View>
           <View style={[styles.urgencyBadge, { backgroundColor: URGENCY_COLORS[comm.urgency] + '20' }]}>
             <Text style={{ color: URGENCY_COLORS[comm.urgency], fontWeight: '600', fontSize: 12 }}>
@@ -111,7 +121,7 @@ export default function CommunicationDetailScreen() {
         </View>
 
         {/* Recipient Info */}
-        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.section, shadows.md, { backgroundColor: colors.surface }]}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Recipient</Text>
           <TextInput
             style={[styles.input, { color: colors.text, borderColor: colors.border }]}
@@ -144,7 +154,7 @@ export default function CommunicationDetailScreen() {
         </View>
 
         {/* Subject */}
-        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.section, shadows.md, { backgroundColor: colors.surface }]}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Subject</Text>
           <TextInput
             style={[styles.input, { color: colors.text, borderColor: colors.border }]}
@@ -156,7 +166,7 @@ export default function CommunicationDetailScreen() {
         </View>
 
         {/* Message Body */}
-        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.section, shadows.md, { backgroundColor: colors.surface }]}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Message</Text>
           {comm.status === 'DRAFTING' ? (
             <View style={styles.draftingPlaceholder}>
@@ -195,7 +205,7 @@ export default function CommunicationDetailScreen() {
 
         {/* Context */}
         {comm.context && (
-          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.section, shadows.md, { backgroundColor: colors.surface }]}>
             <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Context</Text>
             <Text style={[styles.contextText, { color: colors.text }]}>{comm.context}</Text>
             {comm.voiceNoteId && (
@@ -206,7 +216,10 @@ export default function CommunicationDetailScreen() {
 
         {comm.processingError && (
           <View style={[styles.errorCard, { backgroundColor: '#fee2e2' }]}>
-            <Text style={{ color: '#dc2626', fontSize: 13 }}>⚠️ {comm.processingError}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="warning-outline" size={16} color="#dc2626" />
+              <Text style={{ color: '#dc2626', fontSize: 13 }}>{comm.processingError}</Text>
+            </View>
           </View>
         )}
 
@@ -214,22 +227,22 @@ export default function CommunicationDetailScreen() {
       </ScrollView>
 
       {/* Action Buttons */}
-      <View style={[styles.actionBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={[styles.actionBar, shadows.lg, { backgroundColor: colors.surface }]}>
         {comm.status === 'DRAFT' && (
           <>
-            <Button title="✅ Approve" onPress={handleApprove} loading={approveMutation.isPending} />
+            <Button title="Approve" onPress={handleApprove} loading={approveMutation.isPending} />
             <View style={styles.actionRow}>
-              <Button title="🔄 Redraft" variant="secondary" onPress={() => redraftMutation.mutate(commId)} loading={redraftMutation.isPending} size="sm" />
-              <Button title="❌ Cancel" variant="danger" onPress={() => cancelMutation.mutate(commId)} loading={cancelMutation.isPending} size="sm" />
+              <Button title="Redraft" variant="secondary" onPress={() => redraftMutation.mutate(commId)} loading={redraftMutation.isPending} size="sm" />
+              <Button title="Cancel" variant="danger" onPress={() => cancelMutation.mutate(commId)} loading={cancelMutation.isPending} size="sm" />
             </View>
           </>
         )}
         {comm.status === 'APPROVED' && (
           <>
-            <Button title="📤 Mark as Sent" onPress={() => sendMutation.mutate(commId)} loading={sendMutation.isPending} />
+            <Button title="Mark as Sent" onPress={() => sendMutation.mutate(commId)} loading={sendMutation.isPending} />
             <View style={styles.actionRow}>
-              <Button title="📋 Copy" variant="secondary" onPress={handleCopy} size="sm" />
-              <Button title="📤 Share" variant="secondary" onPress={handleShare} size="sm" />
+              <Button title="Copy" variant="secondary" onPress={handleCopy} size="sm" />
+              <Button title="Share" variant="secondary" onPress={handleShare} size="sm" />
             </View>
           </>
         )}
@@ -247,27 +260,27 @@ export default function CommunicationDetailScreen() {
 const styles = StyleSheet.create({
   content: { padding: 16 },
   statusHeader: {
-    flexDirection: 'row', alignItems: 'center', borderRadius: 10,
-    padding: 12, marginBottom: 12,
+    flexDirection: 'row', alignItems: 'center', borderRadius: 12,
+    padding: 12, marginBottom: 12, minHeight: 48,
   },
-  statusLabel: { fontSize: 15, fontWeight: '600' },
+  statusLabel: { fontSize: 15, fontWeight: '700' },
   badgeRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  typeBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6 },
-  urgencyBadge: { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
-  section: { borderRadius: 10, borderWidth: 1, padding: 12, marginBottom: 12 },
-  sectionTitle: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', marginBottom: 8 },
-  input: { borderWidth: 1, borderRadius: 8, padding: 10, fontSize: 15, marginBottom: 8 },
-  bodyInput: { borderWidth: 1, borderRadius: 8, padding: 10, fontSize: 15, minHeight: 200 },
-  toggleOriginal: { fontSize: 13, fontWeight: '500', marginTop: 8 },
-  originalDraft: { borderRadius: 8, padding: 10, marginTop: 8 },
-  originalLabel: { fontSize: 11, fontWeight: '600', marginBottom: 4 },
+  typeBadge: { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
+  urgencyBadge: { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
+  section: { borderRadius: 12, padding: 12, marginBottom: 12 },
+  sectionTitle: { fontSize: 12, fontWeight: '800', textTransform: 'uppercase', marginBottom: 8 },
+  input: { borderWidth: 1, borderRadius: 10, padding: 10, fontSize: 15, marginBottom: 8 },
+  bodyInput: { borderWidth: 1, borderRadius: 10, padding: 10, fontSize: 15, minHeight: 200 },
+  toggleOriginal: { fontSize: 13, fontWeight: '600', marginTop: 8 },
+  originalDraft: { borderRadius: 10, padding: 10, marginTop: 8 },
+  originalLabel: { fontSize: 11, fontWeight: '700', marginBottom: 4 },
   originalText: { fontSize: 14, lineHeight: 20 },
   contextText: { fontSize: 14, lineHeight: 20 },
-  voiceLink: { fontSize: 13, fontWeight: '500', marginTop: 8 },
-  errorCard: { borderRadius: 8, padding: 10, marginBottom: 12 },
+  voiceLink: { fontSize: 13, fontWeight: '600', marginTop: 8 },
+  errorCard: { borderRadius: 10, padding: 10, marginBottom: 12 },
   draftingPlaceholder: { alignItems: 'center', paddingVertical: 40, gap: 12 },
   draftingText: { fontSize: 15 },
-  actionBar: { padding: 16, borderTopWidth: 1, gap: 8 },
+  actionBar: { padding: 16, gap: 8 },
   actionRow: { flexDirection: 'row', gap: 8 },
   draftingActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 8 },
   draftingActionText: { fontSize: 14 },

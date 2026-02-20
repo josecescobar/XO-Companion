@@ -97,9 +97,9 @@ export function ExtractedDataSections({ extractedData }: ExtractedDataSectionsPr
 
 const styles = StyleSheet.create({
   entryCard: {
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 10,
   },
   confidenceRow: {
     flexDirection: 'row',
@@ -109,15 +109,18 @@ const styles = StyleSheet.create({
   fieldRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 4,
+    paddingVertical: 5,
+    minHeight: 28,
+    alignItems: 'center',
   },
   fieldLabel: {
     fontSize: 13,
+    fontWeight: '500',
     flex: 1,
   },
   fieldValue: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
     flex: 1,
     textAlign: 'right',
   },

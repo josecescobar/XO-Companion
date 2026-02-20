@@ -1,6 +1,7 @@
 import { Pressable, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import type { PressableProps } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 
 interface ButtonProps extends PressableProps {
   title: string;
@@ -10,9 +11,9 @@ interface ButtonProps extends PressableProps {
 }
 
 const sizePadding = {
-  sm: { paddingHorizontal: 12, paddingVertical: 8 },
-  md: { paddingHorizontal: 16, paddingVertical: 12 },
-  lg: { paddingHorizontal: 24, paddingVertical: 16 },
+  sm: { paddingHorizontal: 16, paddingVertical: 10 },
+  md: { paddingHorizontal: 20, paddingVertical: 14 },
+  lg: { paddingHorizontal: 28, paddingVertical: 18 },
 } as const;
 
 const sizeFont = {
@@ -31,18 +32,19 @@ export function Button({
 }: ButtonProps) {
   const { colors } = useTheme();
   const isDisabled = disabled || loading;
+  const hasShadow = variant === 'primary' || variant === 'danger';
 
   const variantBg = {
     primary: colors.primary,
-    secondary: colors.border,
+    secondary: colors.surfaceSecondary,
     danger: colors.error,
     ghost: 'transparent',
   } as const;
 
   const variantTextColor = {
-    primary: colors.surface,
+    primary: '#ffffff',
     secondary: colors.text,
-    danger: colors.surface,
+    danger: '#ffffff',
     ghost: colors.primary,
   } as const;
 
@@ -53,6 +55,7 @@ export function Button({
         styles.base,
         { backgroundColor: variantBg[variant] },
         sizePadding[size],
+        hasShadow && shadows.sm,
         isDisabled && styles.disabled,
         pressed && !isDisabled && styles.pressed,
       ]}
@@ -60,7 +63,7 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'ghost' ? colors.primary : colors.surface}
+          color={variant === 'ghost' ? colors.primary : '#ffffff'}
           size="small"
         />
       ) : (
@@ -78,8 +81,8 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  base: { alignItems: 'center', borderRadius: 8 },
-  text: { fontWeight: '600' },
+  base: { alignItems: 'center', borderRadius: 10 },
+  text: { fontWeight: '700' },
   disabled: { opacity: 0.5 },
   pressed: { opacity: 0.8 },
 });

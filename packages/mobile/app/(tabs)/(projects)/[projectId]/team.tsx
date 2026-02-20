@@ -20,6 +20,8 @@ import { ErrorState } from '@/components/common/ErrorState';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
+import { Ionicons } from '@expo/vector-icons';
 
 const ASSIGNABLE_ROLES = [
   { label: 'Project Manager', value: 'PROJECT_MANAGER' },
@@ -87,7 +89,7 @@ export default function TeamScreen() {
         data={project.members}
         keyExtractor={(item) => item.userId}
         renderItem={({ item }) => (
-          <View style={[styles.memberRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.memberRow, { backgroundColor: colors.surface }, shadows.md]}>
             <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
               <Text style={[styles.avatarText, { color: colors.primary }]}>
                 {item.user.firstName?.charAt(0) ?? ''}{item.user.lastName?.charAt(0) ?? ''}
@@ -107,7 +109,7 @@ export default function TeamScreen() {
                 onPress={() => handleRemove(item.userId, `${item.user.firstName} ${item.user.lastName}`)}
                 style={styles.removeBtn}
               >
-                <Text style={{ color: colors.error, fontSize: 18 }}>✕</Text>
+                <Ionicons name="close-circle-outline" size={22} color={colors.error} />
               </Pressable>
             )}
           </View>
@@ -176,8 +178,9 @@ export default function TeamScreen() {
                   styles.userOption,
                   {
                     backgroundColor: selectedUserId === item.id ? colors.primaryLight : colors.surface,
-                    borderColor: selectedUserId === item.id ? colors.primary : colors.border,
+                    ...(selectedUserId === item.id ? { borderColor: colors.primary, borderWidth: 1 } : {}),
                   },
+                  selectedUserId !== item.id ? shadows.md : {},
                 ]}
               >
                 <Text style={[styles.userName, { color: colors.text }]}>
@@ -213,29 +216,29 @@ const styles = StyleSheet.create({
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
     padding: 14,
+    minHeight: 48,
   },
   avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 16, fontWeight: '700' },
+  avatarText: { fontSize: 16, fontWeight: '800' },
   memberInfo: { flex: 1, marginLeft: 12 },
-  memberName: { fontSize: 16, fontWeight: '600' },
+  memberName: { fontSize: 16, fontWeight: '700' },
   memberEmail: { fontSize: 12, marginTop: 2 },
-  roleBadge: { borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 4 },
-  roleText: { fontSize: 11, fontWeight: '600' },
-  removeBtn: { padding: 8 },
-  addButton: { borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 12 },
-  addButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  roleBadge: { borderRadius: 14, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 4 },
+  roleText: { fontSize: 11, fontWeight: '700' },
+  removeBtn: { padding: 8, minHeight: 44, justifyContent: 'center' },
+  addButton: { borderRadius: 14, padding: 14, alignItems: 'center', marginBottom: 12, minHeight: 48 },
+  addButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   modalContainer: { flex: 1, padding: 20, paddingTop: 16 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontWeight: '700' },
-  sectionLabel: { fontSize: 14, fontWeight: '500', marginBottom: 8 },
+  modalTitle: { fontSize: 20, fontWeight: '800' },
+  sectionLabel: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
   roleRow: { gap: 8, paddingBottom: 4 },
-  roleChip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
-  roleChipText: { fontSize: 13, fontWeight: '500' },
-  userOption: { borderRadius: 10, borderWidth: 1, padding: 12 },
-  userName: { fontSize: 15, fontWeight: '600' },
+  roleChip: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, minHeight: 44, justifyContent: 'center' },
+  roleChipText: { fontSize: 13, fontWeight: '600' },
+  userOption: { borderRadius: 12, padding: 12 },
+  userName: { fontSize: 15, fontWeight: '700' },
   userEmail: { fontSize: 13, marginTop: 2 },
   userRole: { fontSize: 11, marginTop: 2 },
   emptyText: { textAlign: 'center', padding: 20, fontSize: 14 },

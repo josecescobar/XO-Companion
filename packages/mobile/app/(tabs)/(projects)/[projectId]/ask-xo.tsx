@@ -11,9 +11,11 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useProject } from '@/hooks/queries/useProjects';
 import { askXO } from '@/api/endpoints/askxo';
 import { useTheme } from '@/hooks/useTheme';
+import { shadows } from '@/theme/tokens';
 import type { AskXOSource } from '@/api/endpoints/askxo';
 
 interface ChatMessage {
@@ -146,7 +148,8 @@ export default function AskXOScreen() {
         <View
           style={[
             styles.assistantBubble,
-            { backgroundColor: colors.surface, borderColor: colors.border },
+            shadows.md,
+            { backgroundColor: colors.surface },
           ]}
         >
           <Text style={[styles.assistantText, { color: colors.text }]}>
@@ -236,7 +239,7 @@ export default function AskXOScreen() {
 
       {messages.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>🤖</Text>
+          <Ionicons name="sparkles" size={48} color={colors.primary} style={{ marginBottom: 12 }} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>
             Ask XO
           </Text>
@@ -253,9 +256,9 @@ export default function AskXOScreen() {
                 onPress={() => handleSend(prompt)}
                 style={[
                   styles.exampleChip,
+                  shadows.sm,
                   {
                     backgroundColor: colors.surface,
-                    borderColor: colors.border,
                   },
                 ]}
               >
@@ -297,7 +300,8 @@ export default function AskXOScreen() {
       <View
         style={[
           styles.inputArea,
-          { backgroundColor: colors.surface, borderColor: colors.border },
+          shadows.md,
+          { backgroundColor: colors.surface },
         ]}
       >
         <TextInput
@@ -333,7 +337,7 @@ export default function AskXOScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   clearButton: { marginRight: 8 },
-  clearText: { fontSize: 15, fontWeight: '500' },
+  clearText: { fontSize: 15, fontWeight: '600' },
   // Empty state
   emptyState: {
     flex: 1,
@@ -341,16 +345,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
   },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
+  // emptyIcon handled by Ionicons inline
   emptyTitle: { fontSize: 24, fontWeight: '700', marginBottom: 8 },
   emptySubtitle: { fontSize: 15, textAlign: 'center', marginBottom: 32 },
   examplePrompts: { gap: 10, width: '100%' },
   exampleChip: {
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
     padding: 14,
+    minHeight: 48,
+    justifyContent: 'center' as const,
   },
-  exampleText: { fontSize: 15, fontWeight: '500' },
+  exampleText: { fontSize: 15, fontWeight: '600' },
   // Messages
   messageList: { padding: 16, paddingBottom: 8 },
   userMessageRow: { alignItems: 'flex-end', marginBottom: 12 },
@@ -366,7 +371,6 @@ const styles = StyleSheet.create({
   assistantBubble: {
     borderRadius: 18,
     borderBottomLeftRadius: 4,
-    borderWidth: 1,
     paddingHorizontal: 16,
     paddingVertical: 12,
     maxWidth: '90%',
@@ -375,9 +379,9 @@ const styles = StyleSheet.create({
   // Sources
   sourcesSection: { marginTop: 10 },
   sourcesToggle: { paddingVertical: 4 },
-  sourcesToggleText: { fontSize: 13, fontWeight: '600' },
+  sourcesToggleText: { fontSize: 13, fontWeight: '700' },
   sourceCard: {
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 10,
     marginTop: 6,
   },
@@ -386,7 +390,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
   },
-  sourceType: { fontSize: 12, fontWeight: '600' },
+  sourceType: { fontSize: 12, fontWeight: '700' },
   sourceDate: { fontSize: 12 },
   sourceContent: { fontSize: 13, lineHeight: 18 },
   // Typing indicator
@@ -402,7 +406,6 @@ const styles = StyleSheet.create({
   inputArea: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    borderTopWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 8,
     gap: 8,
@@ -415,9 +418,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
