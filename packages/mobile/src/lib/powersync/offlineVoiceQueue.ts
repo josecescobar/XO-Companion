@@ -80,9 +80,10 @@ export async function uploadQueuedVoiceNote(note: QueuedVoiceNote): Promise<bool
     });
 
     if (uploadResult.status >= 200 && uploadResult.status < 300) {
-      // Clean up local files
+      // Clean up local files — derive meta path from queue directory + filename
       const audioFile = new File(note.localUri);
-      const metaFile = new File(`${note.localUri}.json`);
+      const audioName = audioFile.name ?? note.localUri.split('/').pop() ?? '';
+      const metaFile = new File(getQueueDir(), `${audioName}.json`);
       if (audioFile.exists) audioFile.delete();
       if (metaFile.exists) metaFile.delete();
       return true;

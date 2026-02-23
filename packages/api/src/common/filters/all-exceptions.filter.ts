@@ -18,9 +18,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const res = ctx.getResponse<Response>();
 
     const requestId: string =
-      ('requestId' in req && typeof req.requestId === 'string'
-        ? req.requestId
-        : undefined) ??
+      req.requestId ??
       (req.headers['x-request-id'] as string) ??
       randomUUID();
 
