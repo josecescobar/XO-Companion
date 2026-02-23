@@ -12,6 +12,11 @@ const queryClient = new QueryClient({
     queries: {
       retry: 2,
       staleTime: 30_000,
+      networkMode: 'offlineFirst',
+      gcTime: 1000 * 60 * 10,
+    },
+    mutations: {
+      networkMode: 'offlineFirst',
     },
   },
 });
