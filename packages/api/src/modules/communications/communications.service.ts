@@ -3,6 +3,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 import { CommunicationType, CommunicationUrgency } from '@prisma/client';
+import { EmailService } from './email.service';
 
 @Injectable()
 export class CommunicationsService {
@@ -10,6 +11,7 @@ export class CommunicationsService {
 
   constructor(
     private prisma: PrismaService,
+    private emailService: EmailService,
     @InjectQueue('communication-drafting') private draftingQueue: Queue,
   ) {}
 
@@ -153,7 +155,7 @@ export class CommunicationsService {
   }
 
   async approve(id: string, approvedById: string) {
-    return this.prisma.communication.update({
+    const comm = await this.prisma.communication.update({
       where: { id },
       data: {
         status: 'APPROVED',
@@ -161,18 +163,59 @@ export class CommunicationsService {
         approvedAt: new Date(),
       },
       include: {
-        createdBy: { select: { id: true, firstName: true, lastName: true } },
+        createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
         approvedBy: { select: { id: true, firstName: true, lastName: true } },
       },
     });
+
+    // Automatically send email-type communications after approval
+    if (comm.type === 'EMAIL' && comm.recipientEmail) {
+      try {
+        const messageId = await this.emailService.sendEmail({
+          to: comm.recipientEmail,
+          subject: comm.subject,
+          body: comm.editedBody || comm.body || '',
+          replyTo: comm.createdBy.email || undefined,
+        });
+
+        return this.prisma.communication.update({
+          where: { id },
+          data: {
+            status: 'SENT',
+            sentAt: new Date(),
+            externalMessageId: messageId,
+          },
+          include: {
+            createdBy: { select: { id: true, firstName: true, lastName: true } },
+            approvedBy: { select: { id: true, firstName: true, lastName: true } },
+          },
+        });
+      } catch (err) {
+        this.logger.error(`Failed to send email for communication ${id}: ${err instanceof Error ? err.message : err}`);
+        return this.prisma.communication.update({
+          where: { id },
+          data: {
+            status: 'SEND_FAILED',
+            processingError: err instanceof Error ? err.message : 'Unknown send error',
+          },
+          include: {
+            createdBy: { select: { id: true, firstName: true, lastName: true } },
+            approvedBy: { select: { id: true, firstName: true, lastName: true } },
+          },
+        });
+      }
+    }
+
+    return comm;
   }
 
-  async markSent(id: string) {
+  async markSent(id: string, externalMessageId?: string) {
     return this.prisma.communication.update({
       where: { id },
       data: {
         status: 'SENT',
         sentAt: new Date(),
+        externalMessageId: externalMessageId || null,
       },
       include: {
         createdBy: { select: { id: true, firstName: true, lastName: true } },

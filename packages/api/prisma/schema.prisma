@@ -250,6 +250,7 @@ enum CommunicationStatus {
   DRAFT
   APPROVED
   SENT
+  SEND_FAILED
   CANCELLED
 }
 
@@ -1133,6 +1134,7 @@ model Communication {
   approvedById    String?               @map("approved_by_id") @db.Uuid
   approvedAt      DateTime?             @map("approved_at")
   sentAt          DateTime?             @map("sent_at")
+  externalMessageId String?             @map("external_message_id")
 
   createdById     String                @map("created_by_id") @db.Uuid
   createdAt       DateTime              @default(now()) @map("created_at")
