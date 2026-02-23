@@ -33,6 +33,7 @@ export interface RegisterParams {
   password: string;
   firstName: string;
   lastName: string;
+  organizationName: string;
   role: string;
 }
 
