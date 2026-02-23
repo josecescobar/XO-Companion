@@ -5,6 +5,8 @@
     "rootDir": "./src",
     "baseUrl": "./",
     "strictPropertyInitialization": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "paths": {
       "@/*": ["src/*"]
     }
