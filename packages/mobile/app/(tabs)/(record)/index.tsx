@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -8,6 +8,9 @@ import { useProjects } from '@/hooks/queries/useProjects';
 import { useDailyLogs } from '@/hooks/queries/useDailyLogs';
 import { useVoiceNote } from '@/hooks/queries/useVoiceNotes';
 import { useUploadVoice } from '@/hooks/mutations/useUploadVoice';
+import NetInfo from '@react-native-community/netinfo';
+import { queueVoiceNote } from '@/lib/powersync/offlineVoiceQueue';
+import { useRecordingStore } from '@/stores/recording.store';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { LoadingState } from '@/components/common/LoadingState';
 import { MediaAttachmentBar } from '@/components/media/MediaAttachmentBar';
@@ -45,6 +48,19 @@ export default function RecordScreen() {
   const { state, duration, uri, start, stop, reset } = useRecorder();
   const { mutateAsync: uploadVoiceAsync, isPending: uploading } = useUploadVoice();
   const { colors } = useTheme();
+
+  // Pre-select from Zustand store (e.g. user tapped "Record" from a daily log)
+  const storeProjectId = useRecordingStore((s) => s.selectedProjectId);
+  const storeLogId = useRecordingStore((s) => s.selectedLogId);
+  const clearTarget = useRecordingStore((s) => s.clearTarget);
+
+  useEffect(() => {
+    if (storeProjectId) {
+      setSelectedProjectId(storeProjectId);
+      if (storeLogId) setSelectedLogId(storeLogId);
+      clearTarget();
+    }
+  }, []);
 
   const [processingPhase, setProcessingPhase] = useState<ProcessingPhase>('idle');
   const [uploadedVoiceId, setUploadedVoiceId] = useState<string | null>(null);
@@ -87,6 +103,29 @@ export default function RecordScreen() {
 
   const handleUpload = async () => {
     if (!uri || !selectedProjectId || !selectedLogId) return;
+
+    // Check connectivity — queue offline if no network
+    const netState = await NetInfo.fetch();
+    if (!netState.isConnected) {
+      try {
+        await queueVoiceNote({
+          localUri: uri,
+          projectId: selectedProjectId,
+          dailyLogId: selectedLogId,
+          recordedAt: new Date().toISOString(),
+          mimeType: 'audio/m4a',
+          durationSeconds: duration,
+        });
+        Alert.alert(
+          'Saved Offline',
+          'Recording will upload automatically when back online.',
+        );
+        reset();
+      } catch (err) {
+        Alert.alert('Error', 'Failed to save recording for offline upload.');
+      }
+      return;
+    }
 
     setProcessingPhase('uploading');
     try {
