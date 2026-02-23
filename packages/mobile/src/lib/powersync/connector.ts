@@ -4,41 +4,37 @@ import {
   PowerSyncBackendConnector,
   UpdateType,
 } from '@powersync/react-native';
-import { getAccessToken } from '@/lib/secure-storage';
-import { API_BASE_URL } from '@/lib/constants';
+import { api, ApiError } from '@/api/client';
+
+interface PowerSyncTokenResponse {
+  token: string;
+  powersync_url?: string;
+  expiresIn: number;
+}
 
 export class XOPowerSyncConnector implements PowerSyncBackendConnector {
   async fetchCredentials() {
-    const accessToken = await getAccessToken();
-    if (!accessToken) {
-      return null;
+    try {
+      const data = await api<PowerSyncTokenResponse>(
+        '/auth/powersync/token',
+      );
+      return {
+        endpoint: data.powersync_url || '',
+        token: data.token,
+        expiresAt: new Date(Date.now() + data.expiresIn * 1000),
+      };
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        // api() already attempted token refresh — auth is truly dead
+        console.warn('PowerSync auth failed after refresh attempt');
+        return null;
+      }
+      console.error('PowerSync credential fetch failed:', error);
+      throw error;
     }
-
-    const response = await fetch(`${API_BASE_URL}/auth/powersync/token`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to get PowerSync token');
-    }
-
-    const data = await response.json();
-
-    return {
-      endpoint: data.powersync_url || '',
-      token: data.token,
-      expiresAt: new Date(Date.now() + data.expiresIn * 1000),
-    };
   }
 
   async uploadData(database: AbstractPowerSyncDatabase): Promise<void> {
-    const accessToken = await getAccessToken();
-    if (!accessToken) {
-      throw new Error('Not authenticated');
-    }
-
     const transaction = await database.getNextCrudTransaction();
     if (!transaction) return;
 
@@ -52,19 +48,10 @@ export class XOPowerSyncConnector implements PowerSyncBackendConnector {
         timestamp: new Date().toISOString(),
       }));
 
-      const response = await fetch(`${API_BASE_URL}/sync/queue`, {
+      await api('/sync/queue', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ operations }),
+        body: { operations },
       });
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(`Sync upload failed: ${response.status} ${errorBody}`);
-      }
 
       await transaction.complete();
     } catch (error) {
