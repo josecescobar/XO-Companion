@@ -101,6 +101,41 @@ const delay_entries = new Table({
   created_at: column.text,
 });
 
+const safety_entries = new Table({
+  daily_log_id: column.text,
+  toolbox_talks: column.text, // JSON string array
+  inspections: column.text, // JSON string array
+  incidents: column.text, // JSON string array
+  osha_recordable: column.integer,
+  near_misses: column.integer,
+  first_aid_cases: column.integer,
+  notes: column.text,
+  ai_generated: column.integer,
+  ai_confidence: column.real,
+  ai_confidence_reason: column.text,
+  review_status: column.text,
+  created_at: column.text,
+  updated_at: column.text,
+});
+
+const weather_entries = new Table({
+  daily_log_id: column.text,
+  conditions: column.text, // JSON array of WeatherCondition
+  temp_high: column.real,
+  temp_low: column.real,
+  precipitation: column.text,
+  wind_speed: column.real,
+  wind_direction: column.text,
+  humidity: column.real,
+  delay_minutes: column.integer,
+  ai_generated: column.integer,
+  ai_confidence: column.real,
+  ai_confidence_reason: column.text,
+  review_status: column.text,
+  created_at: column.text,
+  updated_at: column.text,
+});
+
 const tasks = new Table({
   project_id: column.text,
   daily_log_id: column.text,
@@ -201,6 +236,8 @@ export const powersyncSchema = new Schema({
   work_completed_entries,
   material_entries,
   delay_entries,
+  safety_entries,
+  weather_entries,
   tasks,
   voice_notes,
   communications,
