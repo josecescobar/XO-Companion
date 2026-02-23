@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createAnthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 
 export interface DraftInput {
@@ -28,15 +29,13 @@ export class DraftingService {
   constructor(private configService: ConfigService) {}
 
   async draftMessage(input: DraftInput): Promise<DraftOutput> {
-    const anthropic = createAnthropic({
-      apiKey: this.configService.get('ANTHROPIC_API_KEY'),
-    });
+    const model = this.createModel('claude-sonnet-4-20250514');
 
     const systemPrompt = this.buildSystemPrompt(input);
     const userPrompt = this.buildUserPrompt(input);
 
     const result = await generateText({
-      model: anthropic('claude-sonnet-4-20250514'),
+      model,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
     });
@@ -56,6 +55,23 @@ export class DraftingService {
       body,
       tokensUsed: result.usage?.totalTokens ?? 0,
     };
+  }
+
+  private createModel(modelId: string) {
+    const anthropicKey = this.configService.get<string>('ANTHROPIC_API_KEY');
+    if (anthropicKey) {
+      const anthropic = createAnthropic({ apiKey: anthropicKey });
+      return anthropic(modelId);
+    }
+    const openrouterKey = this.configService.get<string>('OPENROUTER_API_KEY');
+    if (openrouterKey) {
+      const openrouter = createOpenAI({
+        apiKey: openrouterKey,
+        baseURL: 'https://openrouter.ai/api/v1',
+      });
+      return openrouter(`anthropic/${modelId}`);
+    }
+    throw new Error('No AI provider configured: set ANTHROPIC_API_KEY or OPENROUTER_API_KEY');
   }
 
   private buildSystemPrompt(input: DraftInput): string {

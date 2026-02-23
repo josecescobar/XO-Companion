@@ -414,14 +414,26 @@ export class MemoryService {
     messages.push({ role: 'user', content: question });
 
     const { createAnthropic } = require('@ai-sdk/anthropic');
+    const { createOpenAI } = require('@ai-sdk/openai');
     const { generateText } = require('ai');
 
-    const anthropic = createAnthropic({
-      apiKey: this.configService.get('ANTHROPIC_API_KEY'),
-    });
+    let model: ReturnType<typeof createAnthropic> | ReturnType<typeof createOpenAI>;
+    const anthropicKey = this.configService.get('ANTHROPIC_API_KEY');
+    if (anthropicKey) {
+      const anthropic = createAnthropic({ apiKey: anthropicKey });
+      model = anthropic('claude-sonnet-4-20250514');
+    } else {
+      const openrouterKey = this.configService.get('OPENROUTER_API_KEY');
+      if (!openrouterKey) throw new Error('No AI provider configured: set ANTHROPIC_API_KEY or OPENROUTER_API_KEY');
+      const openrouter = createOpenAI({
+        apiKey: openrouterKey,
+        baseURL: 'https://openrouter.ai/api/v1',
+      });
+      model = openrouter('anthropic/claude-sonnet-4-20250514');
+    }
 
     const result = await generateText({
-      model: anthropic('claude-sonnet-4-20250514'),
+      model,
       system: `You are XO, an AI assistant for a construction project. You answer questions using the project's documents, daily logs, voice transcripts, and other records.
 
 RULES:

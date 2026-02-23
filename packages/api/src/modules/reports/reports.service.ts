@@ -231,10 +231,19 @@ Tasks: ${tasksCreated} created, ${tasksCompleted} completed this week`;
     const modelId = this.configService.get<string>('AI_PRIMARY_MODEL') || 'claude-sonnet-4-20250514';
 
     if (modelId.startsWith('claude') || modelId.startsWith('anthropic')) {
-      const anthropic = createAnthropic({
-        apiKey: this.configService.get<string>('ANTHROPIC_API_KEY'),
-      });
-      return anthropic(modelId);
+      const anthropicKey = this.configService.get<string>('ANTHROPIC_API_KEY');
+      if (anthropicKey) {
+        const anthropic = createAnthropic({ apiKey: anthropicKey });
+        return anthropic(modelId);
+      }
+      const openrouterKey = this.configService.get<string>('OPENROUTER_API_KEY');
+      if (openrouterKey) {
+        const openrouter = createOpenAI({
+          apiKey: openrouterKey,
+          baseURL: 'https://openrouter.ai/api/v1',
+        });
+        return openrouter(`anthropic/${modelId}`);
+      }
     }
 
     const openai = createOpenAI({

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createAnthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import * as fs from 'fs';
@@ -49,9 +50,7 @@ export class VisionComparisonService {
     ragContext?: string;
     projectName?: string;
   }): Promise<{ result: InspectionResultData; tokensUsed: number }> {
-    const anthropic = createAnthropic({
-      apiKey: this.configService.get('ANTHROPIC_API_KEY'),
-    });
+    const model = this.createModel('claude-sonnet-4-20250514');
 
     // Read photo as base64
     const absolutePath = path.resolve(params.photoPath);
@@ -81,7 +80,7 @@ export class VisionComparisonService {
     userMessage += '\n\nAnalyze the attached photo against the reference context above. Provide your structured assessment.';
 
     const result = await generateObject({
-      model: anthropic('claude-sonnet-4-20250514'),
+      model,
       schema: inspectionResultSchema,
       system: systemPrompt,
       messages: [
@@ -106,6 +105,23 @@ export class VisionComparisonService {
       result: result.object,
       tokensUsed: result.usage?.totalTokens ?? 0,
     };
+  }
+
+  private createModel(modelId: string) {
+    const anthropicKey = this.configService.get<string>('ANTHROPIC_API_KEY');
+    if (anthropicKey) {
+      const anthropic = createAnthropic({ apiKey: anthropicKey });
+      return anthropic(modelId);
+    }
+    const openrouterKey = this.configService.get<string>('OPENROUTER_API_KEY');
+    if (openrouterKey) {
+      const openrouter = createOpenAI({
+        apiKey: openrouterKey,
+        baseURL: 'https://openrouter.ai/api/v1',
+      });
+      return openrouter(`anthropic/${modelId}`);
+    }
+    throw new Error('No AI provider configured: set ANTHROPIC_API_KEY or OPENROUTER_API_KEY');
   }
 
   private buildSystemPrompt(inspectionType: string, projectName?: string): string {
