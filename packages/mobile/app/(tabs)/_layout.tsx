@@ -1,16 +1,37 @@
+import { useState, useEffect, useCallback } from 'react';
 import { Tabs } from 'expo-router';
-import { View } from 'react-native';
+import { View, Text, AppState, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { SyncStatusBar } from '@/components/common/SyncStatusBar';
+import { getQueuedVoiceNotes } from '@/lib/powersync/offlineVoiceQueue';
 import { shadows } from '@/theme/tokens';
 
 export default function TabsLayout() {
   const { colors } = useTheme();
   useNotifications();
   useOfflineSync();
+
+  const [queueCount, setQueueCount] = useState(0);
+
+  const refreshQueueCount = useCallback(async () => {
+    try {
+      const notes = await getQueuedVoiceNotes();
+      setQueueCount(notes.length);
+    } catch {
+      // ignore — queue dir may not exist yet
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshQueueCount();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refreshQueueCount();
+    });
+    return () => subscription.remove();
+  }, [refreshQueueCount]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -58,7 +79,14 @@ export default function TabsLayout() {
             title: 'Record',
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'mic' : 'mic-outline'} size={24} color={color} />
+              <View>
+                <Ionicons name={focused ? 'mic' : 'mic-outline'} size={24} color={color} />
+                {queueCount > 0 && (
+                  <View style={badgeStyles.badge}>
+                    <Text style={badgeStyles.badgeText}>{queueCount}</Text>
+                  </View>
+                )}
+              </View>
             ),
           }}
         />
@@ -94,3 +122,23 @@ export default function TabsLayout() {
     </View>
   );
 }
+
+const badgeStyles = StyleSheet.create({
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    backgroundColor: '#F59E0B',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+});
