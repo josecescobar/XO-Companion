@@ -12,7 +12,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "test": "jest",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "prebuild": "prisma generate"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.0.0",
