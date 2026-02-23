@@ -27,3 +27,18 @@ export function logout(refreshToken: string): Promise<{ message: string }> {
 export function me(): Promise<MeResponse> {
   return api<MeResponse>('/auth/me');
 }
+
+export interface RegisterParams {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+}
+
+export function register(params: RegisterParams): Promise<{ id: string }> {
+  return api<{ id: string }>('/auth/register', {
+    method: 'POST',
+    body: params,
+  });
+}

@@ -10,6 +10,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLogin } from '@/hooks/mutations/useLogin';
+import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 
 export default function LoginScreen() {
@@ -17,6 +18,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const { mutate: login, isPending, error } = useLogin();
   const { colors } = useTheme();
+  const router = useRouter();
 
   const handleLogin = () => {
     if (!email.trim() || !password.trim()) return;
@@ -82,6 +84,12 @@ export default function LoginScreen() {
             ) : (
               <Text style={styles.buttonText}>Sign In</Text>
             )}
+          </Pressable>
+
+          <Pressable onPress={() => router.push('/(auth)/register')}>
+            <Text style={styles.link}>
+              Don't have an account? <Text style={styles.linkBold}>Sign Up</Text>
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -155,6 +163,17 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 18,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  link: {
+    color: '#C4B5FD',
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 16,
+  },
+  linkBold: {
     fontWeight: '700',
     color: '#ffffff',
   },
