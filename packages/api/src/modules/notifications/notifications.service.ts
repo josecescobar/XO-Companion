@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
+import { Role } from '@prisma/client';
 
 export interface PushNotificationPayload {
   title: string;
@@ -102,7 +103,7 @@ export class NotificationsService {
     const users = await this.prisma.user.findMany({
       where: {
         organizationId,
-        role: { in: roles as any[] },
+        role: { in: roles as Role[] },
       },
       select: { id: true },
     });

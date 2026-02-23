@@ -6,7 +6,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AssemblyAiService } from './services/assemblyai.service';
 import { LlmExtractionService } from './services/llm-extraction.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { VoiceNoteStatus } from '@prisma/client';
+import {
+  VoiceNoteStatus,
+  TaskPriority,
+  TaskCategory,
+  CommunicationType,
+  CommunicationUrgency,
+  Prisma,
+} from '@prisma/client';
 
 export interface VoiceProcessingJobData {
   voiceNoteId: string;
@@ -65,7 +72,7 @@ export class VoiceProcessor extends WorkerHost {
       await this.prisma.voiceNote.update({
         where: { id: voiceNoteId },
         data: {
-          extractedData: extractedData as any,
+          extractedData: extractedData as unknown as Prisma.InputJsonValue,
           aiProcessed: true,
           status: VoiceNoteStatus.REVIEW_READY,
         },
@@ -92,8 +99,8 @@ export class VoiceProcessor extends WorkerHost {
                   description: action.description,
                   assignee: action.assignee || null,
                   dueDate: action.dueDate ? this.parseRelativeDate(action.dueDate) : null,
-                  priority: action.priority as any,
-                  category: action.category as any,
+                  priority: action.priority as TaskPriority,
+                  category: action.category as TaskCategory,
                   status: 'PENDING',
                   aiGenerated: true,
                   aiConfidence: action.confidence,
@@ -104,8 +111,8 @@ export class VoiceProcessor extends WorkerHost {
             this.logger.log(`Created ${extractedData.nextActions.length} tasks from voice note`);
           }
         }
-      } catch (err: any) {
-        this.logger.warn(`Failed to create tasks from voice note: ${err.message}`);
+      } catch (err: unknown) {
+        this.logger.warn(`Failed to create tasks from voice note: ${err instanceof Error ? err.message : String(err)}`);
       }
 
       // Create communication drafts from extracted communications
@@ -127,8 +134,8 @@ export class VoiceProcessor extends WorkerHost {
                   projectId: voiceNote.dailyLog.projectId,
                   dailyLogId: voiceNote.dailyLog.id,
                   voiceNoteId,
-                  type: comm.type as any,
-                  urgency: comm.urgency as any,
+                  type: comm.type as CommunicationType,
+                  urgency: comm.urgency as CommunicationUrgency,
                   recipient: comm.recipient,
                   subject: comm.subject,
                   context: comm.context,
@@ -147,8 +154,8 @@ export class VoiceProcessor extends WorkerHost {
             this.logger.log(`Created ${extractedData.communications.length} communication drafts from voice note`);
           }
         }
-      } catch (err: any) {
-        this.logger.warn(`Failed to create communications from voice note: ${err.message}`);
+      } catch (err: unknown) {
+        this.logger.warn(`Failed to create communications from voice note: ${err instanceof Error ? err.message : String(err)}`);
       }
 
       // Enqueue memory ingestion for the voice transcript (non-blocking)
@@ -165,8 +172,8 @@ export class VoiceProcessor extends WorkerHost {
           });
           this.logger.log(`Queued memory ingestion for voice note ${voiceNoteId}`);
         }
-      } catch (err: any) {
-        this.logger.warn(`Failed to queue memory ingestion: ${err.message}`);
+      } catch (err: unknown) {
+        this.logger.warn(`Failed to queue memory ingestion: ${err instanceof Error ? err.message : String(err)}`);
       }
 
       // Notify the user their voice note is processed
@@ -198,19 +205,20 @@ export class VoiceProcessor extends WorkerHost {
             },
           });
         }
-      } catch (err: any) {
-        this.logger.warn(`Failed to send voice notification: ${err.message}`);
+      } catch (err: unknown) {
+        this.logger.warn(`Failed to send voice notification: ${err instanceof Error ? err.message : String(err)}`);
       }
 
       this.logger.log(`Voice note ${voiceNoteId} processed successfully`);
       return { success: true, voiceNoteId };
-    } catch (error: any) {
-      this.logger.error(`Failed to process voice note ${voiceNoteId}: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to process voice note ${voiceNoteId}: ${message}`);
       await this.prisma.voiceNote.update({
         where: { id: voiceNoteId },
         data: {
           status: VoiceNoteStatus.FAILED,
-          processingError: error.message,
+          processingError: message,
         },
       });
       throw error;

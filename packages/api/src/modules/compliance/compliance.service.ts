@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ComplianceDocType, ComplianceDocStatus } from '@prisma/client';
 import { CreateIncidentDto } from './dto/create-incident.dto';
 import { UpdateIncidentDto } from './dto/update-incident.dto';
 import { CreateDocumentDto } from './dto/create-document.dto';
@@ -94,14 +95,17 @@ export class ComplianceService {
     dto: UpdateIncidentDto,
   ) {
     await this.findOneIncident(id, organizationId);
-    const data: any = { ...dto };
-    if (dto.incidentDate) data.incidentDate = new Date(dto.incidentDate);
-    if (dto.employeeDateOfBirth)
-      data.employeeDateOfBirth = new Date(dto.employeeDateOfBirth);
-    if (dto.employeeHireDate)
-      data.employeeHireDate = new Date(dto.employeeHireDate);
-    if (dto.deathDate) data.deathDate = new Date(dto.deathDate);
-    return this.prisma.oshaIncident.update({ where: { id }, data });
+    const { incidentDate, employeeDateOfBirth, employeeHireDate, deathDate, ...rest } = dto;
+    return this.prisma.oshaIncident.update({
+      where: { id },
+      data: {
+        ...rest,
+        ...(incidentDate !== undefined ? { incidentDate: new Date(incidentDate) } : {}),
+        ...(employeeDateOfBirth !== undefined ? { employeeDateOfBirth: new Date(employeeDateOfBirth) } : {}),
+        ...(employeeHireDate !== undefined ? { employeeHireDate: new Date(employeeHireDate) } : {}),
+        ...(deathDate !== undefined ? { deathDate: new Date(deathDate) } : {}),
+      },
+    });
   }
 
   // ─── OSHA Form Generation ───────────────────────────────────────
@@ -266,8 +270,8 @@ export class ComplianceService {
     return this.prisma.complianceDocument.findMany({
       where: {
         organizationId,
-        ...(filters?.type ? { documentType: filters.type as any } : {}),
-        ...(filters?.status ? { status: filters.status as any } : {}),
+        ...(filters?.type ? { documentType: filters.type as ComplianceDocType } : {}),
+        ...(filters?.status ? { status: filters.status as ComplianceDocStatus } : {}),
       },
       orderBy: { expirationDate: 'asc' },
     });
@@ -287,10 +291,15 @@ export class ComplianceService {
     dto: UpdateDocumentDto,
   ) {
     await this.findOneDocument(id, organizationId);
-    const data: any = { ...dto };
-    if (dto.issueDate) data.issueDate = new Date(dto.issueDate);
-    if (dto.expirationDate) data.expirationDate = new Date(dto.expirationDate);
-    return this.prisma.complianceDocument.update({ where: { id }, data });
+    const { issueDate, expirationDate, ...rest } = dto;
+    return this.prisma.complianceDocument.update({
+      where: { id },
+      data: {
+        ...rest,
+        ...(issueDate !== undefined ? { issueDate: new Date(issueDate) } : {}),
+        ...(expirationDate !== undefined ? { expirationDate: new Date(expirationDate) } : {}),
+      },
+    });
   }
 
   async deleteDocument(id: string, organizationId: string) {
@@ -436,10 +445,15 @@ export class ComplianceService {
     dto: UpdateTrainingDto,
   ) {
     await this.findOneTraining(id, organizationId);
-    const data: any = { ...dto };
-    if (dto.completedDate) data.completedDate = new Date(dto.completedDate);
-    if (dto.expirationDate) data.expirationDate = new Date(dto.expirationDate);
-    return this.prisma.trainingRecord.update({ where: { id }, data });
+    const { completedDate, expirationDate, ...rest } = dto;
+    return this.prisma.trainingRecord.update({
+      where: { id },
+      data: {
+        ...rest,
+        ...(completedDate !== undefined ? { completedDate: new Date(completedDate) } : {}),
+        ...(expirationDate !== undefined ? { expirationDate: new Date(expirationDate) } : {}),
+      },
+    });
   }
 
   async getExpiringTraining(organizationId: string, days: number) {
@@ -531,9 +545,9 @@ export class ComplianceService {
           }
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       this.logger.error(
-        `handleSafetyEntryApproved failed for ${safetyEntryId}: ${err.message}`,
+        `handleSafetyEntryApproved failed for ${safetyEntryId}: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   }

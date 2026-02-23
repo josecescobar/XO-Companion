@@ -21,6 +21,29 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
 import { ApiTags, ApiBearerAuth, ApiCookieAuth } from '@nestjs/swagger';
 
+interface LoginUser {
+  id: string;
+  email: string;
+  role: string;
+  organizationId: string;
+}
+
+interface RefreshPayload {
+  sub: string;
+  family: string;
+  refreshToken: string;
+}
+
+interface AuthenticatedUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  isActive: boolean;
+  organizationId: string;
+}
+
 @ApiTags('Auth')
 @ApiBearerAuth()
 @ApiCookieAuth()
@@ -48,7 +71,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const { accessToken, refreshToken, user } = await this.authService.login(
-      req.user as any,
+      req.user as LoginUser,
     );
 
     this.setRefreshCookie(res, refreshToken);
@@ -64,7 +87,7 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { sub, refreshToken: oldToken } = req.user as any;
+    const { sub, refreshToken: oldToken } = req.user as RefreshPayload;
     const { accessToken, refreshToken, user } = await this.authService.refresh(
       sub,
       oldToken,
@@ -90,7 +113,7 @@ export class AuthController {
   }
 
   @Get('me')
-  me(@CurrentUser() user: any) {
+  me(@CurrentUser() user: AuthenticatedUser) {
     return user;
   }
 

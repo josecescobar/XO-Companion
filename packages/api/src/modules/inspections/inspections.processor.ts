@@ -1,6 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { VisionComparisonService } from './services/vision-comparison.service';
 import { MemoryService } from '../memory/memory.service';
@@ -83,7 +84,7 @@ export class InspectionsProcessor extends WorkerHost {
         data: {
           status: result.overallAssessment,
           aiAnalysis: result.summary,
-          aiFindings: result as any,
+          aiFindings: result as unknown as Prisma.InputJsonValue,
           aiOverallScore: result.overallScore,
           aiProcessedAt: new Date(),
           tokensUsed,
@@ -111,7 +112,7 @@ export class InspectionsProcessor extends WorkerHost {
         });
 
         // If FAIL or CRITICAL findings, also notify project managers
-        if (result.overallAssessment === 'FAIL' || result.findings.some((f: any) => f.severity === 'CRITICAL')) {
+        if (result.overallAssessment === 'FAIL' || result.findings.some((f) => f.severity === 'CRITICAL')) {
           const managers = await this.prisma.projectMember.findMany({
             where: {
               projectId,
@@ -126,7 +127,7 @@ export class InspectionsProcessor extends WorkerHost {
               managers.map((m) => m.userId),
               {
                 title: `🚨 Failed Inspection: ${inspection.title}`,
-                body: `Score: ${result.overallScore}/100 — ${result.findings.filter((f: any) => f.severity === 'CRITICAL').length} critical findings. Review required.`,
+                body: `Score: ${result.overallScore}/100 — ${result.findings.filter((f) => f.severity === 'CRITICAL').length} critical findings. Review required.`,
                 data: {
                   screen: 'inspection-result',
                   projectId,
@@ -136,18 +137,19 @@ export class InspectionsProcessor extends WorkerHost {
             );
           }
         }
-      } catch (err: any) {
-        this.logger.warn(`Failed to send inspection notification: ${err.message}`);
+      } catch (err: unknown) {
+        this.logger.warn(`Failed to send inspection notification: ${err instanceof Error ? err.message : String(err)}`);
       }
 
       this.logger.log(`Inspection ${inspectionId} processed: ${result.overallAssessment} (${result.overallScore}/100)`);
-    } catch (err: any) {
-      this.logger.error(`Inspection ${inspectionId} failed: ${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Inspection ${inspectionId} failed: ${message}`);
       await this.prisma.inspection.update({
         where: { id: inspectionId },
         data: {
           status: 'INCONCLUSIVE',
-          processingError: err.message,
+          processingError: message,
         },
       });
       throw err;

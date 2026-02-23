@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import type { StringValue } from 'ms';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 
@@ -157,7 +158,7 @@ export class AuthService {
       },
       {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-        expiresIn: (this.configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m') as any,
+        expiresIn: (this.configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m') as StringValue,
       },
     );
   }
@@ -173,7 +174,7 @@ export class AuthService {
       { sub: userId, family: tokenFamily, jti: uuidv4() },
       {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn: expiresIn as any,
+        expiresIn: expiresIn as StringValue,
       },
     );
 

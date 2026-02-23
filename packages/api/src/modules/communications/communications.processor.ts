@@ -44,10 +44,13 @@ export class CommunicationsProcessor extends WorkerHost {
       if (comm.dailyLog) {
         const log = comm.dailyLog;
         const parts: string[] = [];
-        if (log.weather) parts.push(`Weather: ${(log.weather as any).conditions}`);
-        if (log.workforce.length > 0) parts.push(`Trades on site: ${log.workforce.map((w: any) => w.trade).join(', ')}`);
-        if (log.workCompleted.length > 0) parts.push(`Work completed: ${log.workCompleted.map((w: any) => w.description).join('; ')}`);
-        if (log.delays.length > 0) parts.push(`Delays: ${log.delays.map((d: any) => `${d.description} (${d.durationMinutes}min)`).join('; ')}`);
+        if (log.weather) {
+          const weather = log.weather as Record<string, unknown>;
+          parts.push(`Weather: ${weather.conditions}`);
+        }
+        if (log.workforce.length > 0) parts.push(`Trades on site: ${log.workforce.map((w) => w.trade).join(', ')}`);
+        if (log.workCompleted.length > 0) parts.push(`Work completed: ${log.workCompleted.map((w) => w.description).join('; ')}`);
+        if (log.delays.length > 0) parts.push(`Delays: ${log.delays.map((d) => `${d.description} (${d.durationMinutes}min)`).join('; ')}`);
         recentLogSummary = parts.join('\n');
       }
 
@@ -93,18 +96,19 @@ export class CommunicationsProcessor extends WorkerHost {
             commId: communicationId,
           },
         });
-      } catch (err: any) {
-        this.logger.warn(`Failed to send communication notification: ${err.message}`);
+      } catch (err: unknown) {
+        this.logger.warn(`Failed to send communication notification: ${err instanceof Error ? err.message : String(err)}`);
       }
 
       this.logger.log(`Drafted communication ${communicationId}: ${comm.type} to ${comm.recipient}`);
-    } catch (err: any) {
-      this.logger.error(`Communication draft failed ${communicationId}: ${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Communication draft failed ${communicationId}: ${message}`);
       await this.prisma.communication.update({
         where: { id: communicationId },
         data: {
           status: 'DRAFT',
-          processingError: err.message,
+          processingError: message,
           body: `[AI drafting failed — please write manually]\n\nContext: ${(await this.prisma.communication.findUnique({ where: { id: communicationId } }))?.context || 'N/A'}`,
         },
       });
