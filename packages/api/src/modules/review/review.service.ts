@@ -27,7 +27,7 @@ function isEntityType(value: string): value is EntityType {
 }
 
 /** Common fields shared by all reviewable entry models. */
-interface EntryRecord {
+export interface EntryRecord {
   id: string;
   dailyLogId: string;
   aiConfidence: number | null;

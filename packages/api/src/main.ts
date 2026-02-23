@@ -41,20 +41,22 @@ async function bootstrap() {
   // Request logging
   app.useGlobalInterceptors(new LoggingInterceptor());
 
-  // Swagger / OpenAPI
-  const config = new DocumentBuilder()
-    .setTitle('XO Companion API')
-    .setDescription('Voice-powered AI daily log assistant for construction contractors')
-    .setVersion('0.1.0')
-    .addBearerAuth()
-    .addCookieAuth('xo_refresh_token')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  // Swagger / OpenAPI — disabled in production
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('XO Companion API')
+      .setDescription('Voice-first AI construction field operations assistant')
+      .setVersion('0.1.0')
+      .addBearerAuth()
+      .addCookieAuth('xo_refresh_token')
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+    logger.log(`Swagger docs will be available at http://localhost:${process.env.PORT || 3000}/api/docs`);
+  }
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
   logger.log(`XO Companion API running on port ${port}`);
-  logger.log(`Swagger docs available at http://localhost:${port}/docs`);
 }
 bootstrap();
