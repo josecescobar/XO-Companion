@@ -5,22 +5,51 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ReviewAction } from '@prisma/client';
+import { Prisma, PrismaClient, ReviewAction } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ComplianceService } from '../compliance/compliance.service';
 import { SubmitReviewDto } from './dto/submit-review.dto';
 import { BatchApproveDto } from './dto/batch-approve.dto';
 
-// Map entity types to Prisma delegate names
-const ENTITY_TABLE_MAP: Record<string, string> = {
-  weather: 'weatherEntry',
-  workforce: 'workforceEntry',
-  equipment: 'equipmentEntry',
-  workCompleted: 'workCompletedEntry',
-  material: 'materialEntry',
-  safety: 'safetyEntry',
-  delay: 'delayEntry',
-};
+// ---------------------------------------------------------------------------
+// Entity type dispatch – replaces the untyped ENTITY_TABLE_MAP + `as any`
+// ---------------------------------------------------------------------------
+
+const ENTITY_TYPES = [
+  'weather', 'workforce', 'equipment', 'workCompleted',
+  'material', 'safety', 'delay',
+] as const;
+
+type EntityType = (typeof ENTITY_TYPES)[number];
+
+function isEntityType(value: string): value is EntityType {
+  return (ENTITY_TYPES as readonly string[]).includes(value);
+}
+
+/** Common fields shared by all reviewable entry models. */
+interface EntryRecord {
+  id: string;
+  dailyLogId: string;
+  aiConfidence: number | null;
+  aiConfidenceReason: string | null;
+  reviewStatus: string | null;
+  aiGenerated: boolean | null;
+  [key: string]: unknown;
+}
+
+/** Minimal delegate interface for entry model operations used by ReviewService. */
+interface EntryDelegate {
+  findUnique(args: { where: { id: string } }): PromiseLike<EntryRecord | null>;
+  findMany(args: Record<string, unknown>): PromiseLike<EntryRecord[]>;
+  update(args: { where: { id: string }; data: Record<string, unknown> }): PromiseLike<EntryRecord>;
+}
+
+/** Subset of PrismaClient that exposes entry model delegates. */
+type EntryClient = Pick<
+  PrismaClient,
+  'weatherEntry' | 'workforceEntry' | 'equipmentEntry' |
+  'workCompletedEntry' | 'materialEntry' | 'safetyEntry' | 'delayEntry'
+>;
 
 @Injectable()
 export class ReviewService {
@@ -37,6 +66,25 @@ export class ReviewService {
   }
 
   /**
+   * Returns a typed delegate for the given entity type.
+   *
+   * Each Prisma delegate satisfies EntryDelegate at runtime; the
+   * `as unknown as EntryDelegate` bridges Prisma's complex generics
+   * to a simple interface that provides type safety at every call site.
+   */
+  private getDelegate(entityType: EntityType, client: EntryClient = this.prisma): EntryDelegate {
+    switch (entityType) {
+      case 'weather':       return client.weatherEntry as unknown as EntryDelegate;
+      case 'workforce':     return client.workforceEntry as unknown as EntryDelegate;
+      case 'equipment':     return client.equipmentEntry as unknown as EntryDelegate;
+      case 'workCompleted': return client.workCompletedEntry as unknown as EntryDelegate;
+      case 'material':      return client.materialEntry as unknown as EntryDelegate;
+      case 'safety':        return client.safetyEntry as unknown as EntryDelegate;
+      case 'delay':         return client.delayEntry as unknown as EntryDelegate;
+    }
+  }
+
+  /**
    * Get all AI-generated entries pending review for a daily log
    */
   async getPending(dailyLogId: string, projectId: string) {
@@ -48,7 +96,7 @@ export class ReviewService {
     const pending: Array<{
       entityType: string;
       entityId: string;
-      data: any;
+      data: EntryRecord;
       aiConfidence: number | null;
       aiConfidenceReason: string | null;
       reviewStatus: string | null;
@@ -62,7 +110,7 @@ export class ReviewService {
       pending.push({
         entityType: 'weather',
         entityId: weather.id,
-        data: weather,
+        data: weather as EntryRecord,
         aiConfidence: weather.aiConfidence,
         aiConfidenceReason: weather.aiConfidenceReason,
         reviewStatus: weather.reviewStatus,
@@ -76,7 +124,7 @@ export class ReviewService {
       pending.push({
         entityType: 'safety',
         entityId: safety.id,
-        data: safety,
+        data: safety as EntryRecord,
         aiConfidence: safety.aiConfidence,
         aiConfidenceReason: safety.aiConfidenceReason,
         reviewStatus: safety.reviewStatus,
@@ -84,10 +132,9 @@ export class ReviewService {
     }
 
     // Check array types
-    const arrayTypes = ['workforce', 'equipment', 'workCompleted', 'material', 'delay'] as const;
+    const arrayTypes: EntityType[] = ['workforce', 'equipment', 'workCompleted', 'material', 'delay'];
     for (const entityType of arrayTypes) {
-      const tableName = ENTITY_TABLE_MAP[entityType];
-      const delegate = (this.prisma as any)[tableName];
+      const delegate = this.getDelegate(entityType);
       const entries = await delegate.findMany({
         where: { dailyLogId, reviewStatus: 'PENDING_REVIEW' },
       });
@@ -128,12 +175,11 @@ export class ReviewService {
     });
     if (!log) throw new NotFoundException('Daily log not found');
 
-    const tableName = ENTITY_TABLE_MAP[dto.entityType];
-    if (!tableName) {
+    if (!isEntityType(dto.entityType)) {
       throw new BadRequestException(`Invalid entity type: ${dto.entityType}`);
     }
 
-    const delegate = (this.prisma as any)[tableName];
+    const delegate = this.getDelegate(dto.entityType);
     const entity = await delegate.findUnique({ where: { id: dto.entityId } });
     if (!entity) {
       throw new NotFoundException(`${dto.entityType} entry not found`);
@@ -143,8 +189,8 @@ export class ReviewService {
       throw new BadRequestException('Entry does not belong to this daily log');
     }
 
-    let previousValue: any = null;
-    let newValue: any = null;
+    let previousValue: Record<string, unknown> | null = null;
+    let newValue: Record<string, unknown> | null = null;
 
     switch (dto.action) {
       case ReviewAction.APPROVED:
@@ -161,7 +207,7 @@ export class ReviewService {
 
       case ReviewAction.REJECTED:
         // Soft-reject: update status instead of deleting
-        previousValue = { reviewStatus: entity.reviewStatus, ...entity };
+        previousValue = { ...entity };
         newValue = { reviewStatus: 'REJECTED' };
         await delegate.update({
           where: { id: dto.entityId },
@@ -199,8 +245,8 @@ export class ReviewService {
         fieldName: dto.fieldName,
         action: dto.action,
         reasonCode: dto.reasonCode,
-        previousValue,
-        newValue,
+        previousValue: previousValue as unknown as Prisma.InputJsonValue,
+        newValue: newValue as unknown as Prisma.InputJsonValue,
         comment: dto.comment,
       },
       include: {
@@ -241,8 +287,8 @@ export class ReviewService {
     // If threshold set, find all PENDING_REVIEW entries above threshold
     if (dto.approveAllAboveConfidence !== undefined) {
       const threshold = dto.approveAllAboveConfidence;
-      for (const [entityType, tableName] of Object.entries(ENTITY_TABLE_MAP)) {
-        const delegate = (this.prisma as any)[tableName];
+      for (const entityType of ENTITY_TYPES) {
+        const delegate = this.getDelegate(entityType);
         const entries = await delegate.findMany({
           where: {
             dailyLogId,
@@ -264,13 +310,12 @@ export class ReviewService {
     }
 
     const reviewEntries = await this.prisma.$transaction(async (tx) => {
-      const results: any[] = [];
+      const results: Record<string, unknown>[] = [];
 
       for (const { entityType, entityId } of entriesToApprove) {
-        const tableName = ENTITY_TABLE_MAP[entityType];
-        if (!tableName) continue;
+        if (!isEntityType(entityType)) continue;
 
-        const delegate = (tx as any)[tableName];
+        const delegate = this.getDelegate(entityType, tx as EntryClient);
         const entity = await delegate.findUnique({ where: { id: entityId } });
         if (!entity || entity.dailyLogId !== dailyLogId) continue;
 
@@ -411,8 +456,8 @@ export class ReviewService {
     let pendingReviewCount = 0;
     let readyForBatchApprove = 0;
 
-    for (const [, tableName] of Object.entries(ENTITY_TABLE_MAP)) {
-      const delegate = (this.prisma as any)[tableName];
+    for (const entityType of ENTITY_TYPES) {
+      const delegate = this.getDelegate(entityType);
       const entries = await delegate.findMany({
         where: { dailyLogId: { in: logIds }, aiGenerated: true },
         select: { aiConfidence: true, reviewStatus: true },
