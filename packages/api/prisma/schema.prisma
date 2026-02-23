@@ -301,6 +301,7 @@ model Organization {
   projectDocuments    ProjectDocument[]
   inspections         Inspection[]
   communications      Communication[]
+  syncConflictLogs    SyncConflictLog[]
 
   @@map("organizations")
 }
@@ -332,6 +333,7 @@ model User {
   deviceTokens            DeviceToken[]
   createdCommunications   Communication[]  @relation("CreatedCommunications")
   approvedCommunications  Communication[]  @relation("ApprovedCommunications")
+  employeeTrainingRecords TrainingRecord[] @relation("EmployeeTraining")
 
   @@index([organizationId])
   @@index([email])
@@ -868,6 +870,7 @@ model TrainingRecord {
 
   organization Organization @relation(fields: [organizationId], references: [id])
   project      Project?     @relation(fields: [projectId], references: [id])
+  employee     User?        @relation("EmployeeTraining", fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([employeeName])
@@ -890,6 +893,8 @@ model SyncConflictLog {
   serverTimestamp  DateTime @map("server_timestamp")
   resolution      String   @default("SERVER_WINS")
   createdAt       DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([table, recordId])

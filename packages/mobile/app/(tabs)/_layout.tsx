@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
-import { SyncStatusBar } from '@/components/common/SyncStatusBar';
+import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { getQueuedVoiceNotes } from '@/lib/powersync/offlineVoiceQueue';
 import { shadows } from '@/theme/tokens';
 
@@ -35,7 +35,7 @@ export default function TabsLayout() {
 
   return (
     <View style={{ flex: 1 }}>
-      <SyncStatusBar />
+      <OfflineBanner />
       <Tabs
         screenOptions={{
           headerStyle: { backgroundColor: colors.header },

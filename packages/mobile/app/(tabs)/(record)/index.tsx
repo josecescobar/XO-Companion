@@ -3,13 +3,13 @@ import { View, Text, ScrollView, Pressable, Alert, ActivityIndicator, StyleSheet
 import { Stack, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import NetInfo from '@react-native-community/netinfo';
 import { useRecorder } from '@/hooks/useRecorder';
+import { queueVoiceNote } from '@/lib/powersync/offlineVoiceQueue';
 import { useProjects } from '@/hooks/queries/useProjects';
 import { useDailyLogs } from '@/hooks/queries/useDailyLogs';
 import { useVoiceNote } from '@/hooks/queries/useVoiceNotes';
 import { useUploadVoice } from '@/hooks/mutations/useUploadVoice';
-import NetInfo from '@react-native-community/netinfo';
-import { queueVoiceNote } from '@/lib/powersync/offlineVoiceQueue';
 import { useRecordingStore } from '@/stores/recording.store';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { LoadingState } from '@/components/common/LoadingState';
@@ -104,7 +104,7 @@ export default function RecordScreen() {
   const handleUpload = async () => {
     if (!uri || !selectedProjectId || !selectedLogId) return;
 
-    // Check connectivity — queue offline if no network
+    // Offline: queue locally and return early
     const netState = await NetInfo.fetch();
     if (!netState.isConnected) {
       try {
@@ -112,17 +112,14 @@ export default function RecordScreen() {
           localUri: uri,
           projectId: selectedProjectId,
           dailyLogId: selectedLogId,
-          recordedAt: new Date().toISOString(),
-          mimeType: 'audio/m4a',
           durationSeconds: duration,
+          mimeType: 'audio/m4a',
+          recordedAt: new Date().toISOString(),
         });
-        Alert.alert(
-          'Saved Offline',
-          'Recording will upload automatically when back online.',
-        );
+        Alert.alert('Saved Offline', 'Recording will upload automatically when back online.');
         reset();
       } catch (err) {
-        Alert.alert('Error', 'Failed to save recording for offline upload.');
+        Alert.alert('Queue Error', err instanceof Error ? err.message : 'Failed to save offline');
       }
       return;
     }

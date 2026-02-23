@@ -17,8 +17,8 @@ bucket_definitions:
       - SELECT * FROM delay_entries WHERE daily_log_id IN (SELECT dl.id FROM daily_logs dl JOIN projects p ON dl.project_id = p.id WHERE p.organization_id = bucket.org_id)
       - SELECT * FROM weather_entries WHERE daily_log_id IN (SELECT dl.id FROM daily_logs dl JOIN projects p ON dl.project_id = p.id WHERE p.organization_id = bucket.org_id)
       - SELECT * FROM voice_notes WHERE daily_log_id IN (SELECT dl.id FROM daily_logs dl JOIN projects p ON dl.project_id = p.id WHERE p.organization_id = bucket.org_id)
-      - SELECT * FROM project_members WHERE project_id IN (SELECT id FROM projects WHERE organization_id = bucket.org_id)
       - SELECT * FROM tasks WHERE project_id IN (SELECT id FROM projects WHERE organization_id = bucket.org_id)
-      - SELECT * FROM communications WHERE project_id IN (SELECT id FROM projects WHERE organization_id = bucket.org_id)
-      - SELECT * FROM inspections WHERE project_id IN (SELECT id FROM projects WHERE organization_id = bucket.org_id)
+      - SELECT * FROM project_members WHERE project_id IN (SELECT id FROM projects WHERE organization_id = bucket.org_id)
+      - SELECT * FROM communications WHERE organization_id = bucket.org_id
+      - SELECT * FROM inspections WHERE organization_id = bucket.org_id
       - SELECT * FROM compliance_documents WHERE organization_id = bucket.org_id
