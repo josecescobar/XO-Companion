@@ -8,7 +8,7 @@ correct, and consistent. Flag any discrepancies, missing pieces, or issues.
 
 GitHub: https://github.com/josecescobar/XO-Companion
 Branch: main
-Latest commit should be: `feat(api): add global exception filter and enhance request logging`
+Latest commit should be: `fix: add Express Request type augmentation and fix offline queue cleanup path`
 
 ---
 
@@ -28,15 +28,16 @@ analytics, auth, communications, compliance, daily-logs, documents,
 file-upload, health, inspections, media, memory, notifications, prisma,
 projects, reports, review, sync, tasks, users, voice
 
-**Common infrastructure** in `packages/api/src/common/` (7 files):
+**Common infrastructure** in `packages/api/src/common/` (8 files):
 - `decorators/`: public.decorator.ts, roles.decorator.ts, current-user.decorator.ts
 - `guards/`: jwt-auth.guard.ts, roles.guard.ts
 - `interceptors/`: logging.interceptor.ts
 - `filters/`: all-exceptions.filter.ts
+- `types/`: express.d.ts
 
 ---
 
-## 2. Global Error Handling & Logging (Priority #12 — most recent work)
+## 2. Global Error Handling & Logging (Priority #12)
 
 ### 2a. AllExceptionsFilter — `packages/api/src/common/filters/all-exceptions.filter.ts`
 
@@ -45,7 +46,7 @@ Verify:
 - Returns consistent JSON envelope: `{ statusCode, message, error, requestId, timestamp }`
 - For 500s: logs full stack trace via Logger.error(), returns generic "Internal server error" (NO stack leak to client)
 - For HttpExceptions: passes through status + message as-is
-- Extracts requestId from: req.requestId (set by interceptor) → x-request-id header → generates UUID
+- Extracts requestId via typed `req.requestId` (no duck-typing) → x-request-id header → generates UUID
 - Log levels: `warn` for 4xx, `error` for 5xx
 - Handles NestJS validation pipe errors (array of messages joined with ', ')
 
@@ -59,7 +60,14 @@ Verify:
 - Re-throws errors after logging (does NOT swallow them)
 - Return type is `Observable<unknown>` (not `Observable<any>`)
 
-### 2c. main.ts — `packages/api/src/main.ts`
+### 2c. Express Type Augmentation — `packages/api/src/common/types/express.d.ts`
+
+Verify:
+- Extends `Express.Request` globally with `requestId: string` and `user?: { id: string; role: string }`
+- Eliminates duck-type checks — filter and interceptor access `req.requestId` and `req.user` directly
+- File exports empty object (`export {}`) to be treated as a module
+
+### 2d. main.ts — `packages/api/src/main.ts`
 
 Verify:
 - `AllExceptionsFilter` is imported and registered via `app.useGlobalFilters()`
@@ -109,6 +117,7 @@ Verify:
 - If offline → queueVoiceNote() saves locally, shows "Saved Offline" alert
 - If online → existing upload flow unchanged
 - useOfflineSync() called in tab layout to process queue on foreground
+- Metadata file cleanup in `uploadQueuedVoiceNote()` derives path via `new File(getQueueDir(), \`${audioName}.json\`)` — matching how the file was originally created in `queueVoiceNote()`
 
 ---
 
@@ -145,6 +154,7 @@ Across ALL modified/created files, verify:
 - [ ] No business logic in controllers
 - [ ] All imports are valid (no cross-module direct imports)
 - [ ] No hardcoded secrets or credentials
+- [ ] Express Request type augmentation eliminates all duck-type access patterns
 
 ---
 
